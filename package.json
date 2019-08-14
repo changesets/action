@@ -1,0 +1,27 @@
+{
+  "name": "@changesets/action",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "parcel": "^1.12.3",
+    "typescript": "^3.5.3"
+  },
+  "scripts": {
+    "build": "parcel build ./index.ts --no-source-maps --target=node --bundle-node-modules"
+  },
+  "dependencies": {
+    "@actions/core": "^1.0.0",
+    "@actions/exec": "^1.0.0",
+    "@actions/github": "^1.0.0",
+    "@actions/io": "^1.0.0",
+    "@actions/tool-cache": "^1.0.0",
+    "@types/node": "^12.7.1",
+    "husky": "^3.0.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn build && git add dist/index.js"
+    }
+  }
+}
