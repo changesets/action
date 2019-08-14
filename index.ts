@@ -99,7 +99,7 @@ async function execWithOutput(
 
     await exec(publishCommand, publishArgs);
 
-    await exec("git", ["push", "--follow-tags", "gh-https", "master"]);
+    await exec("git", ["push", "--follow-tags", "gh-https", defaultBranch]);
 
     return;
   }
@@ -123,26 +123,26 @@ async function execWithOutput(
     let cmd = await execWithOutput("git", [
       "merge-base",
       "changeset-release",
-      "master"
+      github.context.ref
     ]);
     const divergedAt = cmd.stdout.trim();
 
     let diffOutput = await execWithOutput("git", [
       "diff",
       "--name-only",
-      `${divergedAt}...master`
+      `${divergedAt}...${github.context.ref}`
     ]);
     const files = diffOutput.stdout.trim();
     shouldBump = files.includes(".changeset");
     console.log("checked if new changesets should be added " + shouldBump);
   }
   if (shouldBump) {
-    await exec("git", ["reset", "--hard", "master"]);
+    await exec("git", ["reset", "--hard", github.context.ref]);
     await exec("yarn", ["changeset", "bump"]);
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", "Version Packages"]);
     await exec("git", ["push", "gh-https", "changeset-release", "--force"]);
-    let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:master`;
+    let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:${defaultBranch}`;
     let searchResult = await octokit.search.issuesAndPullRequests({
       q: searchQuery
     });
@@ -150,7 +150,7 @@ async function execWithOutput(
     if (searchResult.data.items.length === 0) {
       console.log("creating pull request");
       await octokit.pulls.create({
-        base: "master",
+        base: defaultBranch,
         head: "changeset-release",
         title: "Version Packages",
         ...github.context.repo
@@ -161,4 +161,7 @@ async function execWithOutput(
   } else {
     console.log("no new changesets");
   }
-})();
+})().catch(err => {
+  console.error(err);
+  core.setFailed(err.message);
+});
