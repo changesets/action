@@ -1,7 +1,8 @@
 name: Changesets
 description: A GitHub action to automate releases with Changesets
-using: "node12"
-main: "dist/index.js"
+runs:
+  using: "node12"
+  main: "dist/index.js"
 inputs:
   release-script:
     description: "The npm script to run to do a release"
