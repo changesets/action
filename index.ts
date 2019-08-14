@@ -3,22 +3,27 @@ import { exec } from "@actions/exec";
 import * as github from "@actions/github";
 import fs from "fs-extra";
 
-async function execWithOutput(command: string, args?: string[]) {
+async function execWithOutput(
+  command: string,
+  args?: string[],
+  options?: { ignoreReturnCode?: boolean }
+) {
   let myOutput = "";
   let myError = "";
 
-  const options = {
-    listeners: {
-      stdout: (data: Buffer) => {
-        myOutput += data.toString();
-      },
-      stderr: (data: Buffer) => {
-        myError += data.toString();
-      }
-    }
-  };
   return {
-    code: await exec(command, args, options),
+    code: await exec(command, args, {
+      listeners: {
+        stdout: (data: Buffer) => {
+          myOutput += data.toString();
+        },
+        stderr: (data: Buffer) => {
+          myError += data.toString();
+        }
+      },
+
+      ...options
+    }),
     stdout: myOutput,
     stderr: myError
   };
@@ -99,10 +104,11 @@ async function execWithOutput(command: string, args?: string[]) {
     return;
   }
 
-  let { stderr } = await execWithOutput("git", [
-    "checkout",
-    "changeset-release"
-  ]);
+  let { stderr } = await execWithOutput(
+    "git",
+    ["checkout", "changeset-release"],
+    { ignoreReturnCode: true }
+  );
   let isCreatingChangesetReleaseBranch = !stderr
     .toString()
     .includes("Switched to a new branch 'changeset-release'");
