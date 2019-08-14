@@ -31,6 +31,7 @@ async function execWithOutput(command: string, args?: string[]) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
     return;
   }
+  let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
 
   const octokit = new github.GitHub(githubToken);
 
@@ -64,8 +65,6 @@ async function execWithOutput(command: string, args?: string[]) {
     `${process.env.HOME}/.netrc`,
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
-
-  let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
 
   let defaultBranch = await defaultBranchPromise;
   if (github.context.ref !== defaultBranch) {
