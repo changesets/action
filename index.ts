@@ -99,7 +99,12 @@ async function execWithOutput(
 
     await exec(publishCommand, publishArgs);
 
-    await exec("git", ["push", "--follow-tags", "gh-https", defaultBranch]);
+    await exec("git", [
+      "push",
+      "--follow-tags",
+      "gh-https",
+      github.context.ref
+    ]);
 
     return;
   }
