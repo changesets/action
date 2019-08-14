@@ -4,10 +4,9 @@ runs:
   using: "node12"
   main: "dist/index.js"
 inputs:
-  release-script:
-    description: "The npm script to run to do a release"
+  publish:
+    description: "The command to use to build and publish packages"
     required: false
-    default: "release"
 branding:
   icon: "package"
   color: "blue"

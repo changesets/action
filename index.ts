@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { exec } from "@actions/exec";
 import * as github from "@actions/github";
-import fs from "fs";
+import fs from "fs-extra";
 
 async function execWithOutput(command: string, args?: string[]) {
   let myOutput = "";
@@ -25,8 +25,6 @@ async function execWithOutput(command: string, args?: string[]) {
 }
 
 (async () => {
-  const releaseScript = core.getInput("release-script");
-
   let githubToken = process.env.GITHUB_TOKEN;
 
   if (!githubToken) {
@@ -36,16 +34,9 @@ async function execWithOutput(command: string, args?: string[]) {
 
   const octokit = new github.GitHub(githubToken);
 
-  let repo = `${process.env.CIRCLE_PROJECT_USERNAME}/${
-    process.env.CIRCLE_PROJECT_REPONAME
-  }`;
-  let ghUsername = process.env.GITHUB_ACTOR;
-
-  if (process.env.CIRCLE_BRANCH !== "master") {
-    return console.log(
-      "Not on master, on branch: " + process.env.CIRCLE_BRANCH
-    );
-  }
+  let defaultBranchPromise = octokit.repos
+    .get(github.context.repo)
+    .then(x => x.data.default_branch);
 
   console.log("setting git user");
   await exec("git", [
@@ -69,15 +60,28 @@ async function execWithOutput(command: string, args?: string[]) {
   ]);
 
   console.log("setting GitHub credentials");
-  fs.writeFileSync(
+  await fs.writeFile(
     `${process.env.HOME}/.netrc`,
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
 
+  let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
+
+  let defaultBranch = await defaultBranchPromise;
+  if (github.context.ref !== defaultBranch) {
+    core.setFailed(
+      `The changesets action should only run on ${defaultBranch} but it's running on ${
+        github.context.ref
+      }, please change your GitHub actions config to only run the Changesets action on ${defaultBranch}`
+    );
+    return;
+  }
+
   let hasChangesets = fs
     .readdirSync(`${process.cwd()}/.changeset`)
     .some(x => x !== "config.js" && x !== "README.md");
-  if (!hasChangesets) {
+  let publishScript = core.getInput("publish");
+  if (!hasChangesets && publishScript) {
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
     );
@@ -86,7 +90,9 @@ async function execWithOutput(command: string, args?: string[]) {
       `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
     );
 
-    await exec("yarn", [releaseScript]);
+    let [publishCommand, ...publishArgs] = publishScript.split(/\s+/);
+
+    await exec(publishCommand, publishArgs);
 
     await exec("git", ["push", "--follow-tags", "gh-https", "master"]);
 
@@ -101,7 +107,6 @@ async function execWithOutput(command: string, args?: string[]) {
     .toString()
     .includes("Switched to a new branch 'changeset-release'");
   if (isCreatingChangesetReleaseBranch) {
-    console.log("creating changeset-release branch");
     await exec("git", ["checkout", "-b", "changeset-release"]);
   }
 
