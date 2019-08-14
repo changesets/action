@@ -123,21 +123,21 @@ async function execWithOutput(
     let cmd = await execWithOutput("git", [
       "merge-base",
       "changeset-release",
-      github.context.ref
+      github.context.sha
     ]);
     const divergedAt = cmd.stdout.trim();
 
     let diffOutput = await execWithOutput("git", [
       "diff",
       "--name-only",
-      `${divergedAt}...${github.context.ref}`
+      `${divergedAt}...${github.context.sha}`
     ]);
     const files = diffOutput.stdout.trim();
     shouldBump = files.includes(".changeset");
     console.log("checked if new changesets should be added " + shouldBump);
   }
   if (shouldBump) {
-    await exec("git", ["reset", "--hard", github.context.ref]);
+    await exec("git", ["reset", "--hard", github.context.sha]);
     await exec("yarn", ["changeset", "bump"]);
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", "Version Packages"]);
