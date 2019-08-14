@@ -67,11 +67,12 @@ async function execWithOutput(command: string, args?: string[]) {
   );
 
   let defaultBranch = await defaultBranchPromise;
-  if (github.context.ref !== defaultBranch) {
+  if (github.context.ref.replace("refs/heads/", "") !== defaultBranch) {
     core.setFailed(
-      `The changesets action should only run on ${defaultBranch} but it's running on ${
-        github.context.ref
-      }, please change your GitHub actions config to only run the Changesets action on ${defaultBranch}`
+      `The changesets action should only run on ${defaultBranch} but it's running on ${github.context.ref.replace(
+        "refs/heads/",
+        ""
+      )}, please change your GitHub actions config to only run the Changesets action on ${defaultBranch}`
     );
     return;
   }
