@@ -58,13 +58,6 @@ async function execWithOutput(
     `"github-actions[bot]@users.noreply.github.com"`
   ]);
 
-  await exec("git", [
-    "remote",
-    "add",
-    "gh-https",
-    `https://github.com/${repo}`
-  ]);
-
   console.log("setting GitHub credentials");
   await fs.writeFile(
     `${process.env.HOME}/.netrc`,
@@ -99,12 +92,7 @@ async function execWithOutput(
 
     await exec(publishCommand, publishArgs);
 
-    await exec("git", [
-      "push",
-      "--follow-tags",
-      "gh-https",
-      github.context.ref
-    ]);
+    await exec("git", ["push", "--follow-tags"]);
 
     return;
   }
@@ -146,7 +134,7 @@ async function execWithOutput(
     await exec("yarn", ["changeset", "bump"]);
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", "Version Packages"]);
-    await exec("git", ["push", "gh-https", "changeset-release", "--force"]);
+    await exec("git", ["push", "origin", "changeset-release", "--force"]);
     let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:${defaultBranch}`;
     let searchResult = await octokit.search.issuesAndPullRequests({
       q: searchQuery
