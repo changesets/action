@@ -92,7 +92,7 @@ async function execWithOutput(
 
     await exec(publishCommand, publishArgs);
 
-    await exec("git", ["push", "--follow-tags"]);
+    await exec("git", ["push","origin", `HEAD:${defaultBranch}` "--follow-tags"]);
 
     return;
   }
