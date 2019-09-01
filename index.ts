@@ -79,6 +79,10 @@ async function execWithOutput(
     .readdirSync(`${process.cwd()}/.changeset`)
     .some(x => x !== "config.js" && x !== "README.md");
   let publishScript = core.getInput("publish");
+  if (!hasChangesets && !publishScript) {
+    console.log("No changesets found");
+    return;
+  }
   if (!hasChangesets && publishScript) {
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
