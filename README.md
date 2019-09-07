@@ -35,7 +35,7 @@ jobs:
       - name: Install Dependencies
         run: yarn
 
-      - name: Create Pull Request or Publish to npm
+      - name: Create Release Pull Request
         uses: changesets/action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,7 +72,7 @@ jobs:
       - name: Install Dependencies
         run: yarn
 
-      - name: "Create Pull Request or Publish to npm"
+      - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@master
         with:
           # The --otp=1 is to get around a bug in changesets

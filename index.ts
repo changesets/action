@@ -213,14 +213,54 @@ async function execWithOutput(
   }
   if (shouldBump) {
     await exec("git", ["reset", "--hard", github.context.sha]);
-    await exec("yarn", ["changeset", "bump"]);
+    let output = await execWithOutput("yarn", ["changeset", "bump"]);
+    let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:${defaultBranch}`;
+    let searchResultPromise = octokit.search.issuesAndPullRequests({
+      q: searchQuery
+    });
+    let prBodyPromise = (async () => {
+      let updateChangelogRegex = /Updated file (.+)/;
+      let changelogFilenames = [];
+      for (let line of output.stdout.split("\n")) {
+        let match = line.match(updateChangelogRegex);
+        if (match === null) {
+          continue;
+        }
+        changelogFilenames.push(match[1]);
+      }
+      return (
+        `Hey!! 🦋
+
+This PR was opened by the Changesets release GitHub action. When you're ready to do a release, you can merge this and ${
+          publishScript
+            ? `the packages will be published to npm automatically`
+            : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`
+        }. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${defaultBranch}, this PR will be updated.
+
+# Releases
+` +
+        (await Promise.all(
+          changelogFilenames.map(async filename => {
+            let [pkgJsonContent, changelogContents] = await Promise.all([
+              fs.readJson(path.join(path.dirname(filename), "package.json")),
+              fs.readFile(filename, "utf8")
+            ]);
+
+            let entry = getChangelogEntry(
+              changelogContents,
+              pkgJsonContent.version
+            );
+            return (
+              `## ${pkgJsonContent.name}@${pkgJsonContent.version}\n\n` + entry
+            );
+          })
+        )).join("\n ")
+      );
+    })();
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", "Version Packages"]);
     await exec("git", ["push", "origin", "changeset-release", "--force"]);
-    let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:${defaultBranch}`;
-    let searchResult = await octokit.search.issuesAndPullRequests({
-      q: searchQuery
-    });
+    let searchResult = await searchResultPromise;
     console.log(JSON.stringify(searchResult.data, null, 2));
     if (searchResult.data.items.length === 0) {
       console.log("creating pull request");
@@ -228,9 +268,15 @@ async function execWithOutput(
         base: defaultBranch,
         head: "changeset-release",
         title: "Version Packages",
+        body: await prBodyPromise,
         ...github.context.repo
       });
     } else {
+      octokit.pulls.update({
+        pull_number: searchResult.data.items[0].number,
+        body: await prBodyPromise,
+        ...github.context.repo
+      });
       console.log("pull request found");
     }
   } else {
