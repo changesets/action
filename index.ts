@@ -2,6 +2,13 @@ import * as core from "@actions/core";
 import { exec } from "@actions/exec";
 import * as github from "@actions/github";
 import fs from "fs-extra";
+import unified from "unified";
+import remarkParse from "remark-parse";
+import remarkStringify from "remark-stringify";
+// @ts-ignore
+import mdastToString from "mdast-util-to-string";
+import getWorkspaces, { Workspace } from "get-workspaces";
+import path from "path";
 
 async function execWithOutput(
   command: string,
@@ -87,6 +94,14 @@ async function execWithOutput(
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
     );
+    let workspaces = await getWorkspaces({ tools: ["bolt", "yarn", "root"] });
+
+    if (!workspaces) {
+      return core.setFailed("Could not find workspaces");
+    }
+
+    let workspacesByName = new Map(workspaces.map(x => [x.name, x]));
+
     fs.writeFileSync(
       `${process.env.HOME}/.npmrc`,
       `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
@@ -94,7 +109,10 @@ async function execWithOutput(
 
     let [publishCommand, ...publishArgs] = publishScript.split(/\s+/);
 
-    await exec(publishCommand, publishArgs);
+    let changesetPublishOutput = await execWithOutput(
+      publishCommand,
+      publishArgs
+    );
 
     await exec("git", [
       "push",
@@ -102,6 +120,61 @@ async function execWithOutput(
       `HEAD:${defaultBranch}`,
       "--follow-tags"
     ]);
+
+    let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
+
+    let releasedWorkspaces: Workspace[] = [];
+
+    for (let line of changesetPublishOutput.stdout.split("\n")) {
+      let match = line.match(newTagRegex);
+      if (match === null) {
+        continue;
+      }
+      let pkgName = match[1];
+      let workspace = workspacesByName.get(pkgName);
+      if (workspace === undefined) {
+        return core.setFailed(
+          "Workspace not found for " +
+            pkgName +
+            ". This is probably a bug in the action, please open an issue"
+        );
+      }
+      releasedWorkspaces.push(workspace);
+    }
+
+    await Promise.all(
+      releasedWorkspaces.map(async workspace => {
+        try {
+          let changelogFileName = path.join(workspace.dir, "CHANGELOG.md");
+
+          let changelog = await fs.readFile(changelogFileName, "utf8");
+
+          let changelogEntry = getChangelogEntry(
+            changelog,
+            workspace.config.version
+          );
+          if (!changelogEntry) {
+            // we can find a changelog but not the entry for this version
+            // if this is true, something has probably gone wrong
+            return core.setFailed(
+              `Could not find changelog entry for ${workspace.name}@${workspace.config.version}`
+            );
+          }
+
+          await octokit.repos.createRelease({
+            tag_name: `${workspace.name}@${workspace.config.version}`,
+            body: changelogEntry,
+            prerelease: workspace.config.version.includes("-"),
+            ...github.context.repo
+          });
+        } catch (err) {
+          // if we can't find a changelog, the user has probably disabled changelogs
+          if (err.code !== "ENOENT") {
+            throw err;
+          }
+        }
+      })
+    );
 
     return;
   }
@@ -167,3 +240,50 @@ async function execWithOutput(
   console.error(err);
   core.setFailed(err.message);
 });
+
+function getChangelogEntry(changelog: string, version: string) {
+  let ast = unified()
+    .use(remarkParse)
+    .parse(changelog);
+
+  let nodes = ast.children as Array<any>;
+  let headingStartInfo:
+    | {
+        index: number;
+        depth: number;
+      }
+    | undefined;
+  let endIndex: number | undefined;
+
+  for (let i = 0; i < nodes.length; i++) {
+    let node = nodes[i];
+    if (
+      headingStartInfo === undefined &&
+      node.type === "heading" &&
+      mdastToString(node) === version
+    ) {
+      headingStartInfo = {
+        index: i,
+        depth: node.depth
+      };
+      continue;
+    }
+    if (
+      headingStartInfo !== undefined &&
+      node.type === "heading" &&
+      headingStartInfo.depth === node.depth
+    ) {
+      endIndex = i;
+      break;
+    }
+  }
+  if (headingStartInfo) {
+    ast.children = (ast.children as any).slice(
+      headingStartInfo.index + 1,
+      endIndex
+    );
+  }
+  return unified()
+    .use(remarkStringify)
+    .stringify(ast);
+}
