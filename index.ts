@@ -163,7 +163,7 @@ async function execWithOutput(
 
           await octokit.repos.createRelease({
             tag_name: `${workspace.name}@${workspace.config.version}`,
-            body: changelogEntry,
+            body: changelogEntry.content,
             prerelease: workspace.config.version.includes("-"),
             ...github.context.repo
           });
@@ -251,11 +251,17 @@ async function execWithOutput(
               changelogContents,
               pkgJsonContent.version
             );
-            return (
-              `## ${pkgJsonContent.name}@${pkgJsonContent.version}\n\n` + entry
-            );
+            return {
+              highestLevel: entry.highestLevel,
+              content:
+                `## ${pkgJsonContent.name}@${pkgJsonContent.version}\n\n` +
+                entry.content
+            };
           })
-        )).join("\n ")
+        ))
+          .sort((a, b) => b.highestLevel - a.highestLevel)
+          .map(x => x.content)
+          .join("\n ")
       );
     })();
     await exec("git", ["add", "."]);
@@ -288,10 +294,19 @@ async function execWithOutput(
   core.setFailed(err.message);
 });
 
+enum BumpLevels {
+  dep = 0,
+  patch = 1,
+  minor = 2,
+  major = 3
+}
+
 function getChangelogEntry(changelog: string, version: string) {
   let ast = unified()
     .use(remarkParse)
     .parse(changelog);
+
+  let highestLevel = BumpLevels.dep;
 
   let nodes = ast.children as Array<any>;
   let headingStartInfo:
@@ -304,24 +319,29 @@ function getChangelogEntry(changelog: string, version: string) {
 
   for (let i = 0; i < nodes.length; i++) {
     let node = nodes[i];
-    if (
-      headingStartInfo === undefined &&
-      node.type === "heading" &&
-      mdastToString(node) === version
-    ) {
-      headingStartInfo = {
-        index: i,
-        depth: node.depth
-      };
-      continue;
+    if (node.type === "heading") {
+      let stringified: string = mdastToString(node);
+      let match = stringified.toLowerCase().match(/(major|minor|patch)/);
+      if (match !== null) {
+        let level = BumpLevels[match[0] as "major" | "minor" | "patch"];
+        highestLevel = Math.max(level, highestLevel);
+      }
+      if (headingStartInfo === undefined && stringified === version) {
+        headingStartInfo = {
+          index: i,
+          depth: node.depth
+        };
+        continue;
+      }
     }
+
     if (
+      endIndex === undefined &&
       headingStartInfo !== undefined &&
       node.type === "heading" &&
       headingStartInfo.depth === node.depth
     ) {
       endIndex = i;
-      break;
     }
   }
   if (headingStartInfo) {
@@ -330,7 +350,10 @@ function getChangelogEntry(changelog: string, version: string) {
       endIndex
     );
   }
-  return unified()
-    .use(remarkStringify)
-    .stringify(ast);
+  return {
+    content: unified()
+      .use(remarkStringify)
+      .stringify(ast),
+    highestLevel: highestLevel
+  };
 }
