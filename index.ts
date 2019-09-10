@@ -213,7 +213,10 @@ async function execWithOutput(
   }
   if (shouldBump) {
     await exec("git", ["reset", "--hard", github.context.sha]);
-    let output = await execWithOutput("yarn", ["changeset", "bump"]);
+    let output = await execWithOutput("node", [
+      "./node_modules/.bin/changeset",
+      "bump"
+    ]);
     let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:${defaultBranch}`;
     let searchResultPromise = octokit.search.issuesAndPullRequests({
       q: searchQuery
