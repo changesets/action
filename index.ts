@@ -4,33 +4,8 @@ import * as github from "@actions/github";
 import fs from "fs-extra";
 import getWorkspaces, { Workspace } from "get-workspaces";
 import path from "path";
-import { getChangelogEntry } from "./utils";
-
-async function execWithOutput(
-  command: string,
-  args?: string[],
-  options?: { ignoreReturnCode?: boolean }
-) {
-  let myOutput = "";
-  let myError = "";
-
-  return {
-    code: await exec(command, args, {
-      listeners: {
-        stdout: (data: Buffer) => {
-          myOutput += data.toString();
-        },
-        stderr: (data: Buffer) => {
-          myError += data.toString();
-        }
-      },
-
-      ...options
-    }),
-    stdout: myOutput,
-    stderr: myError
-  };
-}
+import { getChangelogEntry, execWithOutput, getChangedPackages } from "./utils";
+import * as semver from "semver";
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
@@ -209,24 +184,23 @@ async function execWithOutput(
   }
   if (shouldBump) {
     await exec("git", ["reset", "--hard", github.context.sha]);
+    let changesetsCliPkgJson = await fs.readJson(
+      require.resolve("@changesets/cli/package.json")
+    );
+    let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
+      ? "bump"
+      : "version";
     let output = await execWithOutput("node", [
       "./node_modules/.bin/changeset",
-      "bump"
+      cmd
     ]);
     let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:${defaultBranch}`;
     let searchResultPromise = octokit.search.issuesAndPullRequests({
       q: searchQuery
     });
+    let changedWorkspaces = await getChangedPackages(process.cwd());
+
     let prBodyPromise = (async () => {
-      let updateChangelogRegex = /Updated file (.+)/;
-      let changelogFilenames = [];
-      for (let line of output.stdout.split("\n")) {
-        let match = line.match(updateChangelogRegex);
-        if (match === null) {
-          continue;
-        }
-        changelogFilenames.push(match[1]);
-      }
       return (
         `This PR was opened by the Changesets release GitHub action. When you're ready to do a release, you can merge this and ${
           publishScript
@@ -237,24 +211,25 @@ async function execWithOutput(
 # Releases
 ` +
         (await Promise.all(
-          changelogFilenames.map(async filename => {
-            let [pkgJsonContent, changelogContents] = await Promise.all([
-              fs.readJson(path.join(path.dirname(filename), "package.json")),
-              fs.readFile(filename, "utf8")
-            ]);
+          changedWorkspaces.map(async workspace => {
+            let changelogContents = await fs.readFile(
+              path.join(workspace.dir, "CHANGELOG.md"),
+              "utf8"
+            );
 
             let entry = getChangelogEntry(
               changelogContents,
-              pkgJsonContent.version
+              workspace.config.version
             );
             return {
               highestLevel: entry.highestLevel,
               content:
-                `## ${pkgJsonContent.name}@${pkgJsonContent.version}\n\n` +
+                `## ${workspace.name}@${workspace.config.version}\n\n` +
                 entry.content
             };
           })
         ))
+          .filter(x => x)
           .sort((a, b) => b.highestLevel - a.highestLevel)
           .map(x => x.content)
           .join("\n ")

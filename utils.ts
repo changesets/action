@@ -3,6 +3,10 @@ import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
+import { exec } from "@actions/exec";
+import * as core from "@actions/core";
+import getWorkspaces, { Workspace } from "get-workspaces";
+import path from "path";
 
 export const BumpLevels = {
   dep: 0,
@@ -10,6 +14,33 @@ export const BumpLevels = {
   minor: 2,
   major: 3
 } as const;
+
+export async function getChangedPackages(cwd: string) {
+  let workspaces = await getWorkspaces({
+    cwd,
+    tools: ["bolt", "yarn", "root"]
+  });
+
+  if (!workspaces) {
+    core.setFailed("Could not find workspaces");
+    return process.exit(1);
+  }
+
+  let workspacesByDirectory = new Map(workspaces.map(x => [x.dir, x]));
+
+  let output = await execWithOutput("git", ["diff", "--only-names"], { cwd });
+  let names = output.stdout.split("\n");
+  let changedWorkspaces: Workspace[] = [];
+  for (let name of names) {
+    let dirname = path.dirname(name);
+    let workspace = workspacesByDirectory.get(dirname);
+    if (workspace !== undefined) {
+      changedWorkspaces.push(workspace);
+    }
+  }
+
+  return changedWorkspaces;
+}
 
 export function getChangelogEntry(changelog: string, version: string) {
   let ast = unified()
@@ -64,5 +95,31 @@ export function getChangelogEntry(changelog: string, version: string) {
       .use(remarkStringify)
       .stringify(ast),
     highestLevel: highestLevel
+  };
+}
+
+export async function execWithOutput(
+  command: string,
+  args?: string[],
+  options?: { ignoreReturnCode?: boolean; cwd?: string }
+) {
+  let myOutput = "";
+  let myError = "";
+
+  return {
+    code: await exec(command, args, {
+      listeners: {
+        stdout: (data: Buffer) => {
+          myOutput += data.toString();
+        },
+        stderr: (data: Buffer) => {
+          myError += data.toString();
+        }
+      },
+
+      ...options
+    }),
+    stdout: myOutput,
+    stderr: myError
   };
 }
