@@ -30,17 +30,17 @@ export async function getChangedPackages(cwd: string) {
 
   let output = await execWithOutput("git", ["diff", "--name-only"], { cwd });
   let names = output.stdout.split("\n");
-  let changedWorkspaces: Workspace[] = [];
+  let changedWorkspaces = new Set<Workspace>();
   for (let name of names) {
     if (name === "") continue;
     let dirname = path.resolve(cwd, path.dirname(name));
     let workspace = workspacesByDirectory.get(dirname);
     if (workspace !== undefined) {
-      changedWorkspaces.push(workspace);
+      changedWorkspaces.add(workspace);
     }
   }
 
-  return changedWorkspaces;
+  return [...changedWorkspaces];
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
