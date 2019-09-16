@@ -90,6 +90,7 @@ test("getChangedPackages works", async () => {
     name: "some-package",
     version: "1.0.0"
   });
+  await fs.writeFile(path.join(dir, "CHANGELOG.md"), "some content");
   await exec("git", ["add", "."], { cwd: dir });
   await exec("git", ["commit", "-m", "initial commit"], { cwd: dir });
   let emptyWorkspaces = await getChangedPackages(dir);
@@ -98,6 +99,7 @@ test("getChangedPackages works", async () => {
     name: "some-package",
     version: "2.0.0"
   };
+  await fs.writeFile(path.join(dir, "CHANGELOG.md"), "other content");
   await fs.writeJson(path.join(dir, "package.json"), workspace);
   let workspaces = await getChangedPackages(dir);
   expect(workspaces).toEqual([
