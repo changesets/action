@@ -185,7 +185,7 @@ import * as semver from "semver";
   if (shouldBump) {
     await exec("git", ["reset", "--hard", github.context.sha]);
     let changesetsCliPkgJson = await fs.readJson(
-      require.resolve("@changesets/cli/package.json")
+      path.join("node_modules", "@changesets", "cli", "package.json")
     );
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
