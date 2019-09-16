@@ -90,8 +90,8 @@ test("getChangedPackages works", async () => {
     name: "some-package",
     version: "1.0.0"
   });
-  await exec("git", ["add", "."]);
-  await exec("git", ["commit", "-m", "'initial commit'"]);
+  await exec("git", ["add", "."], { cwd: dir });
+  await exec("git", ["commit", "-m", "initial commit"], { cwd: dir });
   let emptyWorkspaces = await getChangedPackages(dir);
   expect(emptyWorkspaces).toEqual([]);
   let workspace = {

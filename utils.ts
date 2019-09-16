@@ -28,11 +28,12 @@ export async function getChangedPackages(cwd: string) {
 
   let workspacesByDirectory = new Map(workspaces.map(x => [x.dir, x]));
 
-  let output = await execWithOutput("git", ["diff", "--only-names"], { cwd });
+  let output = await execWithOutput("git", ["diff", "--name-only"], { cwd });
   let names = output.stdout.split("\n");
   let changedWorkspaces: Workspace[] = [];
   for (let name of names) {
-    let dirname = path.dirname(name);
+    if (name === "") continue;
+    let dirname = path.resolve(cwd, path.dirname(name));
     let workspace = workspacesByDirectory.get(dirname);
     if (workspace !== undefined) {
       changedWorkspaces.push(workspace);
