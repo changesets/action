@@ -155,39 +155,19 @@ import * as semver from "semver";
     return;
   }
 
-  let { stderr } = await execWithOutput(
-    "git",
-    ["checkout", "changeset-release"],
-    { ignoreReturnCode: true }
-  );
-  let isCreatingChangesetReleaseBranch = !stderr
-    .toString()
-    .includes("Switched to a new branch 'changeset-release'");
-  if (isCreatingChangesetReleaseBranch) {
-    await exec("git", ["checkout", "-b", "changeset-release"]);
-  }
+  if (hasChangesets) {
+    let { stderr } = await execWithOutput(
+      "git",
+      ["checkout", "changeset-release"],
+      { ignoreReturnCode: true }
+    );
+    let isCreatingChangesetReleaseBranch = !stderr
+      .toString()
+      .includes("Switched to a new branch 'changeset-release'");
+    if (isCreatingChangesetReleaseBranch) {
+      await exec("git", ["checkout", "-b", "changeset-release"]);
+    }
 
-  let shouldBump = isCreatingChangesetReleaseBranch;
-
-  if (!shouldBump) {
-    console.log("checking if new changesets should be added");
-    let cmd = await execWithOutput("git", [
-      "merge-base",
-      "changeset-release",
-      github.context.sha
-    ]);
-    const divergedAt = cmd.stdout.trim();
-
-    let diffOutput = await execWithOutput("git", [
-      "diff",
-      "--name-only",
-      `${divergedAt}...${github.context.sha}`
-    ]);
-    const files = diffOutput.stdout.trim();
-    shouldBump = files.includes(".changeset");
-    console.log("checked if new changesets should be added " + shouldBump);
-  }
-  if (shouldBump) {
     await exec("git", ["reset", "--hard", github.context.sha]);
     let changesetsCliPkgJson = await fs.readJson(
       path.join("node_modules", "@changesets", "cli", "package.json")
@@ -263,8 +243,6 @@ import * as semver from "semver";
       });
       console.log("pull request found");
     }
-  } else {
-    console.log("no new changesets");
   }
 })().catch(err => {
   console.error(err);
