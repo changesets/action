@@ -75,8 +75,24 @@ jobs:
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@master
         with:
-          publish: yarn changeset publish
+          publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
+
+
+Doing a publish is triggered by the existence of:
+
+```yaml
+        with:
+          publish: yarn release
+```
+
+This command will run `yarn release` in your repository on merging code into master. You will likely want a to add `release` command to your `package.json` that looks like:
+
+```sh
+"release": "yarn build && changeset publish"
+```
+
+to publish your code.
