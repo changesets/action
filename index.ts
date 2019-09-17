@@ -4,7 +4,12 @@ import * as github from "@actions/github";
 import fs from "fs-extra";
 import getWorkspaces, { Workspace } from "get-workspaces";
 import path from "path";
-import { getChangelogEntry, execWithOutput, getChangedPackages } from "./utils";
+import {
+  getChangelogEntry,
+  execWithOutput,
+  getChangedPackages,
+  sortTheThings
+} from "./utils";
 import * as semver from "semver";
 
 (async () => {
@@ -223,6 +228,7 @@ import * as semver from "semver";
             );
             return {
               highestLevel: entry.highestLevel,
+              private: !!workspace.config.private,
               content:
                 `## ${workspace.name}@${workspace.config.version}\n\n` +
                 entry.content
@@ -230,7 +236,7 @@ import * as semver from "semver";
           })
         ))
           .filter(x => x)
-          .sort((a, b) => b.highestLevel - a.highestLevel)
+          .sort(sortTheThings)
           .map(x => x.content)
           .join("\n ")
       );

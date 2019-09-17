@@ -1,4 +1,9 @@
-import { getChangelogEntry, BumpLevels, getChangedPackages } from "./utils";
+import {
+  getChangelogEntry,
+  BumpLevels,
+  getChangedPackages,
+  sortTheThings
+} from "./utils";
 import tempy from "tempy";
 import { exec } from "@actions/exec";
 import * as fs from "fs-extra";
@@ -105,4 +110,25 @@ test("getChangedPackages works", async () => {
   expect(workspaces).toEqual([
     { name: "some-package", dir, config: workspace }
   ]);
+});
+
+test("it sorts the things right", () => {
+  let things = [
+    {
+      name: "a",
+      highestLevel: BumpLevels.major,
+      private: true
+    },
+    {
+      name: "b",
+      highestLevel: BumpLevels.patch,
+      private: false
+    },
+    {
+      name: "c",
+      highestLevel: BumpLevels.major,
+      private: false
+    }
+  ];
+  expect(things.sort(sortTheThings)).toMatchSnapshot();
 });
