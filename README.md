@@ -6,10 +6,10 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 ### Without Publishing
 
-Create a file at `.github/workflows/release.yml` with the following content.
+Create a file at `.github/workflows/version.yml` with the following content.
 
 ```yml
-name: Release
+name: Version
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
 
 jobs:
   release:
-    name: Release
+    name: Version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -75,9 +75,7 @@ jobs:
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@master
         with:
-          # The --otp=1 is to get around a bug in changesets
-          # It will be fixed in Changesets 2
-          publish: yarn release --otp=1
+          publish: yarn changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
