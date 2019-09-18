@@ -6,7 +6,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 ### Without Publishing
 
-Create a file at `.github/workflows/version.yml` with the following content.
+Create a file at `.github/workflows/release.yml` with the following content.
 
 ```yml
 name: Release
