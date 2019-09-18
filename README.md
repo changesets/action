@@ -9,7 +9,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 Create a file at `.github/workflows/version.yml` with the following content.
 
 ```yml
-name: Version
+name: Release
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
 
 jobs:
   release:
-    name: Version
+    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
