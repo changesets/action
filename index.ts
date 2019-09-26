@@ -60,8 +60,9 @@ import * as semver from "semver";
 
   let hasChangesets = fs
     .readdirSync(`${process.cwd()}/.changeset`)
-    .some(x => x !== "config.js" && x !== "README.md");
+    .some(x => x !== "config.json" && x !== "config.js" && x !== "README.md");
   let publishScript = core.getInput("publish");
+
   if (!hasChangesets && !publishScript) {
     console.log("No changesets found");
     return;
