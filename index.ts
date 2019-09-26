@@ -61,7 +61,7 @@ import * as semver from "semver";
   let hasChangesets = fs
     .readdirSync(`${process.cwd()}/.changeset`)
     .some(x => x !== "config.json" && x !== "config.js" && x !== "README.md");
-  console.log({ hasChangesets });
+  console.log(JSON.stringify(fs.readdirSync(`${process.cwd()}/.changeset`)));
   let publishScript = core.getInput("publish");
 
   if (!hasChangesets && !publishScript) {
