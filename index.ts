@@ -65,6 +65,8 @@ import * as semver from "semver";
         x !== "README.md" && (x.endsWith(".md") || x.endsWith("changes.json"))
     );
 
+  console.log(fs.readdirSync(`${process.cwd()}/.changeset`));
+
   let publishScript = core.getInput("publish");
 
   if (!hasChangesets && !publishScript) {
