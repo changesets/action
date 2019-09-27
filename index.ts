@@ -60,7 +60,10 @@ import * as semver from "semver";
 
   let hasChangesets = fs
     .readdirSync(`${process.cwd()}/.changeset`)
-    .some(x => x !== "README.md" && x.endsWith(".md"));
+    .some(
+      x =>
+        x !== "README.md" && (x.endsWith(".md") || x.endsWith("changes.json"))
+    );
 
   let publishScript = core.getInput("publish");
 
