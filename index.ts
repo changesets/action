@@ -60,7 +60,13 @@ import * as semver from "semver";
 
   let hasChangesets = fs
     .readdirSync(`${process.cwd()}/.changeset`)
-    .some(x => x !== "README.md" && x !== "config.js" && x !== "config.json");
+    .some(
+      x =>
+        x !== "README.md" &&
+        x !== "config.js" &&
+        x !== "config.json" &&
+        !x.endsWith(".js")
+    );
 
   console.log(fs.readdirSync(`${process.cwd()}/.changeset`));
 
