@@ -62,6 +62,7 @@ jobs:
         uses: actions/setup-node@master
         with:
           version: 10.x
+
       - name: Install Dependencies
         run: yarn
 
