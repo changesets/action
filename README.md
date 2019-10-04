@@ -29,9 +29,6 @@ jobs:
         with:
           version: 10.x
 
-      - name: Install Yarn
-        run: npm install --global yarn
-
       - name: Install Dependencies
         run: yarn
 
@@ -65,10 +62,6 @@ jobs:
         uses: actions/setup-node@master
         with:
           version: 10.x
-
-      - name: Install Yarn
-        run: npm install --global yarn
-
       - name: Install Dependencies
         run: yarn
 
