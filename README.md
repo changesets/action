@@ -69,9 +69,8 @@ jobs:
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@master
         with:
-          # The --otp=1 is to get around a bug in changesets
-          # It will be fixed in Changesets 2
-          publish: yarn release --otp=1
+          # this expects you to have a script called release which does a build for your packages and calls changeset publish
+          publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
