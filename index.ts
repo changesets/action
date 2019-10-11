@@ -100,12 +100,7 @@ import * as semver from "semver";
       publishArgs
     );
 
-    await exec("git", [
-      "push",
-      "origin",
-      `HEAD:${defaultBranch}`,
-      "--follow-tags"
-    ]);
+    await exec("git", ["push", "origin", `HEAD:${defaultBranch}`, "--tags"]);
 
     let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
 
