@@ -11,6 +11,7 @@ import {
   sortTheThings
 } from "./utils";
 import * as semver from "semver";
+import { readPreState } from "@changesets/pre";
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
@@ -20,12 +21,16 @@ import * as semver from "semver";
     return;
   }
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
-
-  const octokit = new github.GitHub(githubToken);
+  let branch = github.context.ref.replace("refs/heads/", "");
+  let isInPreModePromise = await readPreState(process.cwd()).then(
+    x => x !== undefined && x.mode === "pre"
+  );
 
   let defaultBranchPromise = octokit.repos
     .get(github.context.repo)
     .then(x => x.data.default_branch);
+
+  const octokit = new github.GitHub(githubToken);
 
   console.log("setting git user");
   await exec("git", [
@@ -47,16 +52,22 @@ import * as semver from "semver";
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
 
-  let defaultBranch = await defaultBranchPromise;
-  if (github.context.ref.replace("refs/heads/", "") !== defaultBranch) {
-    core.setFailed(
-      `The changesets action should only run on ${defaultBranch} but it's running on ${github.context.ref.replace(
-        "refs/heads/",
-        ""
-      )}, please change your GitHub actions config to only run the Changesets action on ${defaultBranch}`
-    );
-    return;
-  }
+  // TODO: add an allowed-branches option that still enforces this
+  // to prevent accidentally running this on other branches
+  // but allows having a pre and a main branch
+
+  // let allowedBranches = [defaultBranchPromise]
+
+  // let defaultBranch = await defaultBranchPromise;
+  // if (github.context.ref.replace("refs/heads/", "") !== defaultBranch) {
+  //   core.setFailed(
+  //     `The changesets action should only run on ${defaultBranch} but it's running on ${github.context.ref.replace(
+  //       "refs/heads/",
+  //       ""
+  //     )}, please change your GitHub actions config to only run the Changesets action on ${defaultBranch}`
+  //   );
+  //   return;
+  // }
 
   let hasChangesets = fs
     .readdirSync(`${process.cwd()}/.changeset`)
@@ -67,8 +78,6 @@ import * as semver from "semver";
         x !== "config.json" &&
         !x.endsWith(".js")
     );
-
-  console.log(fs.readdirSync(`${process.cwd()}/.changeset`));
 
   let publishScript = core.getInput("publish");
 
@@ -100,7 +109,7 @@ import * as semver from "semver";
       publishArgs
     );
 
-    await exec("git", ["push", "origin", `HEAD:${defaultBranch}`, "--tags"]);
+    await exec("git", ["push", "origin", `HEAD:${branch}`, "--tags"]);
 
     let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
 
@@ -161,16 +170,15 @@ import * as semver from "semver";
   }
 
   if (hasChangesets) {
-    let { stderr } = await execWithOutput(
-      "git",
-      ["checkout", "changeset-release"],
-      { ignoreReturnCode: true }
-    );
+    let versionBranch = `changeset-release/${branch}`;
+    let { stderr } = await execWithOutput("git", ["checkout", versionBranch], {
+      ignoreReturnCode: true
+    });
     let isCreatingChangesetReleaseBranch = !stderr
       .toString()
-      .includes("Switched to a new branch 'changeset-release'");
+      .includes(`Switched to a new branch '${versionBranch}'`);
     if (isCreatingChangesetReleaseBranch) {
-      await exec("git", ["checkout", "-b", "changeset-release"]);
+      await exec("git", ["checkout", "-b", versionBranch]);
     }
 
     await exec("git", ["reset", "--hard", github.context.sha]);
@@ -184,11 +192,12 @@ import * as semver from "semver";
       "./node_modules/.bin/changeset",
       cmd
     ]);
-    let searchQuery = `repo:${repo}+state:open+head:changeset-release+base:${defaultBranch}`;
+    let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
     let searchResultPromise = octokit.search.issuesAndPullRequests({
       q: searchQuery
     });
     let changedWorkspaces = await getChangedPackages(process.cwd());
+    let isInPreMode = await isInPreModePromise;
 
     let prBodyPromise = (async () => {
       return (
@@ -196,8 +205,18 @@ import * as semver from "semver";
           publishScript
             ? `the packages will be published to npm automatically`
             : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`
-        }. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${defaultBranch}, this PR will be updated.
+        }. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${branch}, this PR will be updated.
+${
+  isInPreMode
+    ? `
+⚠️⚠️⚠️⚠️⚠️⚠️
 
+${branch} is currently in **pre mode** so this branch has prereleases rather than normal releases. If you want to exit prereleases, run \`changeset pre exit\` on ${branch}.
+
+⚠️⚠️⚠️⚠️⚠️⚠️
+`
+    : ""
+}
 # Releases
 ` +
         (await Promise.all(
@@ -228,14 +247,14 @@ import * as semver from "semver";
     })();
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", "Version Packages"]);
-    await exec("git", ["push", "origin", "changeset-release", "--force"]);
+    await exec("git", ["push", "origin", versionBranch, "--force"]);
     let searchResult = await searchResultPromise;
     console.log(JSON.stringify(searchResult.data, null, 2));
     if (searchResult.data.items.length === 0) {
       console.log("creating pull request");
       await octokit.pulls.create({
-        base: defaultBranch,
-        head: "changeset-release",
+        base: branch,
+        head: versionBranch,
         title: "Version Packages",
         body: await prBodyPromise,
         ...github.context.repo
