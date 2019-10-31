@@ -26,9 +26,9 @@ import { readPreState } from "@changesets/pre";
     x => x !== undefined && x.mode === "pre"
   );
 
-  let defaultBranchPromise = octokit.repos
-    .get(github.context.repo)
-    .then(x => x.data.default_branch);
+  // let defaultBranchPromise = octokit.repos
+  //   .get(github.context.repo)
+  //   .then(x => x.data.default_branch);
 
   const octokit = new github.GitHub(githubToken);
 
