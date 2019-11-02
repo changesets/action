@@ -108,6 +108,7 @@ import { readPreState } from "@changesets/pre";
       publishCommand,
       publishArgs
     );
+    await exec("git", ["pull", "origin", branch]);
 
     await exec("git", ["push", "origin", `HEAD:${branch}`, "--tags"]);
 
