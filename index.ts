@@ -76,7 +76,8 @@ import { readPreState } from "@changesets/pre";
         x !== "README.md" &&
         x !== "config.js" &&
         x !== "config.json" &&
-        !x.endsWith(".js")
+        !x.endsWith(".js") &&
+        x !== "pre.json"
     );
 
   let publishScript = core.getInput("publish");
