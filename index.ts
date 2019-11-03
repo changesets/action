@@ -77,16 +77,7 @@ import readChangesets from "@changesets/read";
     changesets = changesets.filter(x => !changesetsToFilter.has(x.id));
   }
 
-  let hasChangesets = fs
-    .readdirSync(`${process.cwd()}/.changeset`)
-    .some(
-      x =>
-        x !== "README.md" &&
-        x !== "config.js" &&
-        x !== "config.json" &&
-        !x.endsWith(".js") &&
-        x !== "pre.json"
-    );
+  let hasChangesets = changesets.length !== 0;
 
   let publishScript = core.getInput("publish");
 
