@@ -12,6 +12,7 @@ import {
 } from "./utils";
 import * as semver from "semver";
 import { readPreState } from "@changesets/pre";
+import readChangesets from "@changesets/read";
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
@@ -22,9 +23,9 @@ import { readPreState } from "@changesets/pre";
   }
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
-  let isInPreModePromise = await readPreState(process.cwd()).then(
-    x => x !== undefined && x.mode === "pre"
-  );
+  let preState = await readPreState(process.cwd());
+
+  let isInPreMode = preState !== undefined && preState.mode === "pre";
 
   // let defaultBranchPromise = octokit.repos
   //   .get(github.context.repo)
@@ -68,6 +69,13 @@ import { readPreState } from "@changesets/pre";
   //   );
   //   return;
   // }
+
+  let changesets = await readChangesets(process.cwd());
+
+  if (isInPreMode) {
+    let changesetsToFilter = new Set(preState.changesets);
+    changesets = changesets.filter(x => !changesetsToFilter.has(x.id));
+  }
 
   let hasChangesets = fs
     .readdirSync(`${process.cwd()}/.changeset`)
@@ -199,7 +207,6 @@ import { readPreState } from "@changesets/pre";
       q: searchQuery
     });
     let changedWorkspaces = await getChangedPackages(process.cwd());
-    let isInPreMode = await isInPreModePromise;
 
     let prBodyPromise = (async () => {
       return (

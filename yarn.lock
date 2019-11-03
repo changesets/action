@@ -993,6 +993,26 @@
   dependencies:
     extendable-error "^0.1.5"
 
+"@changesets/git@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@changesets/git/-/git-0.2.4.tgz#867cd208d19ed652688660d2fd24d46ce5fabbff"
+  integrity sha512-We9EvQqqKf8WD9Yfw+zo9fxSDqyYl8IYjiLboNFybJqYdToGCHUq53diVDYcp5oW0UK7E7UffTmRURC9xV6veA==
+  dependencies:
+    "@babel/runtime" "^7.4.4"
+    "@changesets/errors" "^0.1.2"
+    "@changesets/types" "^0.4.0"
+    get-workspaces "^0.5.2"
+    pkg-dir "^4.1.0"
+    spawndamnit "^2.0.0"
+
+"@changesets/parse@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@changesets/parse/-/parse-0.3.1.tgz#0079b2d1ff30b37437aa487d0e1e0d2da3c7f35a"
+  integrity sha512-ro45JCMk+yPEbZaQOlMuVcBDAeNzoIk0BYKEcV3tIQQo4T0BFgHdsua1TII+aB24RWEuSsL8W+bwqJC5InJajw==
+  dependencies:
+    "@changesets/types" "^0.4.0"
+    js-yaml "^3.13.1"
+
 "@changesets/pre@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@changesets/pre/-/pre-0.1.0.tgz#31ece175097d5bf7d6337689f6a21a8026afd583"
@@ -1003,6 +1023,17 @@
     "@changesets/types" "^0.4.0"
     fs-extra "^7.0.1"
     get-workspaces "^0.5.2"
+
+"@changesets/read@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@changesets/read/-/read-0.3.1.tgz#4e47abe49f70f7097139a23d799027fe1800e7d1"
+  integrity sha512-/VHl786iLJP7RmG83Fghl0nSuHidVwE5ARWCL1qKgRKwDbIalIT79445QxqF+gb0iyo+bd144uVrbbtm0JYigA==
+  dependencies:
+    "@babel/runtime" "^7.4.4"
+    "@changesets/git" "^0.2.4"
+    "@changesets/parse" "^0.3.1"
+    "@changesets/types" "^0.4.0"
+    fs-extra "^7.0.1"
 
 "@changesets/types@^0.4.0":
   version "0.4.0"
@@ -2351,6 +2382,15 @@ create-hmac@^1.1.0, create-hmac@^1.1.2, create-hmac@^1.1.4:
     ripemd160 "^2.0.0"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
+
+cross-spawn@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-5.1.0.tgz#e8bd0efee58fcff6f8f94510a0a554bbfa235449"
+  integrity sha1-6L0O/uWPz/b4+UUQoKVUu/ojVEk=
+  dependencies:
+    lru-cache "^4.0.1"
+    shebang-command "^1.2.0"
+    which "^1.2.9"
 
 cross-spawn@^6.0.0, cross-spawn@^6.0.4:
   version "6.0.5"
@@ -4693,7 +4733,7 @@ loose-envify@^1.0.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-lru-cache@^4.1.5:
+lru-cache@^4.0.1, lru-cache@^4.1.5:
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-4.1.5.tgz#8bbe50ea85bed59bc9e33dcab8235ee9bcf443cd"
   integrity sha512-sWZlbEP2OsHNkXrMl5GYk/jKk70MBng6UU4YI/qGDYbgf6YbP4EvmqISbXCoJiRKs+1bSpFHVgQxvJ17F2li5g==
@@ -5596,7 +5636,7 @@ pkg-dir@^3.0.0:
   dependencies:
     find-up "^3.0.0"
 
-pkg-dir@^4.2.0:
+pkg-dir@^4.1.0, pkg-dir@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-4.2.0.tgz#f099133df7ede422e81d1d8448270eeb3e4261f3"
   integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==
@@ -6748,6 +6788,14 @@ source-map@^0.5.0, source-map@^0.5.3, source-map@^0.5.6:
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
   integrity sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w=
+
+spawndamnit@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/spawndamnit/-/spawndamnit-2.0.0.tgz#9f762ac5c3476abb994b42ad592b5ad22bb4b0ad"
+  integrity sha512-j4JKEcncSjFlqIwU5L/rp2N5SIPsdxaRsIv678+TZxZ0SRDJTm8JrxJMjE/XuiEZNEir3S8l0Fa3Ke339WI4qA==
+  dependencies:
+    cross-spawn "^5.1.0"
+    signal-exit "^3.0.2"
 
 spdx-correct@^3.0.0:
   version "3.1.0"
