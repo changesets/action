@@ -993,17 +993,23 @@
   dependencies:
     extendable-error "^0.1.5"
 
-"@changesets/git@^0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@changesets/git/-/git-0.2.4.tgz#867cd208d19ed652688660d2fd24d46ce5fabbff"
-  integrity sha512-We9EvQqqKf8WD9Yfw+zo9fxSDqyYl8IYjiLboNFybJqYdToGCHUq53diVDYcp5oW0UK7E7UffTmRURC9xV6veA==
+"@changesets/git@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@changesets/git/-/git-0.3.0.tgz#96d8835315b629f8235c450a65ac089b753b1a35"
+  integrity sha512-ckhPre9oxm4yB9lhFIV8TW57WBkJLVsy7k4dA9Z0VvhOMyxbYABl5/wwCqBiBLBei7io8346W8QOHKAF/0iZww==
   dependencies:
     "@babel/runtime" "^7.4.4"
     "@changesets/errors" "^0.1.2"
     "@changesets/types" "^0.4.0"
     get-workspaces "^0.5.2"
-    pkg-dir "^4.1.0"
     spawndamnit "^2.0.0"
+
+"@changesets/logger@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@changesets/logger/-/logger-0.0.3.tgz#c39c337210076e7019377c332b9026c8450924ac"
+  integrity sha512-qJKqHwyyckHRTsfH0MjSCcI/ZFylaUotGgl0zkJ9xdnzXNXqQrrmL2/d1zDUYuzYFCN0ldK1ybYmIaxpyCGEdg==
+  dependencies:
+    chalk "^2.1.0"
 
 "@changesets/parse@^0.3.1":
   version "0.3.1"
@@ -1024,16 +1030,19 @@
     fs-extra "^7.0.1"
     get-workspaces "^0.5.2"
 
-"@changesets/read@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@changesets/read/-/read-0.3.1.tgz#4e47abe49f70f7097139a23d799027fe1800e7d1"
-  integrity sha512-/VHl786iLJP7RmG83Fghl0nSuHidVwE5ARWCL1qKgRKwDbIalIT79445QxqF+gb0iyo+bd144uVrbbtm0JYigA==
+"@changesets/read@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@changesets/read/-/read-0.4.0.tgz#713a8e860259acdc37d35856b37f6036c3b3a825"
+  integrity sha512-Iibsi+snUbj95NOx4EMZ6yDAanNKueernDeRrEA1i4EVqnDN82DZ1Uj4HaqvTDedV+zKVlLx3j/Em9VS3HILgw==
   dependencies:
     "@babel/runtime" "^7.4.4"
-    "@changesets/git" "^0.2.4"
+    "@changesets/git" "^0.3.0"
+    "@changesets/logger" "^0.0.3"
     "@changesets/parse" "^0.3.1"
     "@changesets/types" "^0.4.0"
+    chalk "^2.1.0"
     fs-extra "^7.0.1"
+    p-filter "^2.1.0"
 
 "@changesets/types@^0.4.0":
   version "0.4.0"
@@ -5371,6 +5380,13 @@ p-each-series@^1.0.0:
   dependencies:
     p-reduce "^1.0.0"
 
+p-filter@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/p-filter/-/p-filter-2.1.0.tgz#1b1472562ae7a0f742f0f3d3d3718ea66ff9c09c"
+  integrity sha512-ZBxxZ5sL2HghephhpGAQdoskxplTwr7ICaehZwLIlfL6acuVgZPm8yBNuRAFBGEqtD/hmUeq9eqLg2ys9Xr/yw==
+  dependencies:
+    p-map "^2.0.0"
+
 p-finally@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
@@ -5403,6 +5419,11 @@ p-locate@^4.1.0:
   integrity sha512-R79ZZ/0wAxKGu3oYMlz8jy/kbhsNrS7SKZ7PxEHBgJ5+F2mtFW2fK2cOtBh1cHYkQsbzFV7I+EoRKe6Yt0oK7A==
   dependencies:
     p-limit "^2.2.0"
+
+p-map@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/p-map/-/p-map-2.1.0.tgz#310928feef9c9ecc65b68b17693018a665cea175"
+  integrity sha512-y3b8Kpd8OAN444hxfBbFfj1FY/RjtTd8tzYwhUqNYXx0fXx2iX4maP4Qr6qhIKbQXI02wTLAda4fYUbDagTUFw==
 
 p-reduce@^1.0.0:
   version "1.0.0"
@@ -5636,7 +5657,7 @@ pkg-dir@^3.0.0:
   dependencies:
     find-up "^3.0.0"
 
-pkg-dir@^4.1.0, pkg-dir@^4.2.0:
+pkg-dir@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-4.2.0.tgz#f099133df7ede422e81d1d8448270eeb3e4261f3"
   integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==

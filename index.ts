@@ -27,10 +27,6 @@ import readChangesets from "@changesets/read";
 
   let isInPreMode = preState !== undefined && preState.mode === "pre";
 
-  // let defaultBranchPromise = octokit.repos
-  //   .get(github.context.repo)
-  //   .then(x => x.data.default_branch);
-
   const octokit = new github.GitHub(githubToken);
 
   console.log("setting git user");
@@ -52,23 +48,6 @@ import readChangesets from "@changesets/read";
     `${process.env.HOME}/.netrc`,
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
-
-  // TODO: add an allowed-branches option that still enforces this
-  // to prevent accidentally running this on other branches
-  // but allows having a pre and a main branch
-
-  // let allowedBranches = [defaultBranchPromise]
-
-  // let defaultBranch = await defaultBranchPromise;
-  // if (github.context.ref.replace("refs/heads/", "") !== defaultBranch) {
-  //   core.setFailed(
-  //     `The changesets action should only run on ${defaultBranch} but it's running on ${github.context.ref.replace(
-  //       "refs/heads/",
-  //       ""
-  //     )}, please change your GitHub actions config to only run the Changesets action on ${defaultBranch}`
-  //   );
-  //   return;
-  // }
 
   let changesets = await readChangesets(process.cwd());
 
@@ -211,7 +190,7 @@ ${
     ? `
 ⚠️⚠️⚠️⚠️⚠️⚠️
 
-${branch} is currently in **pre mode** so this branch has prereleases rather than normal releases. If you want to exit prereleases, run \`changeset pre exit\` on ${branch}.
+\`${branch}\` is currently in **pre mode** so this branch has prereleases rather than normal releases. If you want to exit prereleases, run \`changeset pre exit\` on \`${branch}\`.
 
 ⚠️⚠️⚠️⚠️⚠️⚠️
 `
