@@ -234,7 +234,7 @@ ${
       await octokit.pulls.create({
         base: branch,
         head: versionBranch,
-        title: "Version Packages",
+        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ''}`,
         body: await prBodyPromise,
         ...github.context.repo
       });
