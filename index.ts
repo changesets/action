@@ -241,7 +241,6 @@ ${
     } else {
       octokit.pulls.update({
         pull_number: searchResult.data.items[0].number,
-        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`,
         body: await prBodyPromise,
         ...github.context.repo
       });
