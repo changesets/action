@@ -234,13 +234,14 @@ ${
       await octokit.pulls.create({
         base: branch,
         head: versionBranch,
-        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ''}`,
+        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`,
         body: await prBodyPromise,
         ...github.context.repo
       });
     } else {
       octokit.pulls.update({
         pull_number: searchResult.data.items[0].number,
+        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`,
         body: await prBodyPromise,
         ...github.context.repo
       });
