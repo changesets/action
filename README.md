@@ -24,10 +24,10 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@master
 
-      - name: Setup Node.js 10.x
+      - name: Setup Node.js 12.x
         uses: actions/setup-node@master
         with:
-          version: 10.x
+          node-version: 12.x
 
       - name: Install Dependencies
         run: yarn
@@ -58,10 +58,10 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@master
 
-      - name: Setup Node.js 10.x
+      - name: Setup Node.js 12.x
         uses: actions/setup-node@master
         with:
-          version: 10.x
+          node-version: 12.x
 
       - name: Install Dependencies
         run: yarn
