@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
+        with:
+          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits 
+          fetch-depth: 0
 
       - name: Setup Node.js 12.x
         uses: actions/setup-node@master
@@ -57,6 +60,10 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
+        with:
+          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits 
+          fetch-depth: 0
+
 
       - name: Setup Node.js 12.x
         uses: actions/setup-node@master
