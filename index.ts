@@ -225,7 +225,11 @@ ${
       );
     })();
     await exec("git", ["add", "."]);
-    await exec("git", ["commit", "-m", "Version Packages"]);
+    await exec("git", [
+      "commit",
+      "-m",
+      "ci(changset): generate PR with changelog & version updates"
+    ]);
     await exec("git", ["push", "origin", versionBranch, "--force"]);
     let searchResult = await searchResultPromise;
     console.log(JSON.stringify(searchResult.data, null, 2));
