@@ -224,8 +224,9 @@ ${
           .join("\n ")
       );
     })();
+    const title = `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`
     await exec("git", ["add", "."]);
-    await exec("git", ["commit", "-m", "Version Packages"]);
+    await exec("git", ["commit", "-m", title]);
     await exec("git", ["push", "origin", versionBranch, "--force"]);
     let searchResult = await searchResultPromise;
     console.log(JSON.stringify(searchResult.data, null, 2));
@@ -234,14 +235,14 @@ ${
       await octokit.pulls.create({
         base: branch,
         head: versionBranch,
-        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`,
+        title,
         body: await prBodyPromise,
         ...github.context.repo
       });
     } else {
       octokit.pulls.update({
         pull_number: searchResult.data.items[0].number,
-        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`,
+        title,
         body: await prBodyPromise,
         ...github.context.repo
       });
