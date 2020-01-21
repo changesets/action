@@ -168,7 +168,7 @@ import readChangesets from "@changesets/read";
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
-    let output = await execWithOutput("node", [
+    await exec("node", [
       "./node_modules/.bin/changeset",
       cmd
     ]);
