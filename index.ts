@@ -180,7 +180,7 @@ import readChangesets from "@changesets/read";
 
     let prBodyPromise = (async () => {
       return (
-        `This PR was opened by the Changesets release GitHub action. When you're ready to do a release, you can merge this and ${
+        `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
           publishScript
             ? `the packages will be published to npm automatically`
             : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`
