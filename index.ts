@@ -224,7 +224,7 @@ ${
           .join("\n ")
       );
     })();
-    const title = `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`
+    const title = `ci(changset): generate PR with changelog &${isInPreMode ? ` (${preState.tag})` : ""} version updates`
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", title]);
     await exec("git", ["push", "origin", versionBranch, "--force"]);
