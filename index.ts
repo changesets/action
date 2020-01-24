@@ -168,7 +168,7 @@ import readChangesets from "@changesets/read";
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
-    let output = await execWithOutput("node", [
+    await exec("node", [
       "./node_modules/.bin/changeset",
       cmd
     ]);
@@ -180,7 +180,7 @@ import readChangesets from "@changesets/read";
 
     let prBodyPromise = (async () => {
       return (
-        `This PR was opened by the Changesets release GitHub action. When you're ready to do a release, you can merge this and ${
+        `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
           publishScript
             ? `the packages will be published to npm automatically`
             : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`
@@ -224,12 +224,9 @@ ${
           .join("\n ")
       );
     })();
+    const title = `ci(changset): generate PR with changelog &${isInPreMode ? ` (${preState.tag})` : ""} version updates`
     await exec("git", ["add", "."]);
-    await exec("git", [
-      "commit",
-      "-m",
-      "ci(changset): generate PR with changelog & version updates"
-    ]);
+    await exec("git", ["commit", "-m", title]);
     await exec("git", ["push", "origin", versionBranch, "--force"]);
     let searchResult = await searchResultPromise;
     console.log(JSON.stringify(searchResult.data, null, 2));
@@ -238,14 +235,14 @@ ${
       await octokit.pulls.create({
         base: branch,
         head: versionBranch,
-        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`,
+        title,
         body: await prBodyPromise,
         ...github.context.repo
       });
     } else {
       octokit.pulls.update({
         pull_number: searchResult.data.items[0].number,
-        title: `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`,
+        title,
         body: await prBodyPromise,
         ...github.context.repo
       });
