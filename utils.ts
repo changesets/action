@@ -18,7 +18,7 @@ export const BumpLevels = {
 export async function getChangedPackages(cwd: string) {
   let workspaces = await getWorkspaces({
     cwd,
-    tools: ["bolt", "yarn", "root"]
+    tools: ["yarn", "bolt", "pnpm", "root"]
   });
 
   if (!workspaces) {
