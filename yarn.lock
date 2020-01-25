@@ -20,23 +20,6 @@
     "@octokit/graphql" "^2.0.1"
     "@octokit/rest" "^16.15.0"
 
-"@actions/io@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@actions/io/-/io-1.0.0.tgz#379454174660623bb5b3bce0be8b9e2285a62bcb"
-  integrity sha512-ezrJSRdqtXtdx1WXlfYL85+40F7gB39jCK9P0jZVODW3W6xUYmu6ZOEc/UmmElUwhRyDRm1R4yNZu1Joq2kuQg==
-
-"@actions/tool-cache@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@actions/tool-cache/-/tool-cache-1.0.0.tgz#a9ac414bd2e0bf1f5f0302f029193c418d344c09"
-  integrity sha512-l3zT0IfDfi5Ik5aMpnXqGHGATxN8xa9ls4ue+X/CBXpPhRMRZS4vcuh5Q9T98WAGbkysRCfhpbksTPHIcKnNwQ==
-  dependencies:
-    "@actions/core" "^1.0.0"
-    "@actions/exec" "^1.0.0"
-    "@actions/io" "^1.0.0"
-    semver "^6.1.0"
-    typed-rest-client "^1.4.0"
-    uuid "^3.3.2"
-
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.5.5":
   version "7.5.5"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.5.5.tgz#bc0782f6d69f7b7d49531219699b988f669a8f9d"
@@ -6622,7 +6605,7 @@ semver-compare@^1.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
 
-semver@^6.0.0, semver@^6.1.0, semver@^6.2.0, semver@^6.3.0:
+semver@^6.0.0, semver@^6.2.0, semver@^6.3.0:
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
@@ -7308,11 +7291,6 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
-tunnel@0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/tunnel/-/tunnel-0.0.4.tgz#2d3785a158c174c9a16dc2c046ec5fc5f1742213"
-  integrity sha1-LTeFoVjBdMmhbcLARuxfxfF0IhM=
-
 tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   version "0.14.5"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
@@ -7334,14 +7312,6 @@ type-fest@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.6.0.tgz#8d2a2370d3df886eb5c90ada1c5bf6188acf838b"
   integrity sha512-q+MB8nYR1KDLrgr4G5yemftpMC7/QLqVndBmEEdqzmNj5dcFOO4Oo8qlwZE3ULT3+Zim1F8Kq4cBnikNhlCMlg==
-
-typed-rest-client@^1.4.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/typed-rest-client/-/typed-rest-client-1.5.0.tgz#c0dda6e775b942fd46a2d99f2160a94953206fc2"
-  integrity sha512-DVZRlmsfnTjp6ZJaatcdyvvwYwbWvR4YDNFDqb+qdTxpvaVP99YCpBkA8rxsLtAPjBVoDe4fNsnMIdZTiPuKWg==
-  dependencies:
-    tunnel "0.0.4"
-    underscore "1.8.3"
 
 typedarray@^0.0.6:
   version "0.0.6"
@@ -7375,11 +7345,6 @@ uncss@^0.17.0:
     postcss "^7.0.16"
     postcss-selector-parser "6.0.2"
     request "^2.88.0"
-
-underscore@1.8.3:
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
-  integrity sha1-Tz+1OxBuYJf8+ctBCfKl6b36UCI=
 
 unherit@^1.0.4:
   version "1.1.2"
