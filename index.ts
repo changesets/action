@@ -68,7 +68,7 @@ import readChangesets from "@changesets/read";
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
     );
-    let workspaces = await getWorkspaces({ tools: ["bolt", "yarn", "root"] });
+    let workspaces = await getWorkspaces({ tools: ["yarn", "bolt", "pnpm", "root"] });
 
     if (!workspaces) {
       return core.setFailed("Could not find workspaces");
