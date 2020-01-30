@@ -224,9 +224,12 @@ ${
           .join("\n ")
       );
     })();
-    const title = `ci(changeset): generate PR with changelog &${isInPreMode ? ` (${preState.tag})` : ""} version updates`
+
+    const prTitle = `Version Packages${isInPreMode ? ` (${preState.tag})` : ""}`
+    const commitMsg = `ci(changeset): generate PR with changelog &${isInPreMode ? ` (${preState.tag})` : ""} version updates`
+
     await exec("git", ["add", "."]);
-    await exec("git", ["commit", "-m", title]);
+    await exec("git", ["commit", "-m", commitMsg]);
     await exec("git", ["push", "origin", versionBranch, "--force"]);
     let searchResult = await searchResultPromise;
     console.log(JSON.stringify(searchResult.data, null, 2));
@@ -235,14 +238,14 @@ ${
       await octokit.pulls.create({
         base: branch,
         head: versionBranch,
-        title,
+        title: prTitle,
         body: await prBodyPromise,
         ...github.context.repo
       });
     } else {
       octokit.pulls.update({
         pull_number: searchResult.data.items[0].number,
-        title,
+        title: prTitle,
         body: await prBodyPromise,
         ...github.context.repo
       });
