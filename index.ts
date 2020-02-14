@@ -68,7 +68,9 @@ import readChangesets from "@changesets/read";
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
     );
-    let workspaces = await getWorkspaces({ tools: ["yarn", "bolt", "pnpm", "root"] });
+    let workspaces = await getWorkspaces({
+      tools: ["yarn", "bolt", "pnpm", "root"]
+    });
 
     if (!workspaces) {
       return core.setFailed("Could not find workspaces");
@@ -168,10 +170,7 @@ import readChangesets from "@changesets/read";
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
-    await exec("node", [
-      "./node_modules/.bin/changeset",
-      cmd
-    ]);
+    await exec("node", ["./node_modules/@changesets/cli/bin.js", cmd]);
     let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
     let searchResultPromise = octokit.search.issuesAndPullRequests({
       q: searchQuery
@@ -198,33 +197,37 @@ ${
 }
 # Releases
 ` +
-        (await Promise.all(
-          changedWorkspaces.map(async workspace => {
-            let changelogContents = await fs.readFile(
-              path.join(workspace.dir, "CHANGELOG.md"),
-              "utf8"
-            );
+        (
+          await Promise.all(
+            changedWorkspaces.map(async workspace => {
+              let changelogContents = await fs.readFile(
+                path.join(workspace.dir, "CHANGELOG.md"),
+                "utf8"
+              );
 
-            let entry = getChangelogEntry(
-              changelogContents,
-              workspace.config.version
-            );
-            return {
-              highestLevel: entry.highestLevel,
-              private: !!workspace.config.private,
-              content:
-                `## ${workspace.name}@${workspace.config.version}\n\n` +
-                entry.content
-            };
-          })
-        ))
+              let entry = getChangelogEntry(
+                changelogContents,
+                workspace.config.version
+              );
+              return {
+                highestLevel: entry.highestLevel,
+                private: !!workspace.config.private,
+                content:
+                  `## ${workspace.name}@${workspace.config.version}\n\n` +
+                  entry.content
+              };
+            })
+          )
+        )
           .filter(x => x)
           .sort(sortTheThings)
           .map(x => x.content)
           .join("\n ")
       );
     })();
-    const title = `ci(changeset): generate PR with changelog &${isInPreMode ? ` (${preState.tag})` : ""} version updates`
+    const title = `ci(changeset): generate PR with changelog &${
+      isInPreMode ? ` (${preState.tag})` : ""
+    } version updates`;
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", title]);
     await exec("git", ["push", "origin", versionBranch, "--force"]);
