@@ -59,6 +59,7 @@ import readChangesets from "@changesets/read";
   let hasChangesets = changesets.length !== 0;
 
   let publishScript = core.getInput("publish");
+  let versionScript = core.getInput("version");
 
   if (!hasChangesets && !publishScript) {
     console.log("No changesets found");
@@ -164,13 +165,20 @@ import readChangesets from "@changesets/read";
     }
 
     await exec("git", ["reset", "--hard", github.context.sha]);
-    let changesetsCliPkgJson = await fs.readJson(
-      path.join("node_modules", "@changesets", "cli", "package.json")
-    );
-    let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
-      ? "bump"
-      : "version";
-    await exec("node", ["./node_modules/@changesets/cli/bin.js", cmd]);
+   
+    if (versionScript) {
+      let [versionCommand, ...versionArgs] = versionScript.split(/\s+/);
+      await exec(versionCommand, versionArgs);
+    } else {
+      let changesetsCliPkgJson = await fs.readJson(
+        path.join("node_modules", "@changesets", "cli", "package.json")
+      );
+      let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
+        ? "bump"
+        : "version";
+      await exec("node", ["./node_modules/@changesets/cli/bin.js", cmd]);
+    }
+
     let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
     let searchResultPromise = octokit.search.issuesAndPullRequests({
       q: searchQuery
