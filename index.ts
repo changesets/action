@@ -60,6 +60,7 @@ import readChangesets from "@changesets/read";
 
   let publishScript = core.getInput("publish");
   let versionScript = core.getInput("version");
+  core.setOutput('published', 'false');
 
   if (!hasChangesets && !publishScript) {
     console.log("No changesets found");
@@ -90,6 +91,7 @@ import readChangesets from "@changesets/read";
       publishCommand,
       publishArgs
     );
+
     await exec("git", ["pull", "origin", branch]);
 
     await exec("git", ["push", "origin", `HEAD:${branch}`, "--tags"]);
@@ -149,6 +151,10 @@ import readChangesets from "@changesets/read";
       })
     );
 
+    if (releasedWorkspaces.length) {
+      core.setOutput('published', 'true');
+    }
+
     return;
   }
 
@@ -165,7 +171,7 @@ import readChangesets from "@changesets/read";
     }
 
     await exec("git", ["reset", "--hard", github.context.sha]);
-   
+
     if (versionScript) {
       let [versionCommand, ...versionArgs] = versionScript.split(/\s+/);
       await exec(versionCommand, versionArgs);
