@@ -4,7 +4,20 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 ## Usage
 
-### Without Publishing
+
+### Inputs
+
+- publish - The command to use to build and publish packages
+- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
+
+### Outputs
+
+- published - A boolean value to indicate whether a publishing is happened or not
+- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+
+### Example workflow:
+
+#### Without Publishing
 
 Create a file at `.github/workflows/release.yml` with the following content.
 
@@ -41,7 +54,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### With Publishing
+#### With Publishing
 
 Before you can setup this action with publishing, you'll need to have an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) that can publish the packages in the repo you're setting up the action for and doesn't have 2FA on publish enabled(2FA on auth can be enabled). You'll also need to [add it as a secret on your GitHub repo](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) with the name `NPM_TOKEN`. Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
 
@@ -73,16 +86,23 @@ jobs:
         run: yarn
 
       - name: Create Release Pull Request or Publish to npm
+        id: changesets
         uses: changesets/action@master
         with:
-          # this expects you to have a script called release which does a build for your packages and calls changeset publish
+          # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Send a Slack notification if a publish happens
+        if: steps.changesets.outputs.published == 'true'
+        # You can do something when a publish happens.
+        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
+
 ```
 
-### With version script
+#### With version script
 
 If you need to add additional logic to the version command, you can do so by using a version script.
 
