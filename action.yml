@@ -10,6 +10,13 @@ inputs:
   version:
     description: "The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided"
     required: false
+  commit:
+    description: |
+      The commit header prefix to use. Default to `Version Packages`
+    required: false
+  title:
+    description: The pull request title. Default to `Version Packages`
+    required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

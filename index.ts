@@ -58,16 +58,20 @@ import readChangesets from "@changesets/read";
 
   let hasChangesets = changesets.length !== 0;
 
-  let publishScript = core.getInput("publish");
-  let versionScript = core.getInput("version");
+  let inputs = {
+    publishScript: core.getInput("publish"),
+    versionScript: core.getInput("version"),
+    commit: core.getInput("commit") || "Version Packages",
+    prTitle: core.getInput("title") || "Version Packages",
+  }
   core.setOutput('published', 'false');
   core.setOutput('publishedPackages', '[]');
 
-  if (!hasChangesets && !publishScript) {
+  if (!hasChangesets && !inputs.publishScript) {
     console.log("No changesets found");
     return;
   }
-  if (!hasChangesets && publishScript) {
+  if (!hasChangesets && inputs.publishScript) {
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
     );
@@ -86,7 +90,7 @@ import readChangesets from "@changesets/read";
       `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
     );
 
-    let [publishCommand, ...publishArgs] = publishScript.split(/\s+/);
+    let [publishCommand, ...publishArgs] = inputs.publishScript.split(/\s+/);
 
     let changesetPublishOutput = await execWithOutput(
       publishCommand,
@@ -176,8 +180,8 @@ import readChangesets from "@changesets/read";
 
     await exec("git", ["reset", "--hard", github.context.sha]);
 
-    if (versionScript) {
-      let [versionCommand, ...versionArgs] = versionScript.split(/\s+/);
+    if (inputs.versionScript) {
+      let [versionCommand, ...versionArgs] = inputs.versionScript.split(/\s+/);
       await exec(versionCommand, versionArgs);
     } else {
       let changesetsCliPkgJson = await fs.readJson(
@@ -198,7 +202,7 @@ import readChangesets from "@changesets/read";
     let prBodyPromise = (async () => {
       return (
         `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
-          publishScript
+          inputs.publishScript
             ? `the packages will be published to npm automatically`
             : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`
         }. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${branch}, this PR will be updated.
@@ -244,12 +248,8 @@ ${
       );
     })();
 
-    const prTitle = `Version Packages${
-      isInPreMode ? ` (${preState.tag})` : ""
-    }`;
-    const commitMsg = `ci(changeset): generate PR with changelog &${
-      isInPreMode ? ` (${preState.tag})` : ""
-    } version updates`;
+    const prTitle = `${inputs.prTitle}${isInPreMode ? ` (${preState.tag})` : ""}`;
+    const commitMsg = `${inputs.commit}${isInPreMode ? ` (${preState.tag})` : ""}`;
 
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", commitMsg]);
