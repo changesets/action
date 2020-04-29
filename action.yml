@@ -12,7 +12,7 @@ inputs:
     required: false
   commit:
     description: |
-      The commit header prefix to use. Default to `Version Packages`
+      The commit message. Default to `Version Packages`
     required: false
   title:
     description: The pull request title. Default to `Version Packages`
