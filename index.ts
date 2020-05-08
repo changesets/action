@@ -85,10 +85,16 @@ import readChangesets from "@changesets/read";
 
     let workspacesByName = new Map(workspaces.map(x => [x.name, x]));
 
-    fs.writeFileSync(
-      `${process.env.HOME}/.npmrc`,
-      `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
-    );
+    let npmrcPath = `${process.env.HOME}/.npmrc`
+    if (fs.existsSync(npmrcPath)) {
+      console.log("Found existing .npmrc file");
+    } else {
+      console.log("No .npmrc file found, creating one");
+      fs.writeFileSync(
+        npmrcPath,
+        `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
+      );
+    }
 
     let [publishCommand, ...publishArgs] = inputs.publishScript.split(/\s+/);
 

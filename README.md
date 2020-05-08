@@ -104,6 +104,26 @@ jobs:
 
 ```
 
+By default the GitHub Action creates a `.npmrc` file with the following content:
+
+```
+//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
+```
+
+However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
+For example, you can add a step before running the Changesets GitHub Action:
+
+```yml
+- name: Creating .npmrc
+  run: |
+    cat << EOF > "$HOME/.npmrc"
+      email=my@email.com
+      //registry.npmjs.org/:_authToken=$NPM_TOKEN
+    EOF
+  env:
+    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
 #### With version script
 
 If you need to add additional logic to the version command, you can do so by using a version script.
