@@ -280,6 +280,9 @@ ${
       });
       console.log("pull request found");
     }
+
+    // Switch back to the branch prior to this action
+    await exec("git", ["checkout", branch]);
   }
 })().catch(err => {
   console.error(err);
