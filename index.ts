@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import { exec } from "@actions/exec";
 import * as github from "@actions/github";
 import fs from "fs-extra";
-import getWorkspaces, { Workspace } from "get-workspaces";
+import { getPackages, Package } from "@manypkg/get-packages";
 import path from "path";
 import {
   getChangelogEntry,
@@ -75,15 +75,8 @@ import readChangesets from "@changesets/read";
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
     );
-    let workspaces = await getWorkspaces({
-      tools: ["yarn", "bolt", "pnpm", "root"]
-    });
-
-    if (!workspaces) {
-      return core.setFailed("Could not find workspaces");
-    }
-
-    let workspacesByName = new Map(workspaces.map(x => [x.name, x]));
+    let { packages } = await getPackages(process.cwd());
+    let packagesByName = new Map(packages.map(x => [x.packageJson.name, x]));
 
     let npmrcPath = `${process.env.HOME}/.npmrc`
     if (fs.existsSync(npmrcPath)) {
@@ -109,7 +102,7 @@ import readChangesets from "@changesets/read";
 
     let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
 
-    let releasedWorkspaces: Workspace[] = [];
+    let releasedPackages: Package[] = [];
 
     for (let line of changesetPublishOutput.stdout.split("\n")) {
       let match = line.match(newTagRegex);
@@ -117,40 +110,39 @@ import readChangesets from "@changesets/read";
         continue;
       }
       let pkgName = match[1];
-      let workspace = workspacesByName.get(pkgName);
-      if (workspace === undefined) {
+      let pkg = packagesByName.get(pkgName);
+      if (pkg === undefined) {
         return core.setFailed(
-          "Workspace not found for " +
-            pkgName +
-            ". This is probably a bug in the action, please open an issue"
+          `Package "${pkgName}" not found.` +
+            "This is probably a bug in the action, please open an issue"
         );
       }
-      releasedWorkspaces.push(workspace);
+      releasedPackages.push(pkg);
     }
 
     await Promise.all(
-      releasedWorkspaces.map(async workspace => {
+      releasedPackages.map(async pkg => {
         try {
-          let changelogFileName = path.join(workspace.dir, "CHANGELOG.md");
+          let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
           let changelog = await fs.readFile(changelogFileName, "utf8");
 
           let changelogEntry = getChangelogEntry(
             changelog,
-            workspace.config.version
+            pkg.packageJson.version
           );
           if (!changelogEntry) {
             // we can find a changelog but not the entry for this version
             // if this is true, something has probably gone wrong
             return core.setFailed(
-              `Could not find changelog entry for ${workspace.name}@${workspace.config.version}`
+              `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
             );
           }
 
           await octokit.repos.createRelease({
-            tag_name: `${workspace.name}@${workspace.config.version}`,
+            tag_name: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
             body: changelogEntry.content,
-            prerelease: workspace.config.version.includes("-"),
+            prerelease: pkg.packageJson.version.includes("-"),
             ...github.context.repo
           });
         } catch (err) {
@@ -162,10 +154,10 @@ import readChangesets from "@changesets/read";
       })
     );
 
-    if (releasedWorkspaces.length) {
+    if (releasedPackages.length) {
       core.setOutput('published', 'true');
-      core.setOutput('publishedPackages', JSON.stringify(releasedWorkspaces.map(
-        workspace => ({name: workspace.name, version: workspace.config.version})
+      core.setOutput('publishedPackages', JSON.stringify(releasedPackages.map(
+        pkg => ({name: pkg.packageJson.name, version: pkg.packageJson.version})
       )));
     }
 
@@ -203,7 +195,7 @@ import readChangesets from "@changesets/read";
     let searchResultPromise = octokit.search.issuesAndPullRequests({
       q: searchQuery
     });
-    let changedWorkspaces = await getChangedPackages(process.cwd());
+    let changedPackages = await getChangedPackages(process.cwd());
 
     let prBodyPromise = (async () => {
       return (
@@ -227,21 +219,21 @@ ${
 ` +
         (
           await Promise.all(
-            changedWorkspaces.map(async workspace => {
+            changedPackages.map(async pkg => {
               let changelogContents = await fs.readFile(
-                path.join(workspace.dir, "CHANGELOG.md"),
+                path.join(pkg.dir, "CHANGELOG.md"),
                 "utf8"
               );
 
               let entry = getChangelogEntry(
                 changelogContents,
-                workspace.config.version
+                pkg.packageJson.version
               );
               return {
                 highestLevel: entry.highestLevel,
-                private: !!workspace.config.private,
+                private: !!pkg.packageJson.private,
                 content:
-                  `## ${workspace.name}@${workspace.config.version}\n\n` +
+                  `## ${pkg.packageJson.name}@${pkg.packageJson.version}\n\n` +
                   entry.content
               };
             })
