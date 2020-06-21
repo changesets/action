@@ -4,8 +4,7 @@ import remarkStringify from "remark-stringify";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
 import { exec } from "@actions/exec";
-import * as core from "@actions/core";
-import getWorkspaces, { Workspace } from "get-workspaces";
+import { getPackages, Package } from "@manypkg/get-packages";
 import path from "path";
 
 export const BumpLevels = {
@@ -16,31 +15,22 @@ export const BumpLevels = {
 } as const;
 
 export async function getChangedPackages(cwd: string) {
-  let workspaces = await getWorkspaces({
-    cwd,
-    tools: ["yarn", "bolt", "pnpm", "root"]
-  });
-
-  if (!workspaces) {
-    core.setFailed("Could not find workspaces");
-    return process.exit(1);
-  }
-
-  let workspacesByDirectory = new Map(workspaces.map(x => [x.dir, x]));
+  let { packages } = await getPackages(cwd);
+  let packagesByDirectory = new Map(packages.map(x => [x.dir, x]));
 
   let output = await execWithOutput("git", ["diff", "--name-only"], { cwd });
   let names = output.stdout.split("\n");
-  let changedWorkspaces = new Set<Workspace>();
+  let changedPackages = new Set<Package>();
   for (let name of names) {
     if (name === "") continue;
     let dirname = path.resolve(cwd, path.dirname(name));
-    let workspace = workspacesByDirectory.get(dirname);
+    let workspace = packagesByDirectory.get(dirname);
     if (workspace !== undefined) {
-      changedWorkspaces.add(workspace);
+      changedPackages.add(workspace);
     }
   }
 
-  return [...changedWorkspaces];
+  return [...changedPackages];
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
