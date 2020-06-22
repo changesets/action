@@ -14,6 +14,38 @@ import * as semver from "semver";
 import { readPreState } from "@changesets/pre";
 import readChangesets from "@changesets/read";
 
+const createRelease = async (
+  octokit: github.GitHub,
+  { pkg, tagName }: { pkg: Package; tagName: string }
+) => {
+  try {
+    let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
+
+    let changelog = await fs.readFile(changelogFileName, "utf8");
+
+    let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
+    if (!changelogEntry) {
+      // we can find a changelog but not the entry for this version
+      // if this is true, something has probably gone wrong
+      return core.setFailed(
+        `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+      );
+    }
+
+    await octokit.repos.createRelease({
+      tag_name: tagName,
+      body: changelogEntry.content,
+      prerelease: pkg.packageJson.version.includes("-"),
+      ...github.context.repo
+    });
+  } catch (err) {
+    // if we can't find a changelog, the user has probably disabled changelogs
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+  }
+};
+
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
 
@@ -75,9 +107,6 @@ import readChangesets from "@changesets/read";
     console.log(
       "No changesets found, attempting to publish any unpublished packages to npm"
     );
-    let { packages } = await getPackages(process.cwd());
-    let packagesByName = new Map(packages.map(x => [x.packageJson.name, x]));
-
     let npmrcPath = `${process.env.HOME}/.npmrc`;
     if (fs.existsSync(npmrcPath)) {
       console.log("Found existing .npmrc file");
@@ -100,59 +129,51 @@ import readChangesets from "@changesets/read";
 
     await exec("git", ["push", "origin", `HEAD:${branch}`, "--tags"]);
 
-    let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
-
+    let { packages, tool } = await getPackages(process.cwd());
     let releasedPackages: Package[] = [];
 
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
-      if (match === null) {
-        continue;
+    if (tool !== "root") {
+      let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
+      let packagesByName = new Map(packages.map(x => [x.packageJson.name, x]));
+
+      for (let line of changesetPublishOutput.stdout.split("\n")) {
+        let match = line.match(newTagRegex);
+        if (match === null) {
+          continue;
+        }
+        let pkgName = match[1];
+        let pkg = packagesByName.get(pkgName);
+        if (pkg === undefined) {
+          return core.setFailed(
+            `Package "${pkgName}" not found.` +
+              "This is probably a bug in the action, please open an issue"
+          );
+        }
+        releasedPackages.push(pkg);
       }
-      let pkgName = match[1];
-      let pkg = packagesByName.get(pkgName);
-      if (pkg === undefined) {
+
+      await Promise.all(
+        releasedPackages.map(pkg =>
+          createRelease(octokit, {
+            pkg,
+            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`
+          })
+        )
+      );
+    } else {
+      if (packages.length === 0) {
         return core.setFailed(
-          `Package "${pkgName}" not found.` +
+          `No package found.` +
             "This is probably a bug in the action, please open an issue"
         );
       }
+      const pkg = packages[0];
       releasedPackages.push(pkg);
+      await createRelease(octokit, {
+        pkg,
+        tagName: `v${pkg.packageJson.version}`
+      });
     }
-
-    await Promise.all(
-      releasedPackages.map(async pkg => {
-        try {
-          let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
-
-          let changelog = await fs.readFile(changelogFileName, "utf8");
-
-          let changelogEntry = getChangelogEntry(
-            changelog,
-            pkg.packageJson.version
-          );
-          if (!changelogEntry) {
-            // we can find a changelog but not the entry for this version
-            // if this is true, something has probably gone wrong
-            return core.setFailed(
-              `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
-            );
-          }
-
-          await octokit.repos.createRelease({
-            tag_name: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-            body: changelogEntry.content,
-            prerelease: pkg.packageJson.version.includes("-"),
-            ...github.context.repo
-          });
-        } catch (err) {
-          // if we can't find a changelog, the user has probably disabled changelogs
-          if (err.code !== "ENOENT") {
-            throw err;
-          }
-        }
-      })
-    );
 
     if (releasedPackages.length) {
       core.setOutput("published", "true");
