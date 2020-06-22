@@ -62,10 +62,10 @@ import readChangesets from "@changesets/read";
     publishScript: core.getInput("publish"),
     versionScript: core.getInput("version"),
     commit: core.getInput("commit") || "Version Packages",
-    prTitle: core.getInput("title") || "Version Packages",
-  }
-  core.setOutput('published', 'false');
-  core.setOutput('publishedPackages', '[]');
+    prTitle: core.getInput("title") || "Version Packages"
+  };
+  core.setOutput("published", "false");
+  core.setOutput("publishedPackages", "[]");
 
   if (!hasChangesets && !inputs.publishScript) {
     console.log("No changesets found");
@@ -78,7 +78,7 @@ import readChangesets from "@changesets/read";
     let { packages } = await getPackages(process.cwd());
     let packagesByName = new Map(packages.map(x => [x.packageJson.name, x]));
 
-    let npmrcPath = `${process.env.HOME}/.npmrc`
+    let npmrcPath = `${process.env.HOME}/.npmrc`;
     if (fs.existsSync(npmrcPath)) {
       console.log("Found existing .npmrc file");
     } else {
@@ -155,10 +155,16 @@ import readChangesets from "@changesets/read";
     );
 
     if (releasedPackages.length) {
-      core.setOutput('published', 'true');
-      core.setOutput('publishedPackages', JSON.stringify(releasedPackages.map(
-        pkg => ({name: pkg.packageJson.name, version: pkg.packageJson.version})
-      )));
+      core.setOutput("published", "true");
+      core.setOutput(
+        "publishedPackages",
+        JSON.stringify(
+          releasedPackages.map(pkg => ({
+            name: pkg.packageJson.name,
+            version: pkg.packageJson.version
+          }))
+        )
+      );
     }
 
     return;
@@ -246,8 +252,12 @@ ${
       );
     })();
 
-    const prTitle = `${inputs.prTitle}${isInPreMode ? ` (${preState.tag})` : ""}`;
-    const commitMsg = `${inputs.commit}${isInPreMode ? ` (${preState.tag})` : ""}`;
+    const prTitle = `${inputs.prTitle}${
+      isInPreMode ? ` (${preState.tag})` : ""
+    }`;
+    const commitMsg = `${inputs.commit}${
+      isInPreMode ? ` (${preState.tag})` : ""
+    }`;
 
     await exec("git", ["add", "."]);
     await exec("git", ["commit", "-m", commitMsg]);

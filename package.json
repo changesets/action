@@ -5,6 +5,7 @@
   "license": "MIT",
   "devDependencies": {
     "parcel": "^1.12.3",
+    "prettier": "^2.0.5",
     "typescript": "^3.5.3"
   },
   "scripts": {
@@ -39,5 +40,6 @@
     "hooks": {
       "pre-commit": "yarn build && git add dist/index.js"
     }
-  }
+  },
+  "prettier": {}
 }
