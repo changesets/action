@@ -48,8 +48,8 @@ const createRelease = async (
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
-  let githubUsername = process.env.GITHUB_USERNAME;
-  let githubEmail = process.env.GITHUB_EMAIL;
+  let githubUsername = process.env.GITHUB_USERNAME || `"github-actions[bot]"`;
+  let githubEmail = process.env.GITHUB_EMAIL || `"github-actions[bot]@users.noreply.github.com"`;
 
   if (!githubToken) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
@@ -68,19 +68,19 @@ const createRelease = async (
     "config",
     "--global",
     "user.name",
-    githubUsername || `"github-actions[bot]"`,
+    githubUsername,
   ]);
   await exec("git", [
     "config",
     "--global",
     "user.email",
-    githubEmail || `"github-actions[bot]@users.noreply.github.com"`,
+    githubEmail,
   ]);
 
   console.log("setting GitHub credentials");
   await fs.writeFile(
     `${process.env.HOME}/.netrc`,
-    `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
+    `machine github.com\nlogin ${githubUsername}\npassword ${githubToken}`
   );
 
   let changesets = await readChangesets(process.cwd());
