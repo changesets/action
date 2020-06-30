@@ -11,12 +11,12 @@ export const BumpLevels = {
   dep: 0,
   patch: 1,
   minor: 2,
-  major: 3
+  major: 3,
 } as const;
 
 export async function getChangedPackages(cwd: string) {
   let { packages } = await getPackages(cwd);
-  let packagesByDirectory = new Map(packages.map(x => [x.dir, x]));
+  let packagesByDirectory = new Map(packages.map((x) => [x.dir, x]));
 
   let output = await execWithOutput("git", ["diff", "--name-only"], { cwd });
   let names = output.stdout.split("\n");
@@ -34,9 +34,7 @@ export async function getChangedPackages(cwd: string) {
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
-  let ast = unified()
-    .use(remarkParse)
-    .parse(changelog);
+  let ast = unified().use(remarkParse).parse(changelog);
 
   let highestLevel: number = BumpLevels.dep;
 
@@ -61,7 +59,7 @@ export function getChangelogEntry(changelog: string, version: string) {
       if (headingStartInfo === undefined && stringified === version) {
         headingStartInfo = {
           index: i,
-          depth: node.depth
+          depth: node.depth,
         };
         continue;
       }
@@ -82,10 +80,8 @@ export function getChangelogEntry(changelog: string, version: string) {
     );
   }
   return {
-    content: unified()
-      .use(remarkStringify)
-      .stringify(ast),
-    highestLevel: highestLevel
+    content: unified().use(remarkStringify).stringify(ast),
+    highestLevel: highestLevel,
   };
 }
 
@@ -105,13 +101,13 @@ export async function execWithOutput(
         },
         stderr: (data: Buffer) => {
           myError += data.toString();
-        }
+        },
       },
 
-      ...options
+      ...options,
     }),
     stdout: myOutput,
-    stderr: myError
+    stderr: myError,
   };
 }
 

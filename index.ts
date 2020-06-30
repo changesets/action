@@ -8,7 +8,7 @@ import {
   getChangelogEntry,
   execWithOutput,
   getChangedPackages,
-  sortTheThings
+  sortTheThings,
 } from "./utils";
 import * as semver from "semver";
 import { readPreState } from "@changesets/pre";
@@ -36,7 +36,7 @@ const createRelease = async (
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
-      ...github.context.repo
+      ...github.context.repo,
     });
   } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
@@ -66,13 +66,13 @@ const createRelease = async (
     "config",
     "--global",
     "user.name",
-    `"github-actions[bot]"`
+    `"github-actions[bot]"`,
   ]);
   await exec("git", [
     "config",
     "--global",
     "user.email",
-    `"github-actions[bot]@users.noreply.github.com"`
+    `"github-actions[bot]@users.noreply.github.com"`,
   ]);
 
   console.log("setting GitHub credentials");
@@ -85,7 +85,7 @@ const createRelease = async (
 
   if (isInPreMode) {
     let changesetsToFilter = new Set(preState.changesets);
-    changesets = changesets.filter(x => !changesetsToFilter.has(x.id));
+    changesets = changesets.filter((x) => !changesetsToFilter.has(x.id));
   }
 
   let hasChangesets = changesets.length !== 0;
@@ -94,7 +94,7 @@ const createRelease = async (
     publishScript: core.getInput("publish"),
     versionScript: core.getInput("version"),
     commit: core.getInput("commit") || "Version Packages",
-    prTitle: core.getInput("title") || "Version Packages"
+    prTitle: core.getInput("title") || "Version Packages",
   };
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
@@ -134,7 +134,9 @@ const createRelease = async (
 
     if (tool !== "root") {
       let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
-      let packagesByName = new Map(packages.map(x => [x.packageJson.name, x]));
+      let packagesByName = new Map(
+        packages.map((x) => [x.packageJson.name, x])
+      );
 
       for (let line of changesetPublishOutput.stdout.split("\n")) {
         let match = line.match(newTagRegex);
@@ -153,10 +155,10 @@ const createRelease = async (
       }
 
       await Promise.all(
-        releasedPackages.map(pkg =>
+        releasedPackages.map((pkg) =>
           createRelease(octokit, {
             pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`
+            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
           })
         )
       );
@@ -171,7 +173,7 @@ const createRelease = async (
       releasedPackages.push(pkg);
       await createRelease(octokit, {
         pkg,
-        tagName: `v${pkg.packageJson.version}`
+        tagName: `v${pkg.packageJson.version}`,
       });
     }
 
@@ -180,9 +182,9 @@ const createRelease = async (
       core.setOutput(
         "publishedPackages",
         JSON.stringify(
-          releasedPackages.map(pkg => ({
+          releasedPackages.map((pkg) => ({
             name: pkg.packageJson.name,
-            version: pkg.packageJson.version
+            version: pkg.packageJson.version,
           }))
         )
       );
@@ -194,7 +196,7 @@ const createRelease = async (
   if (hasChangesets) {
     let versionBranch = `changeset-release/${branch}`;
     let { stderr } = await execWithOutput("git", ["checkout", versionBranch], {
-      ignoreReturnCode: true
+      ignoreReturnCode: true,
     });
     let isCreatingChangesetReleaseBranch = !stderr
       .toString()
@@ -220,7 +222,7 @@ const createRelease = async (
 
     let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
     let searchResultPromise = octokit.search.issuesAndPullRequests({
-      q: searchQuery
+      q: searchQuery,
     });
     let changedPackages = await getChangedPackages(process.cwd());
 
@@ -246,7 +248,7 @@ ${
 ` +
         (
           await Promise.all(
-            changedPackages.map(async pkg => {
+            changedPackages.map(async (pkg) => {
               let changelogContents = await fs.readFile(
                 path.join(pkg.dir, "CHANGELOG.md"),
                 "utf8"
@@ -261,14 +263,14 @@ ${
                 private: !!pkg.packageJson.private,
                 content:
                   `## ${pkg.packageJson.name}@${pkg.packageJson.version}\n\n` +
-                  entry.content
+                  entry.content,
               };
             })
           )
         )
-          .filter(x => x)
+          .filter((x) => x)
           .sort(sortTheThings)
-          .map(x => x.content)
+          .map((x) => x.content)
           .join("\n ")
       );
     })();
@@ -292,19 +294,19 @@ ${
         head: versionBranch,
         title: prTitle,
         body: await prBodyPromise,
-        ...github.context.repo
+        ...github.context.repo,
       });
     } else {
       octokit.pulls.update({
         pull_number: searchResult.data.items[0].number,
         title: prTitle,
         body: await prBodyPromise,
-        ...github.context.repo
+        ...github.context.repo,
       });
       console.log("pull request found");
     }
   }
-})().catch(err => {
+})().catch((err) => {
   console.error(err);
   core.setFailed(err.message);
 });

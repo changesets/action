@@ -2,7 +2,7 @@ import {
   getChangelogEntry,
   BumpLevels,
   getChangedPackages,
-  sortTheThings
+  sortTheThings,
 } from "./utils";
 import tempy from "tempy";
 import { exec } from "@actions/exec";
@@ -93,7 +93,7 @@ test("getChangedPackages works", async () => {
   await exec("git", ["init"], { cwd: dir });
   await fs.writeJson(path.join(dir, "package.json"), {
     name: "some-package",
-    version: "1.0.0"
+    version: "1.0.0",
   });
   await fs.writeFile(path.join(dir, "CHANGELOG.md"), "some content");
   await exec("git", ["add", "."], { cwd: dir });
@@ -102,13 +102,13 @@ test("getChangedPackages works", async () => {
   expect(emptyWorkspaces).toEqual([]);
   let workspace = {
     name: "some-package",
-    version: "2.0.0"
+    version: "2.0.0",
   };
   await fs.writeFile(path.join(dir, "CHANGELOG.md"), "other content");
   await fs.writeJson(path.join(dir, "package.json"), workspace);
   let workspaces = await getChangedPackages(dir);
   expect(workspaces).toEqual([
-    { name: "some-package", dir, config: workspace }
+    { name: "some-package", dir, config: workspace },
   ]);
 });
 
@@ -117,18 +117,18 @@ test("it sorts the things right", () => {
     {
       name: "a",
       highestLevel: BumpLevels.major,
-      private: true
+      private: true,
     },
     {
       name: "b",
       highestLevel: BumpLevels.patch,
-      private: false
+      private: false,
     },
     {
       name: "c",
       highestLevel: BumpLevels.major,
-      private: false
-    }
+      private: false,
+    },
   ];
   expect(things.sort(sortTheThings)).toMatchSnapshot();
 });
