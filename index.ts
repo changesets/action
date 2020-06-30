@@ -249,6 +249,12 @@ ${
         (
           await Promise.all(
             changedPackages.map(async (pkg) => {
+              
+              const changelogPath = path.join(pkg.dir, "CHANGELOG.md");
+              if (!fs.pathExists(changelogPath)) {
+                return;
+              }
+
               let changelogContents = await fs.readFile(
                 path.join(pkg.dir, "CHANGELOG.md"),
                 "utf8"
@@ -258,6 +264,11 @@ ${
                 changelogContents,
                 pkg.packageJson.version
               );
+
+              if (!entry.content) {
+                return;
+              }
+
               return {
                 highestLevel: entry.highestLevel,
                 private: !!pkg.packageJson.private,
@@ -268,7 +279,7 @@ ${
             })
           )
         )
-          .filter((x) => x)
+          .filter((x): x is { highestLevel: number; private: boolean; content: string; } => !!x)
           .sort(sortTheThings)
           .map((x) => x.content)
           .join("\n ")
