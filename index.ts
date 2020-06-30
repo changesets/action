@@ -48,6 +48,8 @@ const createRelease = async (
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
+  let githubUsername = process.env.GITHUB_USERNAME;
+  let githubEmail = process.env.GITHUB_EMAIL;
 
   if (!githubToken) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
@@ -66,13 +68,13 @@ const createRelease = async (
     "config",
     "--global",
     "user.name",
-    `"github-actions[bot]"`,
+    githubUsername || `"github-actions[bot]"`,
   ]);
   await exec("git", [
     "config",
     "--global",
     "user.email",
-    `"github-actions[bot]@users.noreply.github.com"`,
+    githubEmail || `"github-actions[bot]@users.noreply.github.com"`,
   ]);
 
   console.log("setting GitHub credentials");
