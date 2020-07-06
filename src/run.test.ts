@@ -15,7 +15,7 @@ jest.mock("@actions/github", () => ({
     ref: "refs/heads/some-branch",
     sha: "xeac7",
   },
-  GitHub: jest.fn(),
+  getOctokit: jest.fn(),
 }));
 jest.mock("./gitUtils");
 
@@ -30,7 +30,7 @@ let mockedGithubMethods = {
     createRelease: jest.fn(),
   },
 };
-(github.GitHub as any).mockImplementation(() => mockedGithubMethods);
+(github.getOctokit as any).mockImplementation(() => mockedGithubMethods);
 
 let f = fixturez(__dirname);
 
