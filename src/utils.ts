@@ -5,7 +5,6 @@ import remarkStringify from "remark-stringify";
 import mdastToString from "mdast-util-to-string";
 import { exec } from "@actions/exec";
 import { getPackages, Package } from "@manypkg/get-packages";
-import path from "path";
 
 export const BumpLevels = {
   dep: 0,
@@ -14,19 +13,22 @@ export const BumpLevels = {
   major: 3,
 } as const;
 
-export async function getChangedPackages(cwd: string) {
+export async function getVersionsByDirectory(cwd: string) {
   let { packages } = await getPackages(cwd);
-  let packagesByDirectory = new Map(packages.map((x) => [x.dir, x]));
+  return new Map(packages.map((x) => [x.dir, x.packageJson.version]));
+}
 
-  let output = await execWithOutput("git", ["diff", "--name-only"], { cwd });
-  let names = output.stdout.split("\n");
+export async function getChangedPackages(
+  cwd: string,
+  previousVersions: Map<string, string>
+) {
+  let { packages } = await getPackages(cwd);
   let changedPackages = new Set<Package>();
-  for (let name of names) {
-    if (name === "") continue;
-    let dirname = path.resolve(cwd, path.dirname(name));
-    let workspace = packagesByDirectory.get(dirname);
-    if (workspace !== undefined) {
-      changedPackages.add(workspace);
+
+  for (let pkg of packages) {
+    const previousVersion = previousVersions.get(pkg.dir);
+    if (previousVersion !== pkg.packageJson.version) {
+      changedPackages.add(pkg);
     }
   }
 

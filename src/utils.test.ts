@@ -1,13 +1,4 @@
-import {
-  getChangelogEntry,
-  BumpLevels,
-  getChangedPackages,
-  sortTheThings,
-} from "./utils";
-import tempy from "tempy";
-import { exec } from "@actions/exec";
-import * as fs from "fs-extra";
-import path from "path";
+import { getChangelogEntry, BumpLevels, sortTheThings } from "./utils";
 
 let changelog = `# @keystone-alpha/email
 
@@ -86,30 +77,6 @@ test("it works", () => {
   let entry = getChangelogEntry(changelog, "3.0.1");
   expect(entry.content).toMatchSnapshot();
   expect(entry.highestLevel).toBe(BumpLevels.patch);
-});
-
-test("getChangedPackages works", async () => {
-  let dir = tempy.directory();
-  await exec("git", ["init"], { cwd: dir });
-  await fs.writeJson(path.join(dir, "package.json"), {
-    name: "some-package",
-    version: "1.0.0",
-  });
-  await fs.writeFile(path.join(dir, "CHANGELOG.md"), "some content");
-  await exec("git", ["add", "."], { cwd: dir });
-  await exec("git", ["commit", "-m", "initial commit"], { cwd: dir });
-  let emptyWorkspaces = await getChangedPackages(dir);
-  expect(emptyWorkspaces).toEqual([]);
-  let workspace = {
-    name: "some-package",
-    version: "2.0.0",
-  };
-  await fs.writeFile(path.join(dir, "CHANGELOG.md"), "other content");
-  await fs.writeJson(path.join(dir, "package.json"), workspace);
-  let workspaces = await getChangedPackages(dir);
-  expect(workspaces).toEqual([
-    { name: "some-package", dir, config: workspace },
-  ]);
 });
 
 test("it sorts the things right", () => {
