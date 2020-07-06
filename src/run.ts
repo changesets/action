@@ -172,7 +172,6 @@ export async function runVersion({
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
     await exec(versionCommand, versionArgs, { cwd });
   } else {
-    // technically
     let changesetsCliPkgJson = await require(path.join(
       cwd,
       "node_modules",
