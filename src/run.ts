@@ -15,7 +15,7 @@ import * as gitUtils from "./gitUtils";
 import readChangesetState from "./readChangesetState";
 
 const createRelease = async (
-  octokit: github.GitHub,
+  octokit: ReturnType<typeof github.getOctokit>,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
   try {
@@ -69,7 +69,7 @@ export async function runPublish({
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   let branch = github.context.ref.replace("refs/heads/", "");
-  let octokit = new github.GitHub(githubToken);
+  let octokit = github.getOctokit(githubToken);
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
   let changesetPublishOutput = await execWithOutput(
@@ -160,7 +160,7 @@ export async function runVersion({
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
   let versionBranch = `changeset-release/${branch}`;
-  let octokit = new github.GitHub(githubToken);
+  let octokit = github.getOctokit(githubToken);
   let { preState } = await readChangesetState(cwd);
 
   await gitUtils.switchToMaybeExistingBranch(versionBranch);
