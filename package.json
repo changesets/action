@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "parcel build ./src/index.ts --no-source-maps --target=node --bundle-node-modules",
-    "test:watch": "jest --watch"
+    "test": "jest",
+    "test:watch": "yarn test --watch"
   },
   "dependencies": {
     "@actions/core": "^1.2.4",
