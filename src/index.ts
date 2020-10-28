@@ -41,13 +41,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         "No changesets found, attempting to publish any unpublished packages to npm"
       );
 
-      let npmrcPath = `${process.env.HOME}/.npmrc`;
-      if (fs.existsSync(npmrcPath)) {
+      let npmrcHomePath = `${process.env.HOME}/.npmrc`;
+      let npmrcProjectRootPath = `${process.env.PWD}/.npmrc`;
+      if (fs.existsSync(npmrcProjectRootPath) || fs.existsSync(npmrcHomePath)) {
         console.log("Found existing .npmrc file");
       } else {
         console.log("No .npmrc file found, creating one");
         fs.writeFileSync(
-          npmrcPath,
+          npmrcProjectRootPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
         );
       }
