@@ -48,7 +48,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       } else {
         console.log("No .npmrc file found, creating one");
         fs.writeFileSync(
-          npmrcProjectRootPath,
+          npmrcHomePath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
         );
       }
