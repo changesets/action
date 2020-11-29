@@ -250,11 +250,15 @@ ${
   })();
 
   const finalPrTitle = `${prTitle}${!!preState ? ` (${preState.tag})` : ""}`;
-  const finalCommitMessage = `${commitMessage}${
-    !!preState ? ` (${preState.tag})` : ""
-  }`;
 
-  await gitUtils.commitAll(finalCommitMessage);
+  // project with `commit: true` setting could have already committed files
+  if (!(await gitUtils.checkIfClean())) {
+    const finalCommitMessage = `${commitMessage}${
+      !!preState ? ` (${preState.tag})` : ""
+    }`;
+    await gitUtils.commitAll(finalCommitMessage);
+  }
+
   await gitUtils.push(versionBranch, { force: true });
 
   let searchResult = await searchResultPromise;
