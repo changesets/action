@@ -59,3 +59,8 @@ export const commitAll = async (message: string) => {
   await exec("git", ["add", "."]);
   await exec("git", ["commit", "-m", message]);
 };
+
+export const checkIfClean = async (): Promise<boolean> => {
+  const { stdout } = await execWithOutput("git", ["status", "--porcelain"]);
+  return !stdout.length;
+};
