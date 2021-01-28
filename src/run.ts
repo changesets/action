@@ -3,7 +3,6 @@ import * as github from "@actions/github";
 import fs from "fs-extra";
 import { getPackages, Package } from "@manypkg/get-packages";
 import path from "path";
-import resolveFrom from "resolve-from";
 import * as semver from "semver";
 import {
   getChangelogEntry,
@@ -182,16 +181,20 @@ export async function runVersion({
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
     await exec(versionCommand, versionArgs, { cwd });
   } else {
-    let changesetsCliPkgJson = await require(resolveFrom(
-      cwd,
-      "@changesets/cli/package.json"
+    let changesetsCliPkgJson = await require(require.resolve(
+      "@changesets/cli/package.json",
+      { paths: [cwd] }
     ));
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
-    await exec("node", [resolveFrom(cwd, "@changesets/cli/bin.js"), cmd], {
-      cwd,
-    });
+    await exec(
+      "node",
+      [require.resolve("@changesets/cli/bin.js", { paths: [cwd] }), cmd],
+      {
+        cwd,
+      }
+    );
   }
 
   let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
