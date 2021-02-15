@@ -165,13 +165,11 @@ jobs:
 
 #### With Yarn 2 / Plug'n'Play
 
-If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you will need to set the `NODE_OPTIONS` environment variable to configure Node to require the `.pnp.js` file, allowing it to resolve dependencies from within the action:
+If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you should use a custom `version` command so that the action can resolve the `changeset` CLI:
 
 ```yaml
 - uses: changesets/action@master
   with:
-    ...
-  env:
-    NODE_OPTIONS: "--require ${github.workspace}/.pnp.js"
+    version: yarn changeset version
     ...
 ```
