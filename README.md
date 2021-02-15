@@ -4,7 +4,6 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 ## Usage
 
-
 ### Inputs
 
 - publish - The command to use to build and publish packages
@@ -101,7 +100,6 @@ jobs:
         if: steps.changesets.outputs.published == 'true'
         # You can do something when a publish happens.
         run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
-
 ```
 
 By default the GitHub Action creates a `.npmrc` file with the following content:
@@ -163,4 +161,15 @@ jobs:
           version: yarn version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+#### With Yarn 2 / Plug'n'Play
+
+If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you should use a custom `version` command so that the action can resolve the `changeset` CLI:
+
+```yaml
+- uses: changesets/action@master
+  with:
+    version: yarn changeset version
+    ...
 ```
