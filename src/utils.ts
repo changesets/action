@@ -18,6 +18,13 @@ export async function getVersionsByDirectory(cwd: string) {
   return new Map(packages.map((x) => [x.dir, x.packageJson.version]));
 }
 
+export const getReleaseMessage = (
+  html_url: string,
+  name: string
+) => `###  🦋  This work has been released in release version: ${name}
+Release link: ${html_url}
+`;
+
 export async function getChangedPackages(
   cwd: string,
   previousVersions: Map<string, string>
