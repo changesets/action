@@ -150,6 +150,19 @@ export async function runPublish({
   return { published: false };
 }
 
+const requireChangesetsCliPkgJson = (cwd: string) => {
+  try {
+    return require(resolveFrom(cwd, "@changesets/cli/package.json"));
+  } catch (err) {
+    if (err && err.code === "MODULE_NOT_FOUND") {
+      throw new Error(
+        `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
+      );
+    }
+    throw err;
+  }
+};
+
 type VersionOptions = {
   script?: string;
   githubToken: string;
@@ -182,10 +195,7 @@ export async function runVersion({
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
     await exec(versionCommand, versionArgs, { cwd });
   } else {
-    let changesetsCliPkgJson = await require(resolveFrom(
-      cwd,
-      "@changesets/cli/package.json"
-    ));
+    let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
