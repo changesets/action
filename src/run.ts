@@ -260,7 +260,7 @@ export async function runPublish({
         createRelease(octokit, {
           pkg,
           tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          comment
+          comment: false
         })
       )
     );
