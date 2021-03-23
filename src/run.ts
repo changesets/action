@@ -69,7 +69,6 @@ export async function runPublish({
   githubToken,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
-  let branch = github.context.ref.replace("refs/heads/", "");
   let octokit = github.getOctokit(githubToken);
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
@@ -79,8 +78,7 @@ export async function runPublish({
     { cwd }
   );
 
-  await gitUtils.pullBranch(branch);
-  await gitUtils.push(branch, { includeTags: true });
+  await gitUtils.pushTags();
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];

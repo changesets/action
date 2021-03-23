@@ -22,18 +22,18 @@ export const pullBranch = async (branch: string) => {
 
 export const push = async (
   branch: string,
-  { force, includeTags }: { force?: boolean; includeTags?: boolean } = {}
+  { force }: { force?: boolean } = {}
 ) => {
   await exec(
     "git",
-    [
-      "push",
-      "origin",
-      `HEAD:${branch}`,
-      includeTags && "--tags",
-      force && "--force",
-    ].filter<string>(Boolean as any)
+    ["push", "origin", `HEAD:${branch}`, force && "--force"].filter<string>(
+      Boolean as any
+    )
   );
+};
+
+export const pushTags = async () => {
+  await exec("git", ["push", "origin", "--tags"]);
 };
 
 export const switchToMaybeExistingBranch = async (branch: string) => {
