@@ -56,7 +56,7 @@ const getSearchQueries = (base: string, commits: string[]) => {
   return commits.reduce((searches, commit) => {
     const lastSearch = searches[searches.length - 1];
 
-    if (lastSearch && lastSearch.length + commit.length <= 256 - 1) {
+    if (lastSearch && lastSearch.length + commit.length <= 256 - 6) {
       searches[searches.length - 1] = `${lastSearch}+hash:${commit}`;
     } else {
       searches.push(`${base}+hash:${commit}`);
