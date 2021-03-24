@@ -19,7 +19,7 @@ import issueParser from "issue-parser";
 
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
-  { pkg, tagName, comment }: { pkg: Package; tagName: string; comment: boolean; }
+  { pkg, tagName, comment }: { pkg: Package; tagName: string; comment: boolean }
 ) => {
   try {
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
@@ -35,7 +35,9 @@ const createRelease = async (
       );
     }
 
-    const { data: { html_url } } = await octokit.repos.createRelease({
+    const {
+      data: { html_url },
+    } = await octokit.repos.createRelease({
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
@@ -67,11 +69,11 @@ const getSearchQueries = (base: string, commits: string[]) => {
 };
 
 /* Comment on released Pull Requests/Issues  */
-const createReleaseComments = async(
+const createReleaseComments = async (
   octokit: ReturnType<typeof github.getOctokit>,
   { tagName, htmlUrl }: { tagName: string; htmlUrl: string }
 ) => {
-      /*
+  /*
       Here are the following steps to retrieve the released PRs and issues.
     
         1. Retrieve the tag associated with the release
@@ -84,118 +86,117 @@ const createReleaseComments = async(
         6. Create a comment for each issue and PR
       */
 
-      const repo = github.context.repo;
-  
-      let tagPage = 0;
-      let tagFound = false;
-      let tagCommitSha = "";
-  
-      /* 1 */
-      while (!tagFound) {
-        await octokit.repos
-          .listTags({
-            ...repo,
-            per_page: 100,
-            page: tagPage,
-          })
-          .then(({ data }) => {
-            const tag = data.find((el) => el.name === tagName);
-            if (tag) {
-              tagFound = true;
-              /* 2 */
-              tagCommitSha = tag.commit.sha;
-            }
-            tagPage += 1;
-          })
-          .catch((err) => console.warn(err));
-      }
-  
-      /* 3 */
-      const commits = await octokit.repos
-        .listCommits({
-          ...repo,
-          sha: tagCommitSha,
+  const repo = github.context.repo;
+
+  let tagPage = 0;
+  let tagFound = false;
+  let tagCommitSha = "";
+
+  /* 1 */
+  while (!tagFound) {
+    await octokit.repos
+      .listTags({
+        ...repo,
+        per_page: 100,
+        page: tagPage,
+      })
+      .then(({ data }) => {
+        const tag = data.find((el) => el.name === tagName);
+        if (tag) {
+          tagFound = true;
+          /* 2 */
+          tagCommitSha = tag.commit.sha;
+        }
+        tagPage += 1;
+      })
+      .catch((err) => console.warn(err));
+  }
+
+  /* 3 */
+  const commits = await octokit.repos
+    .listCommits({
+      ...repo,
+      sha: tagCommitSha,
+    })
+    .then(({ data }) => data);
+
+  const shas = commits.map(({ sha }) => sha);
+
+  /* Build a seach query to retrieve pulls with commit hashes.
+   *  example: repo:<OWNER>/<REPO>+type:pr+is:merged+hash:<FIRST_COMMIT_HASH>+hash:<SECOND_COMMIT_HASH>...
+   */
+  const searchQueries = getSearchQueries(
+    `repo:${repo.owner}/${repo.repo}+type:pr+is:merged`,
+    shas
+  ).map(
+    async (q) => (await octokit.search.issuesAndPullRequests({ q })).data.items
+  );
+
+  const queries = await (await Promise.all(searchQueries)).flat();
+
+  const queriesSet = queries.map((el) => el.number);
+
+  const filteredQueries = queries.filter(
+    (el, i) => queriesSet.indexOf(el.number) === i
+  );
+
+  /* 4 */
+  const pulls = await filteredQueries.filter(
+    async ({ number }) =>
+      (
+        await octokit.pulls.listCommits({
+          owner: repo.owner,
+          repo: repo.repo,
+          pull_number: number,
         })
-        .then(({ data }) => data);
-  
-      const shas = commits.map(({ sha }) => sha);
-  
-      /* Build a seach query to retrieve pulls with commit hashes.
-       *  example: repo:<OWNER>/<REPO>+type:pr+is:merged+hash:<FIRST_COMMIT_HASH>+hash:<SECOND_COMMIT_HASH>...
-       */
-      const searchQueries = getSearchQueries(
-        `repo:${repo.owner}/${repo.repo}+type:pr+is:merged`,
-        shas
-      ).map(
-        async (q) =>
-          (await octokit.search.issuesAndPullRequests({ q })).data.items
-      );
-  
-      const queries = await (await Promise.all(searchQueries)).flat();
-  
-      const queriesSet = queries.map((el) => el.number);
-  
-      const filteredQueries = queries.filter(
-        (el, i) => queriesSet.indexOf(el.number) === i
-      );
-  
-      /* 4 */
-      const pulls = await filteredQueries.filter(
-        async ({ number }) =>
-          (
-            await octokit.pulls.listCommits({
-              owner: repo.owner,
-              repo: repo.repo,
-              pull_number: number,
-            })
-          ).data.find(({ sha }) => shas.includes(sha)) ||
-          shas.includes(
-            (
-              await octokit.pulls.get({
-                owner: repo.owner,
-                repo: repo.repo,
-                pull_number: number,
-              })
-            ).data.merge_commit_sha
-          )
-      );
-  
-      const parser = issueParser("github");
-  
-      /* 5 */
-      const issues = [
-        ...pulls.map((pr) => pr.body),
-        ...commits.map(({ commit }) => commit.message),
-      ].reduce((issues, message) => {
-        return message
-          ? issues.concat(
-              parser(message)
-                .actions.close.filter(
-                  (action) =>
-                    action.slug === null ||
-                    action.slug === undefined ||
-                    action.slug === `${repo.owner}/${repo.repo}`
-                )
-                .map((action) => ({ number: Number.parseInt(action.issue, 10) }))
+      ).data.find(({ sha }) => shas.includes(sha)) ||
+      shas.includes(
+        (
+          await octokit.pulls.get({
+            owner: repo.owner,
+            repo: repo.repo,
+            pull_number: number,
+          })
+        ).data.merge_commit_sha
+      )
+  );
+
+  const parser = issueParser("github");
+
+  /* 5 */
+  const issues = [
+    ...pulls.map((pr) => pr.body),
+    ...commits.map(({ commit }) => commit.message),
+  ].reduce((issues, message) => {
+    return message
+      ? issues.concat(
+          parser(message)
+            .actions.close.filter(
+              (action) =>
+                action.slug === null ||
+                action.slug === undefined ||
+                action.slug === `${repo.owner}/${repo.repo}`
             )
-          : issues;
-      }, [] as { number: number }[]);
-  
-      /* 6 */
-      await Promise.all(
-        [...new Set([...pulls, ...issues].map(({ number }) => number))].map(
-          async (number) => {
-            const issueComment = {
-              ...repo,
-              issue_number: number,
-              body: getReleaseMessage(htmlUrl, tagName),
-            };
-  
-            octokit.issues.createComment(issueComment);
-          }
+            .map((action) => ({ number: Number.parseInt(action.issue, 10) }))
         )
-      );
-}
+      : issues;
+  }, [] as { number: number }[]);
+
+  /* 6 */
+  await Promise.all(
+    [...new Set([...pulls, ...issues].map(({ number }) => number))].map(
+      async (number) => {
+        const issueComment = {
+          ...repo,
+          issue_number: number,
+          body: getReleaseMessage(htmlUrl, tagName),
+        };
+
+        octokit.issues.createComment(issueComment);
+      }
+    )
+  );
+};
 
 type PublishOptions = {
   script: string;
@@ -260,7 +261,7 @@ export async function runPublish({
         createRelease(octokit, {
           pkg,
           tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          comment: false
+          comment,
         })
       )
     );
@@ -282,7 +283,7 @@ export async function runPublish({
         await createRelease(octokit, {
           pkg,
           tagName: `v${pkg.packageJson.version}`,
-          comment
+          comment,
         });
         break;
       }
