@@ -192,7 +192,7 @@ const createReleaseComments = async (
           body: getReleaseMessage(htmlUrl, tagName),
         };
 
-        octokit.issues.createComment(issueComment);
+        return octokit.issues.createComment(issueComment);
       }
     )
   );
