@@ -19,10 +19,18 @@ export async function getVersionsByDirectory(cwd: string) {
 }
 
 export const getReleaseMessage = (
-  html_url: string,
-  name: string
-) => `###  🦋  This work has been released in release version: ${name}
-Release link: ${html_url}
+  htmlUrls: string[],
+  tagNames: string[],
+  changesetsSummaries: string[]
+) => `###  🦋  This work has been released in release versions: ${tagNames.join(
+  ", "
+)}
+
+Release links:
+${htmlUrls.map((htmlUrl) => `- ${htmlUrl}</br>`)}
+
+Changesets summary:
+${changesetsSummaries.map((changesetSummary) => `- ${changesetSummary}</br>`)}
 `;
 
 export async function getChangedPackages(

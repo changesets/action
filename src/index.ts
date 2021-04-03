@@ -54,7 +54,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       const result = await runPublish({
         script: publishScript,
-        comment: Boolean(getOptionalInput("comment")),
+        comment: Boolean(getOptionalInput("comment")) && hasChangesets,
         githubToken,
       });
 

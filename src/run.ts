@@ -17,10 +17,16 @@ import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 import issueParser from "issue-parser";
 
+type ReleaseComment = {
+  issue_number: number;
+  htmlUrl: string;
+  tagName: string;
+};
+
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
   { pkg, tagName, comment }: { pkg: Package; tagName: string; comment: boolean }
-) => {
+): Promise<ReleaseComment[] | undefined> => {
   try {
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
@@ -36,7 +42,7 @@ const createRelease = async (
     }
 
     const {
-      data: { html_url },
+      data: { html_url: htmlUrl },
     } = await octokit.repos.createRelease({
       tag_name: tagName,
       body: changelogEntry.content,
@@ -44,7 +50,10 @@ const createRelease = async (
       ...github.context.repo,
     });
     if (comment) {
-      await createReleaseComments(octokit, { tagName, htmlUrl: html_url });
+      return await createReleaseComments(octokit, {
+        tagName,
+        htmlUrl,
+      });
     }
   } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
@@ -183,18 +192,12 @@ const createReleaseComments = async (
   }, [] as { number: number }[]);
 
   /* 6 */
-  await Promise.all(
-    [...new Set([...pulls, ...issues].map(({ number }) => number))].map(
-      async (number) => {
-        const issueComment = {
-          ...repo,
-          issue_number: number,
-          body: getReleaseMessage(htmlUrl, tagName),
-        };
-
-        return octokit.issues.createComment(issueComment);
-      }
-    )
+  return [...new Set([...pulls, ...issues].map(({ number }) => number))].map(
+    (number) => ({
+      issue_number: number,
+      htmlUrl,
+      tagName,
+    })
   );
 };
 
@@ -224,6 +227,11 @@ export async function runPublish({
 }: PublishOptions): Promise<PublishResult> {
   let octokit = github.getOctokit(githubToken);
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
+  let { changesets } = await readChangesetState(cwd);
+
+  const changesetsSummaries = changesets.map(({ summary }) => summary);
+
+  const { owner, repo } = github.context.repo;
 
   let changesetPublishOutput = await execWithOutput(
     publishCommand,
@@ -256,7 +264,7 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    await Promise.all(
+    const issueComments = await Promise.all(
       releasedPackages.map((pkg) =>
         createRelease(octokit, {
           pkg,
@@ -264,7 +272,32 @@ export async function runPublish({
           comment,
         })
       )
+    ).then((releasesComments) =>
+      releasesComments.reduce((acc, releaseComments) => {
+        if (releaseComments) {
+          for (const releaseComment of releaseComments) {
+            acc[releaseComment.issue_number] = [
+              ...acc[releaseComment.issue_number],
+              releaseComment,
+            ];
+          }
+        }
+        return acc;
+      }, {} as { [key: number]: ReleaseComment[] })
     );
+    for (const comments of Object.values(issueComments)) {
+      const tagNames = comments.map((comment) => comment.tagName);
+      const htmlUrls = comments.map((comment) => comment.htmlUrl);
+
+      const { issue_number } = comments[0];
+
+      octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number,
+        body: getReleaseMessage(htmlUrls, tagNames, changesetsSummaries),
+      });
+    }
   } else {
     if (packages.length === 0) {
       throw new Error(
@@ -280,11 +313,25 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        await createRelease(octokit, {
+        const comments = await createRelease(octokit, {
           pkg,
           tagName: `v${pkg.packageJson.version}`,
           comment,
         });
+        if (comments) {
+          for (const comment of comments) {
+            octokit.issues.createComment({
+              owner,
+              repo,
+              issue_number: comment.issue_number,
+              body: getReleaseMessage(
+                [comment.htmlUrl],
+                [comment.tagName],
+                changesetsSummaries
+              ),
+            });
+          }
+        }
         break;
       }
     }
