@@ -34,6 +34,7 @@ const createRelease = async (
     }
 
     await octokit.repos.createRelease({
+      name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
