@@ -10,15 +10,23 @@ import {
   getChangedPackages,
   sortTheThings,
   getVersionsByDirectory,
+  getReleaseMessage,
 } from "./utils";
 import * as gitUtils from "./gitUtils";
 import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
+import issueParser from "issue-parser";
+
+type ReleaseComment = {
+  issue_number: number;
+  htmlUrl: string;
+  tagName: string;
+};
 
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
-  { pkg, tagName }: { pkg: Package; tagName: string }
-) => {
+  { pkg, tagName, comment }: { pkg: Package; tagName: string; comment: boolean }
+): Promise<ReleaseComment[] | undefined> => {
   try {
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
@@ -33,13 +41,20 @@ const createRelease = async (
       );
     }
 
-    await octokit.repos.createRelease({
-      name: tagName,
+    const {
+      data: { html_url: htmlUrl },
+    } = await octokit.repos.createRelease({
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
       ...github.context.repo,
     });
+    if (comment) {
+      return await createReleaseComments(octokit, {
+        tagName,
+        htmlUrl,
+      });
+    }
   } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
     if (err.code !== "ENOENT") {
@@ -48,10 +63,149 @@ const createRelease = async (
   }
 };
 
+const getSearchQueries = (base: string, commits: string[]) => {
+  return commits.reduce((searches, commit) => {
+    const lastSearch = searches[searches.length - 1];
+
+    if (lastSearch && lastSearch.length + commit.length <= 256 - 6) {
+      searches[searches.length - 1] = `${lastSearch}+hash:${commit}`;
+    } else {
+      searches.push(`${base}+hash:${commit}`);
+    }
+
+    return searches;
+  }, [] as string[]);
+};
+
+/* Comment on released Pull Requests/Issues  */
+const createReleaseComments = async (
+  octokit: ReturnType<typeof github.getOctokit>,
+  { tagName, htmlUrl }: { tagName: string; htmlUrl: string }
+) => {
+  /*
+      Here are the following steps to retrieve the released PRs and issues.
+    
+        1. Retrieve the tag associated with the release
+        2. Take the commit sha associated with the tag
+        3. Retrieve all the commits starting from the tag commit sha
+        4. Retrieve the PRs with commits sha matching the release commits
+        5. Map through the list of commits and the list of PRs to
+           find commit message or PRs body that closes an issue and
+           get the issue number.
+        6. Create a comment for each issue and PR
+      */
+
+  const repo = github.context.repo;
+
+  let tagPage = 0;
+  let tagFound = false;
+  let tagCommitSha = "";
+
+  /* 1 */
+  while (!tagFound) {
+    await octokit.repos
+      .listTags({
+        ...repo,
+        per_page: 100,
+        page: tagPage,
+      })
+      .then(({ data }) => {
+        const tag = data.find((el) => el.name === tagName);
+        if (tag) {
+          tagFound = true;
+          /* 2 */
+          tagCommitSha = tag.commit.sha;
+        }
+        tagPage += 1;
+      })
+      .catch((err) => console.warn(err));
+  }
+
+  /* 3 */
+  const commits = await octokit.repos
+    .listCommits({
+      ...repo,
+      sha: tagCommitSha,
+    })
+    .then(({ data }) => data);
+
+  const shas = commits.map(({ sha }) => sha);
+
+  /* Build a seach query to retrieve pulls with commit hashes.
+   *  example: repo:<OWNER>/<REPO>+type:pr+is:merged+hash:<FIRST_COMMIT_HASH>+hash:<SECOND_COMMIT_HASH>...
+   */
+  const searchQueries = getSearchQueries(
+    `repo:${repo.owner}/${repo.repo}+type:pr+is:merged`,
+    shas
+  ).map(
+    async (q) => (await octokit.search.issuesAndPullRequests({ q })).data.items
+  );
+
+  const queries = await (await Promise.all(searchQueries)).flat();
+
+  const queriesSet = queries.map((el) => el.number);
+
+  const filteredQueries = queries.filter(
+    (el, i) => queriesSet.indexOf(el.number) === i
+  );
+
+  /* 4 */
+  const pulls = await filteredQueries.filter(
+    async ({ number }) =>
+      (
+        await octokit.pulls.listCommits({
+          owner: repo.owner,
+          repo: repo.repo,
+          pull_number: number,
+        })
+      ).data.find(({ sha }) => shas.includes(sha)) ||
+      shas.includes(
+        (
+          await octokit.pulls.get({
+            owner: repo.owner,
+            repo: repo.repo,
+            pull_number: number,
+          })
+        ).data.merge_commit_sha
+      )
+  );
+
+  const parser = issueParser("github");
+
+  /* 5 */
+  const issues = [
+    ...pulls.map((pr) => pr.body),
+    ...commits.map(({ commit }) => commit.message),
+  ].reduce((issues, message) => {
+    return message
+      ? issues.concat(
+          parser(message)
+            .actions.close.filter(
+              (action) =>
+                action.slug === null ||
+                action.slug === undefined ||
+                action.slug === `${repo.owner}/${repo.repo}`
+            )
+            .map((action) => ({ number: Number.parseInt(action.issue, 10) }))
+        )
+      : issues;
+  }, [] as { number: number }[]);
+
+  /* 6 */
+  return [...new Set([...pulls, ...issues].map(({ number }) => number))].map(
+    (number) => ({
+      issue_number: number,
+      htmlUrl,
+      tagName,
+    })
+  );
+};
+
 type PublishOptions = {
   script: string;
   githubToken: string;
   cwd?: string;
+  comment: boolean;
 };
 
 type PublishedPackage = { name: string; version: string };
@@ -68,10 +222,16 @@ type PublishResult =
 export async function runPublish({
   script,
   githubToken,
+  comment,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   let octokit = github.getOctokit(githubToken);
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
+  let { changesets } = await readChangesetState(cwd);
+
+  const changesetsSummaries = changesets.map(({ summary }) => summary);
+
+  const { owner, repo } = github.context.repo;
 
   let changesetPublishOutput = await execWithOutput(
     publishCommand,
@@ -104,14 +264,40 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    await Promise.all(
+    const issueComments = await Promise.all(
       releasedPackages.map((pkg) =>
         createRelease(octokit, {
           pkg,
           tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+          comment,
         })
       )
+    ).then((releasesComments) =>
+      releasesComments.reduce((acc, releaseComments) => {
+        if (releaseComments) {
+          for (const releaseComment of releaseComments) {
+            acc[releaseComment.issue_number] = [
+              ...acc[releaseComment.issue_number],
+              releaseComment,
+            ];
+          }
+        }
+        return acc;
+      }, {} as { [key: number]: ReleaseComment[] })
     );
+    for (const comments of Object.values(issueComments)) {
+      const tagNames = comments.map((comment) => comment.tagName);
+      const htmlUrls = comments.map((comment) => comment.htmlUrl);
+
+      const { issue_number } = comments[0];
+
+      octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number,
+        body: getReleaseMessage(htmlUrls, tagNames, changesetsSummaries),
+      });
+    }
   } else {
     if (packages.length === 0) {
       throw new Error(
@@ -127,10 +313,25 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        await createRelease(octokit, {
+        const comments = await createRelease(octokit, {
           pkg,
           tagName: `v${pkg.packageJson.version}`,
+          comment,
         });
+        if (comments) {
+          for (const comment of comments) {
+            octokit.issues.createComment({
+              owner,
+              repo,
+              issue_number: comment.issue_number,
+              body: getReleaseMessage(
+                [comment.htmlUrl],
+                [comment.tagName],
+                changesetsSummaries
+              ),
+            });
+          }
+        }
         break;
       }
     }

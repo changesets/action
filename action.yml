@@ -17,6 +17,9 @@ inputs:
   title:
     description: The pull request title. Default to `Version Packages`
     required: false
+  comment:
+    description: Set the comment behavior on released Pull Requests/Issues. Default to `false`
+    required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

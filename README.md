@@ -10,6 +10,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
 - commit - The commit message to use. Default to `Version Packages`
 - title - The pull request title. Default to `Version Packages`
+- comment - Set the comment behavior on released Pull Requests/Issues. Default to `false`
 
 ### Outputs
 
