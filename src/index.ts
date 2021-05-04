@@ -43,9 +43,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       let npmrcPath = `${process.env.HOME}/.npmrc`;
       if (fs.existsSync(npmrcPath)) {
-        console.log(`Found existing global .npmrc file`);
+        console.log("Found existing global .npmrc file");
       } else {
-        console.log(`No global .npmrc file found, creating one`);
+        console.log("No global .npmrc file found, creating one");
         fs.writeFileSync(
           npmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}`
