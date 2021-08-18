@@ -14,9 +14,6 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  core.setOutput("published", "false");
-  core.setOutput("publishedPackages", "[]");
-
   console.log("setting git user");
   await gitUtils.setupUser();
 
@@ -31,6 +28,10 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
   let hasPublishScript = !!publishScript;
+
+  core.setOutput("published", "false");
+  core.setOutput("publishedPackages", "[]");
+  core.setOutput("hasChangesets", String(hasChangesets));
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
