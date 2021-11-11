@@ -48,7 +48,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
           // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
-          return /^(\s+)?\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
+          return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
         });
         if (authLine) {
           console.log(
