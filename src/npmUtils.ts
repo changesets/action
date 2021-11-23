@@ -1,50 +1,59 @@
 import fs from "fs";
 import * as ini from "ini";
 
-export const prepareNpmConfig = (
+// https://docs.npmjs.com/using-private-packages-in-a-ci-cd-workflow#create-and-check-in-a-project-specific-npmrc-file
+const npmRegistryTokenKey = "//registry.npmjs.org/:_authToken";
+
+export const checkNpmConfig = (
   // Allow to inject a custom object, useful in tests.
   processEnv = process.env
 ) => {
   const userNpmrcPath = `${processEnv.HOME}/.npmrc`;
 
   if (fs.existsSync(userNpmrcPath)) {
-    console.log(`Found existing user .npmrc file at ${userNpmrcPath}`);
+    console.log(`Found existing user .npmrc file at ${userNpmrcPath}.`);
 
     // Parse the `.npmrc` content using the `npm/ini` package.
     const npmConfig = ini.parse(fs.readFileSync(userNpmrcPath, "utf-8"));
 
-    let hasAuthToken = false;
+    let hasAuthTokenForDefaultNpmRegistry = false;
+    // Check if there is at least a registry defined with an `_authToken`.
     for (const [key, value] of Object.entries(npmConfig)) {
-      if (/\/\/(.*)authToken$/.test(key) && Boolean(value)) {
-        console.log("The .npmrc file has an authToken");
-        hasAuthToken = true;
+      if (npmRegistryTokenKey === key && Boolean(value)) {
+        hasAuthTokenForDefaultNpmRegistry = true;
       }
     }
 
-    if (!hasAuthToken) {
+    if (hasAuthTokenForDefaultNpmRegistry) {
       console.log(
-        "The .npmrc file does not have an authToken defined, creating one using the `NPM_TOKEN` environment variable"
+        "The .npmrc file has an entry for the npm registry with an authToken defined."
       );
-      if (!processEnv.NPM_TOKEN) {
-        throw new Error(
-          "Missing NPM authToken. Please make sure you have the `NPM_TOKEN` environment variable defined."
+    } else {
+      console.log(
+        "The .npmrc file does not have an authToken defined, appending one using the `NPM_TOKEN` environment variable..."
+      );
+      if (processEnv.NPM_TOKEN) {
+        npmConfig["//registry.npmjs.org/:_authToken"] = processEnv.NPM_TOKEN;
+        fs.writeFileSync(userNpmrcPath, ini.stringify(npmConfig));
+      } else {
+        console.warn(
+          "Missing `NPM_TOKEN` environment variable, skipping update of .npmrc file."
         );
       }
-      npmConfig["//registry.npmjs.org/:_authToken"] = processEnv.NPM_TOKEN;
-      fs.writeFileSync(userNpmrcPath, ini.stringify(npmConfig));
     }
   } else {
-    console.log("No user .npmrc file found, creating one");
-    if (!processEnv.NPM_TOKEN) {
-      throw new Error(
-        "Missing NPM authToken. Please make sure you have the `NPM_TOKEN` environment variable defined."
+    console.log("No user .npmrc file found, creating one...");
+    if (processEnv.NPM_TOKEN) {
+      fs.writeFileSync(
+        userNpmrcPath,
+        ini.stringify({
+          "//registry.npmjs.org/:_authToken": processEnv.NPM_TOKEN,
+        })
+      );
+    } else {
+      console.warn(
+        "Missing `NPM_TOKEN` environment variable, skipping creation of .npmrc file."
       );
     }
-    fs.writeFileSync(
-      userNpmrcPath,
-      ini.stringify({
-        "//registry.npmjs.org/:_authToken": processEnv.NPM_TOKEN,
-      })
-    );
   }
 };

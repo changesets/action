@@ -2,12 +2,12 @@ import fs from "fs";
 import path from "path";
 import * as ini from "ini";
 import fixtures from "fixturez";
-import { prepareNpmConfig } from "./npmUtils";
+import { checkNpmConfig } from "./npmUtils";
 
 const f = fixtures(__dirname);
 const authToken = "npm_abc";
 
-describe("prepareNpmConfig", () => {
+describe("checkNpmConfig", () => {
   let tmpDir: string;
   let npmrcPath: string;
 
@@ -28,7 +28,7 @@ describe("prepareNpmConfig", () => {
         );
       });
       test("should not change the .npmrc file", () => {
-        prepareNpmConfig({ HOME: tmpDir });
+        checkNpmConfig({ HOME: tmpDir });
 
         const npmConfig = ini.parse(fs.readFileSync(npmrcPath, "utf-8"));
         expect(npmConfig).toMatchInlineSnapshot(`
@@ -51,7 +51,7 @@ describe("prepareNpmConfig", () => {
       describe("when NPM_TOKEN environment variable is not defined", () => {
         test("it should throw an error", () => {
           expect(() =>
-            prepareNpmConfig({
+            checkNpmConfig({
               HOME: tmpDir,
               NPM_TOKEN: undefined,
             })
@@ -61,7 +61,7 @@ describe("prepareNpmConfig", () => {
         });
       });
       test("should inject NPM_TOKEN value in .npmrc file", () => {
-        prepareNpmConfig({
+        checkNpmConfig({
           HOME: tmpDir,
           NPM_TOKEN: authToken,
         });
@@ -81,7 +81,7 @@ describe("prepareNpmConfig", () => {
     describe("when NPM_TOKEN environment variable is not defined", () => {
       test("it should throw an error", () => {
         expect(() =>
-          prepareNpmConfig({
+          checkNpmConfig({
             HOME: tmpDir,
             NPM_TOKEN: undefined,
           })
@@ -91,7 +91,7 @@ describe("prepareNpmConfig", () => {
       });
     });
     test("should create a new .npmrc config", () => {
-      prepareNpmConfig({
+      checkNpmConfig({
         HOME: tmpDir,
         NPM_TOKEN: authToken,
       });
