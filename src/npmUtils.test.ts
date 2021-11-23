@@ -49,14 +49,14 @@ describe("checkNpmConfig", () => {
         );
       });
       describe("when NPM_TOKEN environment variable is not defined", () => {
-        test("it should throw an error", () => {
-          expect(() =>
-            checkNpmConfig({
-              HOME: tmpDir,
-              NPM_TOKEN: undefined,
-            })
-          ).toThrowErrorMatchingInlineSnapshot(
-            `"Missing NPM authToken. Please make sure you have the \`NPM_TOKEN\` environment variable defined."`
+        test("it should log a warning", () => {
+          console.warn = jest.fn();
+          checkNpmConfig({
+            HOME: tmpDir,
+            NPM_TOKEN: undefined,
+          });
+          expect(console.warn).toHaveBeenCalledWith(
+            "Missing `NPM_TOKEN` environment variable, skipping update of .npmrc file."
           );
         });
       });
@@ -79,14 +79,14 @@ describe("checkNpmConfig", () => {
 
   describe("when .npmrc does not exist", () => {
     describe("when NPM_TOKEN environment variable is not defined", () => {
-      test("it should throw an error", () => {
-        expect(() =>
-          checkNpmConfig({
-            HOME: tmpDir,
-            NPM_TOKEN: undefined,
-          })
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"Missing NPM authToken. Please make sure you have the \`NPM_TOKEN\` environment variable defined."`
+      test("it should log a warning", () => {
+        console.warn = jest.fn();
+        checkNpmConfig({
+          HOME: tmpDir,
+          NPM_TOKEN: undefined,
+        });
+        expect(console.warn).toHaveBeenCalledWith(
+          "Missing `NPM_TOKEN` environment variable, skipping creation of .npmrc file."
         );
       });
     });
