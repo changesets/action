@@ -12,7 +12,6 @@ process.chdir(path.join(__dirname, ".."));
       ignoreReturnCode: true,
     }
   );
-  const exists = stdout.trim() !== "";
   if (exitCode === 0) {
     console.log(
       `Action is not being published because version ${tag} is already published`
