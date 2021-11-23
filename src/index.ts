@@ -44,7 +44,10 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         "No changesets found, attempting to publish any unpublished packages to npm"
       );
 
-      npmUtils.checkNpmConfig();
+      const skipNpmrcCheck = getOptionalInput("skipNpmrcCheck");
+      if (skipNpmrcCheck !== "true") {
+        npmUtils.checkNpmConfig();
+      }
 
       const result = await runPublish({
         script: publishScript,

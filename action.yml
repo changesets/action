@@ -17,6 +17,10 @@ inputs:
   title:
     description: The pull request title. Default to `Version Packages`
     required: false
+  skipNpmrcCheck:
+    description: >
+      Check if there is a user-defined `.npmrc` file with a proper npm registry and an `authToken`. If not, a default `.npmrc` file is created.
+    required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
