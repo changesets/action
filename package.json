@@ -1,11 +1,12 @@
 {
   "name": "@changesets/action",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
-    "@changesets/cli": "^2.9.1",
-    "@changesets/write": "^0.1.3",
+    "@changesets/changelog-github": "^0.4.1",
+    "@changesets/cli": "^2.18.0",
+    "@changesets/write": "^0.1.5",
     "fixturez": "^1.1.0",
     "parcel": "^1.12.3",
     "prettier": "^2.0.5",
@@ -14,11 +15,14 @@
   "scripts": {
     "build": "parcel build ./src/index.ts --no-source-maps --target=node --bundle-node-modules",
     "test": "jest",
-    "test:watch": "yarn test --watch"
+    "test:watch": "yarn test --watch",
+    "changeset": "changeset",
+    "version": "node ./scripts/version.js",
+    "release": "node ./scripts/release.js"
   },
   "dependencies": {
     "@actions/core": "^1.2.4",
-    "@actions/exec": "^1.0.4",
+    "@actions/exec": "^1.1.0",
     "@actions/github": "^4.0.0",
     "@babel/core": "^7.13.10",
     "@babel/preset-env": "^7.13.10",
@@ -42,9 +46,7 @@
     "unified": "^8.3.2"
   },
   "husky": {
-    "hooks": {
-      "pre-commit": "yarn build && git add dist/index.js"
-    }
+    "hooks": {}
   },
   "prettier": {}
 }

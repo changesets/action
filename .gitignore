@@ -2,3 +2,5 @@ node_modules
 .parcel-cache
 .cache
 *.log
+
+dist/
