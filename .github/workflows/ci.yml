@@ -9,15 +9,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Repo
       - uses: actions/checkout@v2
 
-      - name: Use Node.js 12
+      - name: Use Node.js 14
         uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: 14.x
 
-      - name: Install dependencies
-        run: yarn
+      - name: Install Dependencies
+        run: yarn --frozen-lockfile
 
       - name: Test
         run: yarn test

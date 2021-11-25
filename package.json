@@ -4,6 +4,7 @@
   "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
+    "@changesets/changelog-github": "^0.4.1",
     "@changesets/cli": "^2.18.0",
     "@changesets/write": "^0.1.5",
     "fixturez": "^1.1.0",
@@ -15,7 +16,8 @@
     "build": "parcel build ./src/index.ts --no-source-maps --target=node --bundle-node-modules",
     "test": "jest",
     "test:watch": "yarn test --watch",
-    "version": "changeset version",
+    "changeset": "changeset",
+    "version": "node ./scripts/version.js",
     "release": "node ./scripts/release.js"
   },
   "dependencies": {
