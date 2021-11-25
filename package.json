@@ -17,7 +17,7 @@
     "test": "jest",
     "test:watch": "yarn test --watch",
     "changeset": "changeset",
-    "version": "node ./scripts/version.js",
+    "bump": "node ./scripts/bump.js",
     "release": "node ./scripts/release.js"
   },
   "dependencies": {
