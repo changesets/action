@@ -1,5 +1,7 @@
 # Changesets Release Action
 
+> ⚠️ This branch has been frozen and deprecated. Please update your workflow to either use `@v1` or a specific commit SHA that is tagged.
+
 This action for [Changesets](https://github.com/atlassian/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on master, the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
 
 ## Usage
