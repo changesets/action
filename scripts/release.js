@@ -25,8 +25,6 @@ process.chdir(path.join(__dirname, ".."));
     throw new Error(`git ls-remote exited with ${exitCode}:\n${stderr}`);
   }
 
-  await exec("yarn", ["build"]);
-
   await exec("git", ["checkout", "--detach"]);
   await exec("git", ["add", "--force", "dist"]);
   await exec("git", ["commit", "-m", tag]);
