@@ -4,6 +4,10 @@ import * as gitUtils from "./gitUtils";
 import { runPublish, runVersion } from "./run";
 import readChangesetState from "./readChangesetState";
 
+core.warning(
+  "The workflow file using `changesets/action` is currently using `@master` as the version. This branch has been frozen and deprecated. Please update your workflow to either use `@v1` or a specific commit SHA that is tagged."
+);
+
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
 (async () => {
