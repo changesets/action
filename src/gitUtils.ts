@@ -1,5 +1,4 @@
-import { exec } from "@actions/exec";
-import { execWithOutput } from "./utils";
+import { exec, getExecOutput } from "@actions/exec";
 
 export const setupUser = async () => {
   await exec("git", [
@@ -37,7 +36,7 @@ export const pushTags = async () => {
 };
 
 export const switchToMaybeExistingBranch = async (branch: string) => {
-  let { stderr } = await execWithOutput("git", ["checkout", branch], {
+  let { stderr } = await getExecOutput("git", ["checkout", branch], {
     ignoreReturnCode: true,
   });
   let isCreatingBranch = !stderr
@@ -61,6 +60,6 @@ export const commitAll = async (message: string) => {
 };
 
 export const checkIfClean = async (): Promise<boolean> => {
-  const { stdout } = await execWithOutput("git", ["status", "--porcelain"]);
+  const { stdout } = await getExecOutput("git", ["status", "--porcelain"]);
   return !stdout.length;
 };
