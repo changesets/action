@@ -14,8 +14,19 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
+  let githubUserName = getOptionalInput('githubUserName') || `"github-actions[bot]"`;
+  let githubUserEmail = getOptionalInput('githubUserEmail') || `"github-actions[bot]@users.noreply.github.com"`;
+
   console.log("setting git user");
-  await gitUtils.setupUser();
+ 
+  await gitUtils.setupUser(githubUserName, githubUserEmail);
+
+  const gpgPrivateKey = process.env.GPG_PRIVATE_KEY;
+
+  if (gpgPrivateKey) {
+    console.log("using provided gpg private key for commit signing");
+    await gitUtils.setupCommitSigning(gpgPrivateKey);
+  }
 
   console.log("setting GitHub credentials");
   await fs.writeFile(
