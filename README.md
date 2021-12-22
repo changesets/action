@@ -10,8 +10,8 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
 - commit - The commit message to use. Default to `Version Packages`
 - title - The pull request title. Default to `Version Packages`
-- githubUserName - The GitHub user name on commits. Default to `"github-actions[bot]"`
-- githubUserEmail - The GitHub user email on commits. Default to `"github-actions[bot]@users.noreply.github.com"`
+- gitUserName - The Git user name on commits. Default to `"github-actions[bot]"`
+- gitUserEmail - The Git user email on commits. Default to `"github-actions[bot]@users.noreply.github.com"`
 
 ### Outputs
 

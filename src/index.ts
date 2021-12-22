@@ -14,12 +14,12 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  let githubUserName = getOptionalInput('githubUserName') || `"github-actions[bot]"`;
-  let githubUserEmail = getOptionalInput('githubUserEmail') || `"github-actions[bot]@users.noreply.github.com"`;
+  const gitUserName = getOptionalInput("gitUserName") || `"github-actions[bot]"`;
+  const gitUserEmail = getOptionalInput("gitUserEmail") || `"github-actions[bot]@users.noreply.github.com"`;
 
   console.log("setting git user");
- 
-  await gitUtils.setupUser(githubUserName, githubUserEmail);
+
+  await gitUtils.setupUser({ name: gitUserName, email: gitUserEmail });
 
   const gpgPrivateKey = process.env.GPG_PRIVATE_KEY;
 

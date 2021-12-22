@@ -17,11 +17,11 @@ inputs:
   title:
     description: The pull request title. Default to `Version Packages`
     required: false
-  githubUserName:
-    description: The GitHub user name on commits. Default to `"github-actions[bot]"`
+  gitUserName:
+    description: The Git user name on commits. Default to `"github-actions[bot]"`
     required: false
-  githubUserEmail:
-    description: The GitHub user email on commits. Default to `"github-actions[bot]@users.noreply.github.com"`
+  gitUserEmail:
+    description: The Git user email on commits. Default to `"github-actions[bot]@users.noreply.github.com"`
     required: false
 outputs:
   published:

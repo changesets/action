@@ -1,42 +1,20 @@
 import { exec } from "@actions/exec";
 import { execWithOutput } from "./utils";
 
-export const setupUser = async (githubUserName: string, githubUserEmail: string) => {
-  await exec("git", [
-    "config",
-    "--global",
-    "user.name",
-    githubUserName,
-  ]);
-  await exec("git", [
-    "config",
-    "--global",
-    "user.email",
-    githubUserEmail,
-  ]);
+export const setupUser = async({ name, email }: { name: string; email: string; }) => {
+  await exec("git", ["config", "--global", "user.name", name]);
+  await exec("git", ["config", "--global", "user.email", email]);
 };
 
 export const setupCommitSigning = async (gpgPrivateKey: string) => {
-  await exec("apk", [
-    "add",
-    "--no-cache",
-    "gnupg",
-  ]);
+  await exec("apk", ["add", "--no-cache", "gnupg"]);
   await exec("gpg", ["--import"], { input: Buffer.from(gpgPrivateKey) });
-  const { stdout: keyId } = await execWithOutput(`/bin/bash -c "gpg --list-secret-keys --with-colons | grep '^sec:' | cut -d ':' -f 5"`);
-  await exec("git", [
-    "config",
-    "--global",
-    "user.signingkey",
-    keyId.trim(),
-  ]);
-  await exec("git", [
-    "config",
-    "--global",
-    "commit.gpgsign",
-    "true",
-  ]);
-}
+  const { stdout: keyId } = await execWithOutput(
+    `/bin/bash -c "gpg --list-secret-keys --with-colons | grep '^sec:' | cut -d ':' -f 5"`
+  );
+  await exec("git", ["config", "--global", "user.signingkey", keyId.trim()]);
+  await exec("git", ["config", "--global", "commit.gpgsign", "true"]);
+};
 
 export const pullBranch = async (branch: string) => {
   await exec("git", ["pull", "origin", branch]);
