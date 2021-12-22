@@ -7,7 +7,6 @@ export const setupUser = async({ name, email }: { name: string; email: string; }
 };
 
 export const setupCommitSigning = async (gpgPrivateKey: string) => {
-  await exec("apk", ["add", "--no-cache", "gnupg"]);
   await exec("gpg", ["--import"], { input: Buffer.from(gpgPrivateKey) });
   const { stdout: keyId } = await execWithOutput(
     `/bin/bash -c "gpg --list-secret-keys --with-colons | grep '^sec:' | cut -d ':' -f 5"`
