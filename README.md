@@ -175,3 +175,26 @@ If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you shoul
     version: yarn changeset version
     ...
 ```
+
+#### With Git commit signing
+
+If you would like to have the commits signed in the pull request, this action supports [commit signature verification using GPG](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification).
+
+To enable this:
+
+1. Add your GPG private key as a GitHub secret
+2. Pass the secret in as the `GPG_PRIVATE_KEY` env variable
+3. Pass in the associated email with the `gitUserEmail` input
+4. (Optional) pass in a user name for the commits
+
+```yaml
+- uses: changesets/action@v1
+  env:
+    GPG_PRIVATE_KEY: ${{ secrets.GPG_SIGN_KEY }}
+  with:
+    gitUserEmail: 'octocat@github.com'
+    gitUserName: 'octocat'
+    ...
+```
+
+> Note: GPG needs to be installed on whichever image you're using in your GitHub action.
