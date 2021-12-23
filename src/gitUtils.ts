@@ -2,8 +2,8 @@ import { exec } from "@actions/exec";
 import { execWithOutput } from "./utils";
 
 export const setupUser = async({ name, email }: { name: string; email: string; }) => {
-  await exec("git", ["config", "--global", "user.name", name]);
-  await exec("git", ["config", "--global", "user.email", email]);
+  await exec("git", ["config", "user.name", name]);
+  await exec("git", ["config", "user.email", email]);
 };
 
 export const setupCommitSigning = async (gpgPrivateKey: string) => {
@@ -11,8 +11,8 @@ export const setupCommitSigning = async (gpgPrivateKey: string) => {
   const { stdout: keyId } = await execWithOutput(
     `/bin/bash -c "gpg --list-secret-keys --with-colons | grep '^sec:' | cut -d ':' -f 5"`
   );
-  await exec("git", ["config", "--global", "user.signingkey", keyId.trim()]);
-  await exec("git", ["config", "--global", "commit.gpgsign", "true"]);
+  await exec("git", ["config", "user.signingkey", keyId.trim()]);
+  await exec("git", ["config", "commit.gpgsign", "true"]);
 };
 
 export const pullBranch = async (branch: string) => {
