@@ -17,9 +17,19 @@ import resolveFrom from "resolve-from";
 
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
-  { pkg, tagName }: { pkg: Package; tagName: string }
+  { pkg, tagName }: { pkg: Package; tagName: string },
+  options: {
+    createGithubReleases?: boolean;
+  } = {}
 ) => {
   try {
+    if (
+      options.createGithubReleases !== undefined &&
+      !options.createGithubReleases
+    ) {
+      return;
+    }
+
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
     let changelog = await fs.readFile(changelogFileName, "utf8");
@@ -51,6 +61,9 @@ const createRelease = async (
 type PublishOptions = {
   script: string;
   githubToken: string;
+  options?: {
+    createGithubReleases?: boolean;
+  };
   cwd?: string;
 };
 
@@ -68,6 +81,7 @@ type PublishResult =
 export async function runPublish({
   script,
   githubToken,
+  options = {},
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   let octokit = github.getOctokit(githubToken);
@@ -106,10 +120,16 @@ export async function runPublish({
 
     await Promise.all(
       releasedPackages.map((pkg) =>
-        createRelease(octokit, {
-          pkg,
-          tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-        })
+        createRelease(
+          octokit,
+          {
+            pkg,
+            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+          },
+          {
+            createGithubReleases: options.createGithubReleases,
+          }
+        )
       )
     );
   } else {
@@ -127,10 +147,16 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        await createRelease(octokit, {
-          pkg,
-          tagName: `v${pkg.packageJson.version}`,
-        });
+        await createRelease(
+          octokit,
+          {
+            pkg,
+            tagName: `v${pkg.packageJson.version}`,
+          },
+          {
+            createGithubReleases: options.createGithubReleases,
+          }
+        );
         break;
       }
     }
