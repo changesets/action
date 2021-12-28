@@ -17,19 +17,9 @@ import resolveFrom from "resolve-from";
 
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
-  { pkg, tagName }: { pkg: Package; tagName: string },
-  options: {
-    createGithubReleases?: boolean;
-  } = {}
+  { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
   try {
-    if (
-      options.createGithubReleases !== undefined &&
-      !options.createGithubReleases
-    ) {
-      return;
-    }
-
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
     let changelog = await fs.readFile(changelogFileName, "utf8");
@@ -118,20 +108,16 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    await Promise.all(
-      releasedPackages.map((pkg) =>
-        createRelease(
-          octokit,
-          {
+    if (options.createGithubReleases) {
+      await Promise.all(
+        releasedPackages.map((pkg) =>
+          createRelease(octokit, {
             pkg,
             tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          },
-          {
-            createGithubReleases: options.createGithubReleases,
-          }
+          })
         )
-      )
-    );
+      );
+    }
   } else {
     if (packages.length === 0) {
       throw new Error(
@@ -147,16 +133,12 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        await createRelease(
-          octokit,
-          {
+        if (options.createGithubReleases) {
+          await createRelease(octokit, {
             pkg,
             tagName: `v${pkg.packageJson.version}`,
-          },
-          {
-            createGithubReleases: options.createGithubReleases,
-          }
-        );
+          });
+        }
         break;
       }
     }

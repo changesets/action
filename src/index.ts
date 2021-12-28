@@ -8,7 +8,6 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
-  let createGithubReleases = process.env.CREATE_GITHUB_RELEASE;
 
   if (!githubToken) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
@@ -76,10 +75,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         script: publishScript,
         githubToken,
         options: {
-          createGithubReleases:
-            createGithubReleases !== undefined
-              ? Boolean(createGithubReleases)
-              : true,
+          createGithubReleases: JSON.parse(
+            getOptionalInput("createGithubReleases") ?? "true"
+          ),
         },
       });
 
