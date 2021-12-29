@@ -17,6 +17,9 @@ inputs:
   title:
     description: The pull request title. Default to `Version Packages`
     required: false
+  customGitUser:
+    description: Use a custom git user to create commits, rather than the default `"github-actions[bot]"` user.
+    required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
