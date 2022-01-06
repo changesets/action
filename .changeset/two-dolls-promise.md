@@ -2,4 +2,4 @@
 "@changesets/action": minor
 ---
 
-add an input option to allow custom git users
+add a `setupGitUser` to enable or disable setting up a default git user
