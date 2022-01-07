@@ -2,4 +2,4 @@
 "@changesets/action": minor
 ---
 
-add a `setupGitUser` to enable or disable setting up a default git user
+Added `setupGitUser` option to enable or disable setting up a default git user
