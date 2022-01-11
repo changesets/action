@@ -21,6 +21,9 @@ inputs:
     description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
     required: false
     default: true
+  cwd:
+    description: Sets the cwd for the node process. Default to `process.cwd()`
+    required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
