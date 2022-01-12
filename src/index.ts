@@ -75,9 +75,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         script: publishScript,
         githubToken,
         options: {
-          createGithubReleases: JSON.parse(
-            getOptionalInput("createGithubReleases") ?? "true"
-          ),
+          createGithubReleases: getOptionalInput("createGithubReleases")
+            ? core.getBooleanInput("createGithubReleases")
+            : true,
         },
       });
 
