@@ -36,6 +36,8 @@ outputs:
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
   hasChangesets:
     description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
+  pullRequestNumber:
+    description: The pull request number that was created or updated
 branding:
   icon: "package"
   color: "blue"

@@ -177,6 +177,10 @@ type VersionOptions = {
   hasPublishScript?: boolean;
 };
 
+type RunVersionResponse = {
+  pullRequestNumber: number;
+};
+
 export async function runVersion({
   script,
   githubToken,
@@ -184,7 +188,7 @@ export async function runVersion({
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
   hasPublishScript = false,
-}: VersionOptions) {
+}: VersionOptions): Promise<RunVersionResponse> {
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
   let versionBranch = `changeset-release/${branch}`;
@@ -280,20 +284,30 @@ ${
   console.log(JSON.stringify(searchResult.data, null, 2));
   if (searchResult.data.items.length === 0) {
     console.log("creating pull request");
-    await octokit.pulls.create({
+    const {
+      data: { number },
+    } = await octokit.pulls.create({
       base: branch,
       head: versionBranch,
       title: finalPrTitle,
       body: await prBodyPromise,
       ...github.context.repo,
     });
+
+    return {
+      pullRequestNumber: number,
+    };
   } else {
-    octokit.pulls.update({
+    await octokit.pulls.update({
       pull_number: searchResult.data.items[0].number,
       title: finalPrTitle,
       body: await prBodyPromise,
       ...github.context.repo,
     });
     console.log("pull request found");
+
+    return {
+      pullRequestNumber: searchResult.data.items[0].number,
+    };
   }
 }
