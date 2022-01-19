@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.1.1
+
+### Patch Changes
+
+- [`bc93052`](https://github.com/changesets/action/commit/bc930528e2f6b5b3f802a213beede75dea146fef) Thanks [@wweaver](https://github.com/wweaver)! - Provider steps.changesets.output.shouldPublish to github workflow
+
 ## 1.1.0
 
 ### Minor Changes
