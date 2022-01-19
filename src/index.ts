@@ -30,18 +30,19 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   let { changesets } = await readChangesetState();
 
   let publishScript = core.getInput("publish");
-  let hasChangesets = changesets.length !== 0;
+  let shouldVersion = changesets.length !== 0;
+  let shouldPublish = changesets.length === 0;
   let hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
-  core.setOutput("hasChangesets", String(hasChangesets));
+  core.setOutput("shouldPublish", String(shouldPublish));
 
   switch (true) {
-    case !hasChangesets && !hasPublishScript:
+    case shouldPublish && !hasPublishScript:
       console.log("No changesets found");
       return;
-    case !hasChangesets && hasPublishScript: {
+    case shouldPublish && hasPublishScript: {
       console.log(
         "No changesets found, attempting to publish any unpublished packages to npm"
       );
@@ -89,7 +90,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       }
       return;
     }
-    case hasChangesets:
+    case shouldVersion:
       await runVersion({
         script: getOptionalInput("version"),
         githubToken,
