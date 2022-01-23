@@ -2,4 +2,4 @@
 "@changesets/action": minor
 ---
 
-Add cwd option for projects that are not in the root directory
+Added `cwd` input option that can be used in projects that are not in the root directory.
