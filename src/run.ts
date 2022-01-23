@@ -51,6 +51,7 @@ const createRelease = async (
 type PublishOptions = {
   script: string;
   githubToken: string;
+  createGithubReleases: boolean;
   cwd?: string;
 };
 
@@ -68,6 +69,7 @@ type PublishResult =
 export async function runPublish({
   script,
   githubToken,
+  createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   let octokit = github.getOctokit(githubToken);
@@ -104,14 +106,16 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    await Promise.all(
-      releasedPackages.map((pkg) =>
-        createRelease(octokit, {
-          pkg,
-          tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-        })
-      )
-    );
+    if (createGithubReleases) {
+      await Promise.all(
+        releasedPackages.map((pkg) =>
+          createRelease(octokit, {
+            pkg,
+            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+          })
+        )
+      );
+    }
   } else {
     if (packages.length === 0) {
       throw new Error(
@@ -127,10 +131,12 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        await createRelease(octokit, {
-          pkg,
-          tagName: `v${pkg.packageJson.version}`,
-        });
+        if (createGithubReleases) {
+          await createRelease(octokit, {
+            pkg,
+            tagName: `v${pkg.packageJson.version}`,
+          });
+        }
         break;
       }
     }

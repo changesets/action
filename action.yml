@@ -21,6 +21,10 @@ inputs:
     description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
     required: false
     default: true
+  createGithubReleases:
+    description: "A boolean value to indicate whether to create Github releases after `publish` or not"
+    required: false
+    default: true
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
