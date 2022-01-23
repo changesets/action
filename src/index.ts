@@ -29,7 +29,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   const inputCwd = core.getInput("cwd");
   if (inputCwd) {
-    console.log("changing directories to input cwd");
+    console.log("changing directory to the one given as the input");
     process.chdir(inputCwd);
   }
 
