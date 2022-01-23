@@ -51,9 +51,7 @@ const createRelease = async (
 type PublishOptions = {
   script: string;
   githubToken: string;
-  options?: {
-    createGithubReleases?: boolean;
-  };
+  createGithubReleases: boolean;
   cwd?: string;
 };
 
@@ -71,7 +69,7 @@ type PublishResult =
 export async function runPublish({
   script,
   githubToken,
-  options = {},
+  createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   let octokit = github.getOctokit(githubToken);
@@ -108,7 +106,7 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    if (options.createGithubReleases) {
+    if (createGithubReleases) {
       await Promise.all(
         releasedPackages.map((pkg) =>
           createRelease(octokit, {
@@ -133,7 +131,7 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        if (options.createGithubReleases) {
+        if (createGithubReleases) {
           await createRelease(octokit, {
             pkg,
             tagName: `v${pkg.packageJson.version}`,
