@@ -89,11 +89,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       if (result.published) {
         core.setOutput("published", "true");
+      }
+      if (result.publishedPackages.length !== 0) {
         core.setOutput(
           "publishedPackages",
           JSON.stringify(result.publishedPackages)
         );
       }
+
       return;
     }
     case hasChangesets:

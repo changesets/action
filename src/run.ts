@@ -57,14 +57,10 @@ type PublishOptions = {
 
 type PublishedPackage = { name: string; version: string };
 
-type PublishResult =
-  | {
-      published: true;
-      publishedPackages: PublishedPackage[];
-    }
-  | {
-      published: false;
-    };
+type PublishResult = {
+  published: boolean;
+  publishedPackages: PublishedPackage[];
+};
 
 export async function runPublish({
   script,
@@ -142,17 +138,16 @@ export async function runPublish({
     }
   }
 
+  const result: PublishResult = { published: true, publishedPackages: [] };
+
   if (releasedPackages.length) {
-    return {
-      published: true,
-      publishedPackages: releasedPackages.map((pkg) => ({
-        name: pkg.packageJson.name,
-        version: pkg.packageJson.version,
-      })),
-    };
+    result.publishedPackages = releasedPackages.map((pkg) => ({
+      name: pkg.packageJson.name,
+      version: pkg.packageJson.version,
+    }));
   }
 
-  return { published: false };
+  return result;
 }
 
 const requireChangesetsCliPkgJson = (cwd: string) => {
