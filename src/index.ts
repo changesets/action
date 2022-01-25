@@ -84,6 +84,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       const result = await runPublish({
         script: publishScript,
         githubToken,
+        pushGitTags: core.getBooleanInput("pushGitTags"),
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
       });
 

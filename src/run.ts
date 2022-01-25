@@ -51,6 +51,7 @@ const createRelease = async (
 type PublishOptions = {
   script: string;
   githubToken: string;
+  pushGitTags: boolean;
   createGithubReleases: boolean;
   cwd?: string;
 };
@@ -69,6 +70,7 @@ type PublishResult =
 export async function runPublish({
   script,
   githubToken,
+  pushGitTags,
   createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
@@ -81,7 +83,9 @@ export async function runPublish({
     { cwd }
   );
 
-  await gitUtils.pushTags();
+  if (pushGitTags) {
+    await gitUtils.pushTags();
+  }
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
