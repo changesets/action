@@ -32,6 +32,8 @@ on:
     branches:
       - master
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   release:
     name: Release
@@ -68,6 +70,8 @@ on:
   push:
     branches:
       - master
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -137,6 +141,8 @@ on:
   push:
     branches:
       - master
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
