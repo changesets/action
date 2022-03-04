@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.2.1
+
+### Patch Changes
+
+- [#144](https://github.com/changesets/action/pull/144) [`898d125`](https://github.com/changesets/action/commit/898d125cee6ba00c6a11b6cadca512752c6c910c) Thanks [@Andarist](https://github.com/Andarist)! - Updated all Changesets dependencies. This should fix parsing issues for completely empty summaries that has been fixed in `@changesets/parse@0.3.11`.
+
 ## 1.2.0
 
 ### Minor Changes
