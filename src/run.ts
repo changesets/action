@@ -291,6 +291,9 @@ ${
 
   let messageBody = await prBodyPromise;
   if (messageBody.length > MAX_CHARACTERS_PER_MESSAGE) {
+    console.log(
+      `message body too long, truncating at ${MAX_CHARACTERS_PER_MESSAGE} charachters.`
+    );
     messageBody = [
       messageBody.substring(0, MAX_CHARACTERS_PER_MESSAGE),
       "[Too long, message truncated]",
@@ -298,9 +301,7 @@ ${
   }
   if (searchResult.data.items.length === 0) {
     console.log("creating pull request");
-    const {
-      data: { number },
-    } = await octokit.pulls.create({
+    const { data: newPullRequest } = await octokit.pulls.create({
       base: branch,
       head: versionBranch,
       title: finalPrTitle,
@@ -309,19 +310,21 @@ ${
     });
 
     return {
-      pullRequestNumber: number,
+      pullRequestNumber: newPullRequest.number,
     };
   } else {
+    const [pullRequest] = searchResult.data.items;
+
+    console.log("pull request found, updating");
     await octokit.pulls.update({
-      pull_number: searchResult.data.items[0].number,
+      pull_number: pullRequest.number,
       title: finalPrTitle,
       body: messageBody,
       ...github.context.repo,
     });
-    console.log("pull request found");
 
     return {
-      pullRequestNumber: searchResult.data.items[0].number,
+      pullRequestNumber: pullRequest.number,
     };
   }
 }
