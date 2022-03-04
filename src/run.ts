@@ -15,6 +15,12 @@ import * as gitUtils from "./gitUtils";
 import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 
+// GitHub Issues/PRs messages have a max size limit on the
+// message body payload.
+// `body is too long (maximum is 65536 characters)`.
+// To avoid that, we ensure to cap the message to 60k chars.
+const MAX_CHARACTERS_PER_MESSAGE = 60000;
+
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
   { pkg, tagName }: { pkg: Package; tagName: string }
@@ -282,6 +288,14 @@ ${
 
   let searchResult = await searchResultPromise;
   console.log(JSON.stringify(searchResult.data, null, 2));
+
+  let messageBody = await prBodyPromise;
+  if (messageBody.length > MAX_CHARACTERS_PER_MESSAGE) {
+    messageBody = [
+      messageBody.substring(0, MAX_CHARACTERS_PER_MESSAGE),
+      "[Too long, message truncated]",
+    ].join("\n\n");
+  }
   if (searchResult.data.items.length === 0) {
     console.log("creating pull request");
     const {
@@ -290,7 +304,7 @@ ${
       base: branch,
       head: versionBranch,
       title: finalPrTitle,
-      body: await prBodyPromise,
+      body: messageBody,
       ...github.context.repo,
     });
 
@@ -301,7 +315,7 @@ ${
     await octokit.pulls.update({
       pull_number: searchResult.data.items[0].number,
       title: finalPrTitle,
-      body: await prBodyPromise,
+      body: messageBody,
       ...github.context.repo,
     });
     console.log("pull request found");
