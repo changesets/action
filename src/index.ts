@@ -14,6 +14,12 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
+  const inputCwd = core.getInput("cwd");
+  if (inputCwd) {
+    console.log("changing directory to the one given as the input");
+    process.chdir(inputCwd);
+  }
+
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
   if (setupGitUser) {
@@ -26,12 +32,6 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     `${process.env.HOME}/.netrc`,
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
-
-  const inputCwd = core.getInput("cwd");
-  if (inputCwd) {
-    console.log("changing directory to the one given as the input");
-    process.chdir(inputCwd);
-  }
 
   let { changesets } = await readChangesetState();
 
