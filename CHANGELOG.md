@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.2.2
+
+### Patch Changes
+
+- [#161](https://github.com/changesets/action/pull/161) [`52c9ce7`](https://github.com/changesets/action/commit/52c9ce75d9d8a14ea2d75e4157b0c15b7a4ac313) Thanks [@bicknellr](https://github.com/bicknellr)! - Change directory to `cwd` before running git user setup. This fixes an issue when the action starts its execution not in a git repository.
+
 ## 1.2.1
 
 ### Patch Changes
