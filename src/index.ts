@@ -106,8 +106,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       });
 
       core.setOutput(
-        "changedPackages",
-        JSON.stringify(result.changedPackages)
+        "versionedPackages",
+        JSON.stringify(result.versionedPackages)
       );
 
       return;

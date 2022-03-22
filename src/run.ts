@@ -298,9 +298,9 @@ ${
   }
 
   return {
-    changedPackages: changedPackages.map((p) => ({
-      name: p.packageJson.name,
-      version: p.packageJson.version,
+    versionedPackages: changedPackages.map((pkg) => ({
+      name: pkg.packageJson.name,
+      version: pkg.packageJson.version,
     })),
   };
 }

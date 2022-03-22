@@ -17,7 +17,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 - published - A boolean value to indicate whether a publishing is happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
-- changedPackages - A JSON array to present the changed packages that are ready to publish. Note, this array is available when Pull Request for the release has been either created or updated The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- versionedPackages - A JSON array to present the versioned packages that are ready to publish. Note, this array is available when Pull Request for the release has been either created or updated The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
 ### Example workflow:
 
