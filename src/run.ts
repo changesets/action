@@ -296,4 +296,11 @@ ${
     });
     console.log("pull request found");
   }
+
+  return {
+    changedPackages: changedPackages.map((p) => ({
+      name: p.packageJson.name,
+      version: p.packageJson.version,
+    })),
+  };
 }

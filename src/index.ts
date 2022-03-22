@@ -97,13 +97,19 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
     }
     case hasChangesets:
-      await runVersion({
+      const result = await runVersion({
         script: getOptionalInput("version"),
         githubToken,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
       });
+
+      core.setOutput(
+        "changedPackages",
+        JSON.stringify(result.changedPackages)
+      );
+
       return;
   }
 })().catch((err) => {
