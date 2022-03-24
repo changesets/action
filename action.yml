@@ -28,6 +28,10 @@ inputs:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
+  skipPublish:
+    description: "A boolean value to indicate whether to skip publish or not"
+    required: false
+    default: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

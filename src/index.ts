@@ -39,6 +39,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   let hasChangesets = changesets.length !== 0;
   let hasPublishScript = !!publishScript;
 
+  let skipPublish = core.getBooleanInput("skipPublish");
+
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
   core.setOutput("hasChangesets", String(hasChangesets));
@@ -47,6 +49,11 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     case !hasChangesets && !hasPublishScript:
       console.log("No changesets found");
       return;
+    case !hasChangesets && hasPublishScript && skipPublish: {
+      console.log(
+        "No changesets found, but skipped publish any unpublished packages to npm as requested"
+      );
+    }
     case !hasChangesets && hasPublishScript: {
       console.log(
         "No changesets found, attempting to publish any unpublished packages to npm"
