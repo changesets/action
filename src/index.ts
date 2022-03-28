@@ -53,6 +53,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       console.log(
         "No changesets found, but skipped publish any unpublished packages to npm as requested"
       );
+      return;
     }
     case !hasChangesets && hasPublishScript: {
       console.log(
