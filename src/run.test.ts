@@ -88,6 +88,42 @@ describe("version", () => {
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
   });
 
+  it("creates simple PR for a custom branch", async () => {
+    let cwd = f.copy("simple-project");
+    linkNodeModules(cwd);
+
+    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
+      () => ({ data: { items: [] } })
+    );
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+            {
+              name: "simple-project-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      branch: 'feat/my-custom-branch'
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+  });
+
   it("only includes bumped packages in the PR body", async () => {
     let cwd = f.copy("simple-project");
     linkNodeModules(cwd);

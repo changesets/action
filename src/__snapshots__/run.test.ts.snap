@@ -32,6 +32,38 @@ Array [
 ]
 `;
 
+exports[`version creates simple PR for a custom branch 1`] = `
+Array [
+  Object {
+    "base": "some-branch",
+    "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
+
+# Releases
+## simple-project-pkg-a@1.1.0
+
+### Minor Changes
+
+-   Awesome feature
+
+### Patch Changes
+
+-   Updated dependencies
+    -   simple-project-pkg-b@1.1.0
+
+ ## simple-project-pkg-b@1.1.0
+
+### Minor Changes
+
+-   Awesome feature
+",
+    "head": "feat/my-custom-branch",
+    "owner": "changesets",
+    "repo": "action",
+    "title": "Version Packages",
+  },
+]
+`;
+
 exports[`version doesn't include ignored package that got a dependency update in the PR body 1`] = `
 Array [
   Object {
