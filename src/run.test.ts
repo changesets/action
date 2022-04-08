@@ -25,6 +25,7 @@ let mockedGithubMethods = {
   },
   pulls: {
     create: jest.fn(),
+    update: jest.fn(),
   },
   repos: {
     createRelease: jest.fn(),
@@ -85,6 +86,7 @@ describe("version", () => {
       cwd,
     });
 
+    expect(mockedGithubMethods.pulls.update).toHaveBeenCalledTimes(0);
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
   });
 
@@ -94,6 +96,10 @@ describe("version", () => {
 
     mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
       () => ({ data: { items: [] } })
+    );
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(
+      () => ({ data: { number: 123 } })
     );
 
     await writeChangesets(
@@ -121,7 +127,45 @@ describe("version", () => {
       branch: 'feat/my-custom-branch'
     });
 
+    expect(mockedGithubMethods.pulls.update).toHaveBeenCalledTimes(0);
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it("updates simple PR for a custom branch", async () => {
+    let cwd = f.copy("simple-project");
+    linkNodeModules(cwd);
+
+    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
+      () => ({ data: { items: [{}] } })
+    );
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+            {
+              name: "simple-project-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      branch: 'feat/my-custom-branch'
+    });
+
+    expect(mockedGithubMethods.pulls.create).toHaveBeenCalledTimes(0);
+    expect(mockedGithubMethods.pulls.update.mock.calls[0]).toMatchSnapshot();
   });
 
   it("only includes bumped packages in the PR body", async () => {
