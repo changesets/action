@@ -1,0 +1,59 @@
+name: Risk
+description: Report a risk you've identified
+labels: [risk]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Raise a risk and we will help you manage it.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A detailed description about the risk, its source, and how it impacts the business.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: likelihood
+    attributes:
+      label: Likelihood
+      description: For more information, refer to [5 by 5 risk matrix](https://handbook.x15.ventures/#/risk_and_compliance/5x5_risk_matrix)
+      options:
+        - 1 - Rare
+        - 2 - Unlikely
+        - 3 - Possible
+        - 4 - Likely
+        - 5 - Almost certain
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      description: For more information, refer to [5 by 5 risk matrix](https://handbook.x15.ventures/#/risk_and_compliance/5x5_risk_matrix)
+      options:
+        - 1 - Negligible
+        - 2 - Minor
+        - 3 - Moderate
+        - 4 - Major
+        - 5 - Severe
+    validations:
+      required: true
+
+  - type: textarea
+    id: controls
+    attributes:
+      label: Controls and mitigations
+      description: What has been done to 1) mitigate (lower the impact of) the risk, 2) list controls (that lower the likelihood that this risk should occur) 3) should this risk occur what contingencies do you have (i.e what will you do if this risk occurs)?
+      value: |
+        #### Controls (things that prevent this risk from occurring)
+
+        - [x] Register the risk
+        - [ ] _TODO: Additional controls to mitigate the risk_
+
+        #### Residual risks
+
+        <!-- Add residual risks as required -->

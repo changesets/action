@@ -1,0 +1,6 @@
+project: unloan/changesets-action
+# output: risks.yml
+
+# include risk summary in the following files
+summary-files:
+  - README.md
