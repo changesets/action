@@ -12,6 +12,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - title - The pull request title. Default to `Version Packages`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+- skipNpmrc - Skips the creation or update of the `.npmrc` file. Only set to `true` if registry authentication is already handled. Defaults to `false`.
 
 ### Outputs
 
