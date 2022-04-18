@@ -193,7 +193,6 @@ export async function runVersion({
   let branch = github.context.ref.replace("refs/heads/", "");
   let versionBranch = `changeset-release/${branch}`;
   let octokit = github.getOctokit(githubToken);
-  let { preState } = await readChangesetState(cwd);
 
   await gitUtils.switchToMaybeExistingBranch(versionBranch);
   await gitUtils.reset(github.context.sha);
@@ -213,6 +212,7 @@ export async function runVersion({
     });
   }
 
+  let { preState } = await readChangesetState(cwd);
   let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
   let searchResultPromise = octokit.search.issuesAndPullRequests({
     q: searchQuery,
