@@ -166,6 +166,7 @@ const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
     return require(resolveFrom(cwd, "@changesets/cli/package.json"));
   } catch (err) {
+    // @ts-ignore
     if (err && err.code === "MODULE_NOT_FOUND") {
       throw new Error(
         `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
@@ -184,15 +185,15 @@ type GetMessageOptions = {
     content: string;
     header: string;
   }[];
-  maxCharactersPerMessage: number;
+  prBodyMaxCharacters: number;
   preState?: PreState;
 };
 
-export async function getChangesetsMessage({
+export async function getVersionPrBody({
   hasPublishScript,
   preState,
   changedPackagesInfo,
-  maxCharactersPerMessage,
+  prBodyMaxCharacters,
   branch,
 }: GetMessageOptions) {
   let messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
@@ -209,22 +210,22 @@ export async function getChangesetsMessage({
 ⚠️⚠️⚠️⚠️⚠️⚠️
 `
     : "";
-  let messageReleases = `# Releases`;
+  let messageReleasesHeading = `# Releases`;
 
   let fullMessage = [
     messageHeader,
     messagePrestate,
-    messageReleases,
+    messageReleasesHeading,
     ...changedPackagesInfo.map((info) => `${info.header}\n\n${info.content}`),
   ].join("\n");
 
   // Check that the message does not exceed the size limit.
   // If not, omit the changelog entries of each package.
-  if (fullMessage.length > maxCharactersPerMessage) {
+  if (fullMessage.length > prBodyMaxCharacters) {
     fullMessage = [
       messageHeader,
       messagePrestate,
-      messageReleases,
+      messageReleasesHeading,
       `\n> The changelog information of each package has been omitted from this message, as the content exceeds the size limit.\n`,
       ...changedPackagesInfo.map((info) => `${info.header}\n\n`),
     ].join("\n");
@@ -232,11 +233,11 @@ export async function getChangesetsMessage({
 
   // Check (again) that the message is within the size limit.
   // If not, omit all release content this time.
-  if (fullMessage.length > maxCharactersPerMessage) {
+  if (fullMessage.length > prBodyMaxCharacters) {
     fullMessage = [
       messageHeader,
       messagePrestate,
-      messageReleases,
+      messageReleasesHeading,
       `\n> All release information have been omitted from this message, as the content exceeds the size limit.`,
     ].join("\n");
   }
@@ -251,7 +252,7 @@ type VersionOptions = {
   prTitle?: string;
   commitMessage?: string;
   hasPublishScript?: boolean;
-  maxCharactersPerMessage?: number;
+  prBodyMaxCharacters?: number;
 };
 
 type RunVersionResult = {
@@ -265,7 +266,7 @@ export async function runVersion({
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
   hasPublishScript = false,
-  maxCharactersPerMessage = MAX_CHARACTERS_PER_MESSAGE,
+  prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
 }: VersionOptions): Promise<RunVersionResult> {
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
@@ -296,29 +297,22 @@ export async function runVersion({
     q: searchQuery,
   });
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
-  let changedPackagesInfo = (
-    await Promise.all(
-      changedPackages.map(async (pkg) => {
-        let changelogContents = await fs.readFile(
-          path.join(pkg.dir, "CHANGELOG.md"),
-          "utf8"
-        );
+  let changedPackagesInfoPromises = Promise.all(
+    changedPackages.map(async (pkg) => {
+      let changelogContents = await fs.readFile(
+        path.join(pkg.dir, "CHANGELOG.md"),
+        "utf8"
+      );
 
-        let entry = getChangelogEntry(
-          changelogContents,
-          pkg.packageJson.version
-        );
-        return {
-          highestLevel: entry.highestLevel,
-          private: !!pkg.packageJson.private,
-          content: entry.content,
-          header: `## ${pkg.packageJson.name}@${pkg.packageJson.version}`,
-        };
-      })
-    )
-  )
-    .filter((x) => x)
-    .sort(sortTheThings);
+      let entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
+      return {
+        highestLevel: entry.highestLevel,
+        private: !!pkg.packageJson.private,
+        content: entry.content,
+        header: `## ${pkg.packageJson.name}@${pkg.packageJson.version}`,
+      };
+    })
+  );
 
   const finalPrTitle = `${prTitle}${!!preState ? ` (${preState.tag})` : ""}`;
 
@@ -335,12 +329,16 @@ export async function runVersion({
   let searchResult = await searchResultPromise;
   console.log(JSON.stringify(searchResult.data, null, 2));
 
-  let prBody = await getChangesetsMessage({
+  const changedPackagesInfo = (await changedPackagesInfoPromises)
+    .filter((x) => x)
+    .sort(sortTheThings);
+
+  let prBody = await getVersionPrBody({
     hasPublishScript,
     preState,
     branch,
     changedPackagesInfo,
-    maxCharactersPerMessage,
+    prBodyMaxCharacters,
   });
 
   if (searchResult.data.items.length === 0) {
