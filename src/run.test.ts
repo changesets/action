@@ -25,10 +25,14 @@ let mockedGithubMethods = {
   },
   pulls: {
     create: jest.fn(),
+    update: jest.fn(),
   },
   repos: {
     createRelease: jest.fn(),
   },
+  issues: {
+    addLabels: jest.fn(),
+  }
 };
 (github.getOctokit as any).mockImplementation(() => mockedGithubMethods);
 
@@ -274,5 +278,85 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
       /All release information have been omitted from this message, as the content exceeds the size limit/
     );
+  });
+
+  it("creates simple PR with labels", async () => {
+    let cwd = f.copy("simple-project");
+    linkNodeModules(cwd);
+
+    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
+      () => ({ data: { items: [] } })
+    );
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(
+      () => ({ data: { number: 123 } })
+    );
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+            {
+              name: "simple-project-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      prLabels: ["release", "changesets"],
+    });
+
+    expect(mockedGithubMethods.pulls.update).toHaveBeenCalledTimes(0);
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.issues.addLabels.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it("updates simple PR with adding labels", async () => {
+    let cwd = f.copy("simple-project");
+    linkNodeModules(cwd);
+
+    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
+      () => ({ data: { items: [{ number: 123, labels: [{ id: "label_42", name: "release" }] }] } })
+    );
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+            {
+              name: "simple-project-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      prLabels: ["release", "changesets"],
+    });
+
+    expect(mockedGithubMethods.pulls.create).toHaveBeenCalledTimes(0);
+    expect(mockedGithubMethods.pulls.update.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.issues.addLabels.mock.calls[0]).toMatchSnapshot();
   });
 });
