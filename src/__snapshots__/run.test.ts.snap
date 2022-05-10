@@ -33,7 +33,7 @@ Array [
 ]
 `;
 
-exports[`version does not include any release information if message exceeds size limit 1`] = `
+exports[`version does not include any release information if a message with simplified release info exceeds size limit 1`] = `
 Array [
   Object {
     "base": "some-branch",
@@ -51,7 +51,7 @@ Array [
 ]
 `;
 
-exports[`version does not include changelog entry if message exceeds size limit 1`] = `
+exports[`version does not include changelog entries if full message exceeds size limit 1`] = `
 Array [
   Object {
     "base": "some-branch",

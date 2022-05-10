@@ -57,9 +57,9 @@ describe("version", () => {
       () => ({ data: { items: [] } })
     );
 
-    mockedGithubMethods.pulls.create.mockImplementationOnce(
-      () => ({ data: { number: 123 } })
-    );
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
 
     await writeChangesets(
       [
@@ -96,9 +96,9 @@ describe("version", () => {
       () => ({ data: { items: [] } })
     );
 
-    mockedGithubMethods.pulls.create.mockImplementationOnce(
-      () => ({ data: { number: 123 } })
-    );
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
 
     await writeChangesets(
       [
@@ -131,9 +131,9 @@ describe("version", () => {
       () => ({ data: { items: [] } })
     );
 
-    mockedGithubMethods.pulls.create.mockImplementationOnce(
-      () => ({ data: { number: 123 } })
-    );
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
 
     await writeChangesets(
       [
@@ -166,6 +166,10 @@ describe("version", () => {
       () => ({ data: { items: [] } })
     );
 
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
     await writeChangesets(
       [
         {
@@ -204,7 +208,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     await runVersion({
       githubToken: "@@GITHUB_TOKEN",
       cwd,
-      maxCharactersPerMessage: 1000,
+      prBodyMaxCharacters: 1000,
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
@@ -221,6 +225,10 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
       () => ({ data: { items: [] } })
     );
 
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
     await writeChangesets(
       [
         {
@@ -259,7 +267,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     await runVersion({
       githubToken: "@@GITHUB_TOKEN",
       cwd,
-      maxCharactersPerMessage: 500,
+      prBodyMaxCharacters: 500,
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
