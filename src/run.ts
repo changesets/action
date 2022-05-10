@@ -165,8 +165,7 @@ export async function runPublish({
 const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
     return require(resolveFrom(cwd, "@changesets/cli/package.json"));
-  } catch (err) {
-    // @ts-ignore
+  } catch (err: any) {
     if (err && err.code === "MODULE_NOT_FOUND") {
       throw new Error(
         `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
@@ -357,7 +356,7 @@ export async function runVersion({
   } else {
     const [pullRequest] = searchResult.data.items;
 
-    console.log("pull request found, updating");
+    console.log(`updating found pull request #${pullRequest.number}`);
     await octokit.pulls.update({
       pull_number: pullRequest.number,
       title: finalPrTitle,

@@ -158,7 +158,7 @@ describe("version", () => {
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
   });
 
-  it("does not include changelog entry if message exceeds size limit", async () => {
+  it("does not include changelog entries if full message exceeds size limit", async () => {
     let cwd = f.copy("simple-project");
     linkNodeModules(cwd);
 
@@ -213,7 +213,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
   });
 
-  it("does not include any release information if message exceeds size limit", async () => {
+  it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
     let cwd = f.copy("simple-project");
     linkNodeModules(cwd);
 
