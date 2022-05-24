@@ -116,7 +116,6 @@ For example, you can add a step before running the Changesets GitHub Action:
 - name: Creating .npmrc
   run: |
     cat << EOF > "$HOME/.npmrc"
-      email=my@email.com
       //registry.npmjs.org/:_authToken=$NPM_TOKEN
     EOF
   env:
