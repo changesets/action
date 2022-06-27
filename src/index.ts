@@ -1,10 +1,26 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
 import * as gitUtils from "./gitUtils";
-import { runPublish, runVersion } from "./run";
+import { PublishOptions, runPublish, runVersion } from "./run";
 import readChangesetState from "./readChangesetState";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
+
+function extractCreateGithubReleases(
+  input: string
+): PublishOptions["createGithubReleases"] {
+  if (input === "aggregate") {
+    return "aggregate";
+  } else if (input === "true") {
+    return true;
+  }
+
+  core.warning(
+    `Invalid value for createGithubReleases: ${input}, assuming "false"...`
+  );
+
+  return false;
+}
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
@@ -84,7 +100,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       const result = await runPublish({
         script: publishScript,
         githubToken,
-        createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        createGithubReleases: extractCreateGithubReleases(
+          core.getInput("createGithubReleases")
+        ),
       });
 
       if (result.published) {

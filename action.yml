@@ -25,9 +25,9 @@ inputs:
     required: false
     default: true
   createGithubReleases:
-    description: "A boolean value to indicate whether to create Github releases after `publish` or not"
+    description: "A value to indicate whether to create Github releases after `publish` or not, and on which mode"
     required: false
-    default: true
+    default: 'true'
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

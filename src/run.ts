@@ -22,13 +22,51 @@ import resolveFrom from "resolve-from";
 // To avoid that, we ensure to cap the message to 60k chars.
 const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
+const createAggregatedRelease = async (
+  octokit: ReturnType<typeof github.getOctokit>,
+  packages: Package[]
+) => {
+  const contentArr = await Promise.all(
+    packages.map(async (pkg) => {
+      let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
+      let changelog = await fs.readFile(changelogFileName, "utf8");
+
+      let changelogEntry = getChangelogEntry(
+        changelog,
+        pkg.packageJson.version
+      );
+
+      if (!changelogEntry) {
+        // we can find a changelog but not the entry for this version
+        // if this is true, something has probably gone wrong
+        throw new Error(
+          `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+        );
+      }
+
+      return changelogEntry.content;
+    })
+  );
+
+  const body = contentArr.join("\n\n");
+  const releaseDate = new Date().toISOString().split("T")[0];
+  const tagName = `Release ${releaseDate}`;
+
+  await octokit.repos.createRelease({
+    name: tagName,
+    tag_name: tagName,
+    body,
+    prerelease: packages.every((pkg) => pkg.packageJson.version.includes("-")),
+    ...github.context.repo,
+  });
+};
+
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
   try {
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
-
     let changelog = await fs.readFile(changelogFileName, "utf8");
 
     let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
@@ -47,7 +85,7 @@ const createRelease = async (
       prerelease: pkg.packageJson.version.includes("-"),
       ...github.context.repo,
     });
-  } catch (err: any) {
+  } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
     if (err.code !== "ENOENT") {
       throw err;
@@ -55,10 +93,10 @@ const createRelease = async (
   }
 };
 
-type PublishOptions = {
+export type PublishOptions = {
   script: string;
   githubToken: string;
-  createGithubReleases: boolean;
+  createGithubReleases: boolean | "aggregate";
   cwd?: string;
 };
 
@@ -113,7 +151,7 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    if (createGithubReleases) {
+    if (createGithubReleases === true) {
       await Promise.all(
         releasedPackages.map((pkg) =>
           createRelease(octokit, {
@@ -122,6 +160,8 @@ export async function runPublish({
           })
         )
       );
+    } else if (createGithubReleases === "aggregate") {
+      await createAggregatedRelease(octokit, releasedPackages);
     }
   } else {
     if (packages.length === 0) {
@@ -165,7 +205,7 @@ export async function runPublish({
 const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
     return require(resolveFrom(cwd, "@changesets/cli/package.json"));
-  } catch (err: any) {
+  } catch (err) {
     if (err && err.code === "MODULE_NOT_FOUND") {
       throw new Error(
         `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
