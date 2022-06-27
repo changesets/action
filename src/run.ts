@@ -44,7 +44,7 @@ const createAggregatedRelease = async (
         );
       }
 
-      return changelogEntry.content;
+      return `## ${pkg.packageJson.name}@${pkg.packageJson.version}\n\n${changelogEntry.content}`;
     })
   );
 

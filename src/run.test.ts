@@ -4,7 +4,8 @@ import fs from "fs-extra";
 import path from "path";
 import writeChangeset from "@changesets/write";
 import { Changeset } from "@changesets/types";
-import { runVersion } from "./run";
+import { runVersion, runPublish } from "./run";
+import * as Utils from "./utils";
 
 jest.mock("@actions/github", () => ({
   context: {
@@ -18,6 +19,16 @@ jest.mock("@actions/github", () => ({
   getOctokit: jest.fn(),
 }));
 jest.mock("./gitUtils");
+
+let mockedExecResponse: Awaited<ReturnType<typeof Utils.execWithOutput>> = {
+  code: 1,
+  stderr: "",
+  stdout: "",
+};
+
+jest
+  .spyOn(Utils, "execWithOutput")
+  .mockImplementation(() => Promise.resolve(mockedExecResponse));
 
 let mockedGithubMethods = {
   search: {
@@ -274,5 +285,74 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
       /All release information have been omitted from this message, as the content exceeds the size limit/
     );
+  });
+});
+
+describe("publish", () => {
+  it("should create a github release per each package by default", async () => {
+    let cwd = f.copy("simple-project-published");
+    linkNodeModules(cwd);
+
+    // Fake a publish command result
+    mockedExecResponse = {
+      code: 0,
+      stderr: "",
+      stdout: [
+        `🦋  New tag: simple-project-pkg-a@0.0.1`,
+        `🦋  New tag: simple-project-pkg-b@0.0.1`,
+      ].join("\n"),
+    };
+
+    // Fake a CHANGELOG.md files
+
+    const response = await runPublish({
+      githubToken: "@@GITHUB_TOKEN",
+      createGithubReleases: true,
+      script: "npm run release",
+      cwd,
+    });
+
+    expect(response.published).toBeTruthy();
+    response.published && expect(response.publishedPackages.length).toBe(2);
+    expect(mockedGithubMethods.repos.createRelease.mock.calls.length).toBe(2);
+    expect(mockedGithubMethods.repos.createRelease.mock.calls[0][0].name).toBe(
+      "simple-project-pkg-a@0.0.1"
+    );
+    expect(mockedGithubMethods.repos.createRelease.mock.calls[1][0].name).toBe(
+      "simple-project-pkg-b@0.0.1"
+    );
+  });
+
+  it("should create an aggregated github release when createGithubReleases: aggreate is set", async () => {
+    let cwd = f.copy("simple-project-published");
+    linkNodeModules(cwd);
+
+    // Fake a publish command result
+    mockedExecResponse = {
+      code: 0,
+      stderr: "",
+      stdout: [
+        `🦋  New tag: simple-project-pkg-a@0.0.1`,
+        `🦋  New tag: simple-project-pkg-b@0.0.1`,
+      ].join("\n"),
+    };
+
+    const response = await runPublish({
+      githubToken: "@@GITHUB_TOKEN",
+      createGithubReleases: "aggregate",
+      script: "npm run release",
+      cwd,
+    });
+
+    expect(response.published).toBeTruthy();
+    response.published && expect(response.publishedPackages.length).toBe(2);
+    expect(mockedGithubMethods.repos.createRelease.mock.calls.length).toBe(1);
+    const params = mockedGithubMethods.repos.createRelease.mock.calls[0][0];
+
+    expect(params.name).toContain("Release ");
+    expect(params.body).toContain(`## simple-project-pkg-a@0.0.1`);
+    expect(params.body).toContain(`## simple-project-pkg-b@0.0.1`);
+    expect(params.body).toContain(`change something in a`);
+    expect(params.body).toContain(`change something in b`);
   });
 });
