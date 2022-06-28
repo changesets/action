@@ -49,18 +49,24 @@ const createAggregatedRelease = async (
   );
 
   const body = contentArr.join("\n\n");
-  const releaseTime = new Date()
-    .toISOString()
-    .split("Z")[0]
-    .replace(/[:.]/g, "-")
-    .replace("T", "-");
-  const tagName = `release-${releaseTime}`;
+  const releaseTitle = new Date().toISOString().split("Z")[0];
+  const releaseTime = releaseTitle.replace(/[:.]/g, "-").replace("T", "-");
+  const prerelease = packages.every((pkg) =>
+    pkg.packageJson.version.includes("-")
+  );
+
+  console.log(`Creating GH release`, {
+    releaseTitle,
+    releaseTime,
+    prerelease,
+    body,
+  });
 
   await octokit.repos.createRelease({
-    name: `Release ${releaseTime}`,
-    tag_name: tagName,
+    name: `Release ${releaseTitle}`,
+    tag_name: `release-${releaseTime}`,
     body,
-    prerelease: packages.every((pkg) => pkg.packageJson.version.includes("-")),
+    prerelease,
     ...github.context.repo,
   });
 };
