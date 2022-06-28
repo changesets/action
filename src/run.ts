@@ -49,7 +49,11 @@ const createAggregatedRelease = async (
   );
 
   const body = contentArr.join("\n\n");
-  const releaseTime = new Date().toISOString().split("Z")[0];
+  const releaseTime = new Date()
+    .toISOString()
+    .split("Z")[0]
+    .replace(/[:.]/g, "-")
+    .replace("T", "-");
   const tagName = `release-${releaseTime}`;
 
   await octokit.repos.createRelease({
