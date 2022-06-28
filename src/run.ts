@@ -49,11 +49,11 @@ const createAggregatedRelease = async (
   );
 
   const body = contentArr.join("\n\n");
-  const releaseDate = new Date().toISOString().split("T")[0];
-  const tagName = `Release ${releaseDate}`;
+  const releaseTime = new Date().toISOString().split("Z")[0];
+  const tagName = `release-${releaseTime}`;
 
   await octokit.repos.createRelease({
-    name: tagName,
+    name: `Release ${releaseTime}`,
     tag_name: tagName,
     body,
     prerelease: packages.every((pkg) => pkg.packageJson.version.includes("-")),
