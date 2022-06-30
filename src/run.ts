@@ -24,7 +24,8 @@ const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
 const createAggregatedRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
-  packages: Package[]
+  packages: Package[],
+  releaseName: string
 ) => {
   const contentArr = await Promise.all(
     packages.map(async (pkg) => {
@@ -49,22 +50,19 @@ const createAggregatedRelease = async (
   );
 
   const body = contentArr.join("\n\n");
-  const releaseTitle = new Date().toISOString().split("Z")[0];
-  const releaseTime = releaseTitle.replace(/[:.]/g, "-").replace("T", "-");
+  const now = new Date();
   const prerelease = packages.every((pkg) =>
     pkg.packageJson.version.includes("-")
   );
 
-  console.log(`Creating GH release`, {
-    releaseTitle,
-    releaseTime,
-    prerelease,
-    body,
-  });
+  const name =
+    releaseName && releaseName !== ""
+      ? releaseName
+      : `Release ${now.toISOString()}`;
 
   await octokit.repos.createRelease({
-    name: `Release ${releaseTitle}`,
-    tag_name: `release-${releaseTime}`,
+    name,
+    tag_name: `release-${now.getTime()}`,
     body,
     prerelease,
     ...github.context.repo,
@@ -107,6 +105,7 @@ export type PublishOptions = {
   script: string;
   githubToken: string;
   createGithubReleases: boolean | "aggregate";
+  githubReleaseName: string;
   cwd?: string;
 };
 
@@ -125,6 +124,7 @@ export async function runPublish({
   script,
   githubToken,
   createGithubReleases,
+  githubReleaseName,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   let octokit = github.getOctokit(githubToken);
@@ -171,7 +171,11 @@ export async function runPublish({
         )
       );
     } else if (createGithubReleases === "aggregate") {
-      await createAggregatedRelease(octokit, releasedPackages);
+      await createAggregatedRelease(
+        octokit,
+        releasedPackages,
+        githubReleaseName
+      );
     }
   } else {
     if (packages.length === 0) {

@@ -28,6 +28,10 @@ inputs:
     description: "A value to indicate whether to create Github releases after `publish` or not, and on which mode"
     required: false
     default: 'true'
+  githubReleaseName:
+    description: "In case createGithubReleases: aggregate is set, you can customize the GitHub release name"
+    required: false
+    default: ''
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
