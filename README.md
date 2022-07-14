@@ -28,7 +28,25 @@ This action does two things (Assuming you configure this action to run on `push`
 
 For this action to successfully do `1` and `2`, the `GITHUB_TOKEN` input needs to be a Personal Access Token with the following scopes: 
 
-- 
+- TODO list scopes
+
+### Permissions
+
+for your Workflow to successfully create the pull request you should configure the job to have certain permissions: 
+
+```
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      pull-requests: write
+      issues: read
+    steps:
+    ...
+```
 
 
 ### Example workflow:
