@@ -19,6 +19,18 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - published - A boolean value to indicate whether a publishing is happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
+### Tokens
+
+Assuming you configure this action to run on push to your default branch, this action does two things :
+
+1. Creates and Keeps a PR updated with the result of running its versioning logic (by default this is the `version` command from `@changeset/cli`)
+2. When there are no `.changeset/*.md` files in the added or modified files, it runs some publish logic.
+
+For this action to successfully do `1` and `2`, the `GITHUB_TOKEN` input needs to be a Personal Access Token with the following scopes: 
+
+- 
+
+
 ### Example workflow:
 
 #### Without Publishing
