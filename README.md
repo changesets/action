@@ -48,6 +48,24 @@ jobs:
     ...
 ```
 
+### Changeset Cli Configuration
+
+You will also need to ensure that your changesets configuration does not enable `commit`: 
+
+```
+{
+  "$schema": "https://unpkg.com/@changesets/config@1.6.2/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,                                                         // 👈
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "master",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}
+
+```
+
 
 ### Example workflow:
 
