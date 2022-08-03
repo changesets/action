@@ -1,31 +1,41 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
-import * as gitUtils from "./gitUtils";
+import * as github from "@actions/github";
+
 import { runPublish, runVersion } from "./run";
 import readChangesetState from "./readChangesetState";
-
-const getOptionalInput = (name: string) => core.getInput(name) || undefined;
+import { configureNpmRc, execWithOutput, setupGitUser } from "./utils";
+import { upsertComment } from "./github";
 
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
+  let npmToken = process.env.NPM_TOKEN;
 
   if (!githubToken) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
     return;
   }
 
+  if (!npmToken) {
+    core.setFailed("Please add the NPM_TOKEN to the changesets action");
+    return;
+  }
+
   const inputCwd = core.getInput("cwd");
+
   if (inputCwd) {
-    console.log("changing directory to the one given as the input");
+    console.log("changing directory to the one given as the input: ", inputCwd);
     process.chdir(inputCwd);
   }
 
-  let setupGitUser = core.getBooleanInput("setupGitUser");
+  let shouldeSetupGitUser = core.getBooleanInput("setupGitUser");
 
-  if (setupGitUser) {
+  if (shouldeSetupGitUser) {
     console.log("setting git user");
-    await gitUtils.setupUser();
+    await setupGitUser();
   }
+
+  await configureNpmRc(npmToken);
 
   console.log("setting GitHub credentials");
   await fs.writeFile(
@@ -33,81 +43,74 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
 
-  let { changesets } = await readChangesetState();
-
-  let publishScript = core.getInput("publish");
+  let { changesets } = await readChangesetState(inputCwd);
   let hasChangesets = changesets.length !== 0;
-  let hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
   core.setOutput("hasChangesets", String(hasChangesets));
 
-  switch (true) {
-    case !hasChangesets && !hasPublishScript:
-      console.log("No changesets found");
-      return;
-    case !hasChangesets && hasPublishScript: {
-      console.log(
-        "No changesets found, attempting to publish any unpublished packages to npm"
-      );
+  if (!hasChangesets) {
+    console.log("No changesets found");
+    return;
+  }
 
-      let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (fs.existsSync(userNpmrcPath)) {
-        console.log("Found existing user .npmrc file");
-        const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
-        const authLine = userNpmrcContent.split("\n").find((line) => {
-          // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
-          return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
-        });
-        if (authLine) {
-          console.log(
-            "Found existing auth token for the npm registry in the user .npmrc file"
-          );
-        } else {
-          console.log(
-            "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
-          );
-          fs.appendFileSync(
-            userNpmrcPath,
-            `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
-          );
-        }
-      } else {
-        console.log("No user .npmrc file found, creating one");
-        fs.writeFileSync(
-          userNpmrcPath,
-          `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
-        );
-      }
+  let tagName = core.getInput("tag");
 
-      const result = await runPublish({
-        script: publishScript,
-        githubToken,
-        createGithubReleases: core.getBooleanInput("createGithubReleases"),
-      });
+  if (!tagName) {
+    core.setFailed(
+      "Please configure the 'tag' name you wish to use for the release."
+    );
 
-      if (result.published) {
-        core.setOutput("published", "true");
-        core.setOutput(
-          "publishedPackages",
-          JSON.stringify(result.publishedPackages)
-        );
-      }
-      return;
+    return;
+  }
+
+  await runVersion({
+    tagName,
+    cwd: inputCwd,
+  });
+
+  let prepareScript = core.getInput("prepareScript");
+
+  if (prepareScript) {
+    console.log(`Running user prepare script...`);
+    let [publishCommand, ...publishArgs] = prepareScript.split(/\s+/);
+
+    let userPrepareScriptOutput = await execWithOutput(
+      publishCommand,
+      publishArgs,
+      { cwd: inputCwd }
+    );
+
+    if (userPrepareScriptOutput.code !== 0) {
+      throw new Error("Failed to run 'prepareScript' command");
     }
-    case hasChangesets:
-      const { pullRequestNumber } = await runVersion({
-        script: getOptionalInput("version"),
-        githubToken,
-        prTitle: getOptionalInput("title"),
-        commitMessage: getOptionalInput("commit"),
-        hasPublishScript,
-      });
+  }
 
-      core.setOutput("pullRequestNumber", String(pullRequestNumber));
+  const result = await runPublish({
+    tagName,
+    cwd: inputCwd,
+  });
 
-      return;
+  console.log("Publish result:", JSON.stringify(result));
+
+  if (result.published) {
+    core.setOutput("published", "true");
+    core.setOutput(
+      "publishedPackages",
+      JSON.stringify(result.publishedPackages)
+    );
+  }
+
+  try {
+    await upsertComment({
+      token: githubToken,
+      publishResult: result,
+      tagName,
+    });
+  } catch (e) {
+    core.info(`Failed to create/update github comment.`);
+    core.warning(e as Error);
   }
 })().catch((err) => {
   console.error(err);

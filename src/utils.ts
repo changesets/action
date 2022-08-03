@@ -1,91 +1,6 @@
-import unified from "unified";
-import remarkParse from "remark-parse";
-import remarkStringify from "remark-stringify";
-// @ts-ignore
-import mdastToString from "mdast-util-to-string";
 import { exec } from "@actions/exec";
-import { getPackages, Package } from "@manypkg/get-packages";
-
-export const BumpLevels = {
-  dep: 0,
-  patch: 1,
-  minor: 2,
-  major: 3,
-} as const;
-
-export async function getVersionsByDirectory(cwd: string) {
-  let { packages } = await getPackages(cwd);
-  return new Map(packages.map((x) => [x.dir, x.packageJson.version]));
-}
-
-export async function getChangedPackages(
-  cwd: string,
-  previousVersions: Map<string, string>
-) {
-  let { packages } = await getPackages(cwd);
-  let changedPackages = new Set<Package>();
-
-  for (let pkg of packages) {
-    const previousVersion = previousVersions.get(pkg.dir);
-    if (previousVersion !== pkg.packageJson.version) {
-      changedPackages.add(pkg);
-    }
-  }
-
-  return [...changedPackages];
-}
-
-export function getChangelogEntry(changelog: string, version: string) {
-  let ast = unified().use(remarkParse).parse(changelog);
-
-  let highestLevel: number = BumpLevels.dep;
-
-  let nodes = ast.children as Array<any>;
-  let headingStartInfo:
-    | {
-        index: number;
-        depth: number;
-      }
-    | undefined;
-  let endIndex: number | undefined;
-
-  for (let i = 0; i < nodes.length; i++) {
-    let node = nodes[i];
-    if (node.type === "heading") {
-      let stringified: string = mdastToString(node);
-      let match = stringified.toLowerCase().match(/(major|minor|patch)/);
-      if (match !== null) {
-        let level = BumpLevels[match[0] as "major" | "minor" | "patch"];
-        highestLevel = Math.max(level, highestLevel);
-      }
-      if (headingStartInfo === undefined && stringified === version) {
-        headingStartInfo = {
-          index: i,
-          depth: node.depth,
-        };
-        continue;
-      }
-      if (
-        endIndex === undefined &&
-        headingStartInfo !== undefined &&
-        headingStartInfo.depth === node.depth
-      ) {
-        endIndex = i;
-        break;
-      }
-    }
-  }
-  if (headingStartInfo) {
-    ast.children = (ast.children as any).slice(
-      headingStartInfo.index + 1,
-      endIndex
-    );
-  }
-  return {
-    content: unified().use(remarkStringify).stringify(ast),
-    highestLevel: highestLevel,
-  };
-}
+import resolveFrom from "resolve-from";
+import fs from "fs-extra";
 
 export async function execWithOutput(
   command: string,
@@ -113,15 +28,75 @@ export async function execWithOutput(
   };
 }
 
-export function sortTheThings(
-  a: { private: boolean; highestLevel: number },
-  b: { private: boolean; highestLevel: number }
-) {
-  if (a.private === b.private) {
-    return b.highestLevel - a.highestLevel;
+export function extractPublishedPackages(
+  line: string
+): { name: string; version: string } | null {
+  let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
+  let match = line.match(newTagRegex);
+
+  if (match === null) {
+    let npmOutRegex = /Publishing "(.*?)" at "(.*?)"/;
+    match = line.match(npmOutRegex);
   }
-  if (a.private) {
-    return 1;
+
+  if (match) {
+    const [, name, version] = match;
+    return { name, version };
   }
-  return -1;
+
+  return null;
+}
+
+export const requireChangesetsCliPkgJson = (cwd: string) => {
+  try {
+    return require(resolveFrom(cwd, "@changesets/cli/package.json"));
+  } catch (err) {
+    if (err && (err as any).code === "MODULE_NOT_FOUND") {
+      throw new Error(
+        `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
+      );
+    }
+    throw err;
+  }
+};
+
+export const setupGitUser = async () => {
+  await exec("git", ["config", "user.name", `"github-actions[bot]"`]);
+  await exec("git", [
+    "config",
+    "user.email",
+    `"github-actions[bot]@users.noreply.github.com"`,
+  ]);
+};
+
+export async function configureNpmRc(npmToken: string) {
+  let userNpmrcPath = `${process.env.HOME}/.npmrc`;
+
+  if (fs.existsSync(userNpmrcPath)) {
+    console.log("Found existing user .npmrc file");
+    const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
+    const authLine = userNpmrcContent.split("\n").find((line) => {
+      // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
+      return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
+    });
+    if (authLine) {
+      console.log(
+        "Found existing auth token for the npm registry in the user .npmrc file"
+      );
+    } else {
+      console.log(
+        "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
+      );
+      fs.appendFileSync(
+        userNpmrcPath,
+        `\n//registry.npmjs.org/:_authToken=${npmToken}\n`
+      );
+    }
+  } else {
+    console.log("No user .npmrc file found, creating one");
+    fs.writeFileSync(
+      userNpmrcPath,
+      `//registry.npmjs.org/:_authToken=${npmToken}\n`
+    );
+  }
 }

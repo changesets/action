@@ -1,18 +1,30 @@
-# Changesets Release Action
+# Changesets Snapshot Release Action
 
-This action for [Changesets](https://github.com/atlassian/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
+This action for [Changesets](https://github.com/atlassian/changesets) runs the Snapshot workflow for your repository, based on changes done in Pull Requests.
+
+This action is helpful if you wish to create an automated release flow for changes done in PRs, on in any temporary change.
+
+The following flow is being executed:
+
+- Check for available `changeset` files in the PR.
+- Runs `version` flow with `--snapshot` provided.
+- Runs user script for build/preparation for the release.
+- Runs `publish` flow with `--tag` and `--no-git-tag` (to create a "temporary" release)
+- Publishes a GitHub comment on the Pull Request, with the list of releases done.
+
+<img width="931" alt="image" src="https://user-images.githubusercontent.com/3680083/182776353-2f365f9d-c156-4c4f-8947-18cf87dc6adf.png">
+
+
+> This GitHub Action does not create GitHub Releases and does not push Git tags - it meant to be used for canary releases, and encapsulate the changes within a PR.
 
 ## Usage
 
 ### Inputs
 
-- publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
-- commit - The commit message to use. Default to `Version Packages`
-- title - The pull request title. Default to `Version Packages`
-- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
-- cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+- `prepareScript` - A custom, user-provided script, that is being executed between `version` and `publish` scripts. Usually, this is where your `build` script goes.
+- `tag` - The git `tag` to be used with the `--snapshot TAG` (`version` command) and `--tag TAG` (`publish` command)
+- `cwd` - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+- `setupGitUser` - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 
 ### Outputs
 
@@ -23,195 +35,42 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 #### Without Publishing
 
-Create a file at `.github/workflows/release.yml` with the following content.
+Create a file at `.github/workflows/snapshot.yml` with the following content.
 
 ```yml
-name: Release
+name: Snapshot
 
 on:
-  push:
+  pull_request: # Run only for PRs
     branches:
-      - main
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+      - master
+    paths:
+      - ".changeset/**/*.md" # this will make sure to run only on PRs that adds Changesets
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository # run only for original, non-fork PRs
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v2
+      - name: Checkout Master
+        uses: actions/checkout@v3
         with:
-          node-version: 12.x
+          fetch-depth: 0
 
-      - name: Install Dependencies
-        run: yarn
+      - name: Use Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-      - name: Create Release Pull Request
-        uses: changesets/action@v1
+      # this is where you do your regular setup, dependencies installation and so on
+
+      - name: Release Snapshot
+        uses: "the-guild-org/changesets-snapshot-action@v0.0.1"
+        with:
+          tag: alpha
+          prepareScript: "yarn build"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-#### With Publishing
-
-Before you can setup this action with publishing, you'll need to have an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) that can publish the packages in the repo you're setting up the action for and doesn't have 2FA on publish enabled ([2FA on auth can be enabled](https://docs.npmjs.com/about-two-factor-authentication)). You'll also need to [add it as a secret on your GitHub repo](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) with the name `NPM_TOKEN`. Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
-
-```yml
-name: Release
-
-on:
-  push:
-    branches:
-      - main
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 12.x
-
-      - name: Install Dependencies
-        run: yarn
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          # This expects you to have a script called release which does a build for your packages and calls changeset publish
-          publish: yarn release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Send a Slack notification if a publish happens
-        if: steps.changesets.outputs.published == 'true'
-        # You can do something when a publish happens.
-        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
-```
-
-By default the GitHub Action creates a `.npmrc` file with the following content:
-
-```
-//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
-```
-
-However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
-For example, you can add a step before running the Changesets GitHub Action:
-
-```yml
-- name: Creating .npmrc
-  run: |
-    cat << EOF > "$HOME/.npmrc"
-      //registry.npmjs.org/:_authToken=$NPM_TOKEN
-    EOF
-  env:
-    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-```
-
-#### Custom Publishing
-
-If you want to hook into when publishing should occur but have your own publishing functionality you can utilize the `hasChangesets` output.
-
-Note that you might need to account for things already being published in your script because a commit without any new changesets can always land on your base branch after a successful publish. In such a case you need to figure out on your own how to skip over the actual publishing logic or handle errors gracefully as most package registries won't allow you to publish over already published version.
-
-```yml
-name: Release
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 12.x
-
-      - name: Install Dependencies
-        run: yarn
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        # You can do something when a publish should happen.
-        run: yarn publish
-```
-
-#### With version script
-
-If you need to add additional logic to the version command, you can do so by using a version script.
-
-If the version script is present, this action will run that script instead of `changeset version`, so please make sure that your script calls `changeset version` at some point. All the changes made by the script will be included in the PR.
-
-```yml
-name: Release
-
-on:
-  push:
-    branches:
-      - main
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 12.x
-
-      - name: Install Dependencies
-        run: yarn
-
-      - name: Create Release Pull Request
-        uses: changesets/action@v1
-        with:
-          # this expects you to have a npm script called version that runs some logic and then calls `changeset version`.
-          version: yarn version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-#### With Yarn 2 / Plug'n'Play
-
-If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you should use a custom `version` command so that the action can resolve the `changeset` CLI:
-
-```yaml
-- uses: changesets/action@v1
-  with:
-    version: yarn changeset version
-    ...
+          NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }} # NPM Token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub Token
 ```
