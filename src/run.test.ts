@@ -309,7 +309,6 @@ describe("publish", () => {
       githubToken: "@@GITHUB_TOKEN",
       createGithubReleases: true,
       script: "npm run release",
-      githubReleaseName: "",
       cwd,
     });
 
@@ -342,7 +341,7 @@ describe("publish", () => {
       githubToken: "@@GITHUB_TOKEN",
       createGithubReleases: "aggregate",
       script: "npm run release",
-      githubReleaseName: "",
+      githubReleaseName: "", // make sure empty string is treat as undefined parameter
       cwd,
     });
 
@@ -377,8 +376,11 @@ describe("publish", () => {
       createGithubReleases: "aggregate",
       script: "npm run release",
       githubReleaseName: `My Test Release`,
+      githubTagName: `mytag`,
       cwd,
     });
+
+    console.log('response', response);
 
     expect(response.published).toBeTruthy();
     response.published && expect(response.publishedPackages.length).toBe(2);

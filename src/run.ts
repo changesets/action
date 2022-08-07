@@ -25,7 +25,8 @@ const MAX_CHARACTERS_PER_MESSAGE = 60000;
 const createAggregatedRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
   packages: Package[],
-  releaseName: string
+  releaseName?: string,
+  tagName?: string,
 ) => {
   const contentArr = await Promise.all(
     packages.map(async (pkg) => {
@@ -54,15 +55,12 @@ const createAggregatedRelease = async (
   const prerelease = packages.every((pkg) =>
     pkg.packageJson.version.includes("-")
   );
-
-  const name =
-    releaseName && releaseName !== ""
-      ? releaseName
-      : `Release ${now.toISOString()}`;
+  const name = releaseName || `Release ${now.toISOString()}`;
+  const tag_name = tagName || `release-${+now}`;
 
   await octokit.repos.createRelease({
     name,
-    tag_name: `release-${now.getTime()}`,
+    tag_name,
     body,
     prerelease,
     ...github.context.repo,
@@ -105,7 +103,8 @@ export type PublishOptions = {
   script: string;
   githubToken: string;
   createGithubReleases: boolean | "aggregate";
-  githubReleaseName: string;
+  githubReleaseName?: string;
+  githubTagName?: string;
   cwd?: string;
 };
 
@@ -125,6 +124,7 @@ export async function runPublish({
   githubToken,
   createGithubReleases,
   githubReleaseName,
+  githubTagName,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   let octokit = github.getOctokit(githubToken);
@@ -174,7 +174,8 @@ export async function runPublish({
       await createAggregatedRelease(
         octokit,
         releasedPackages,
-        githubReleaseName
+        githubReleaseName,
+        githubTagName
       );
     }
   } else {

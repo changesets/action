@@ -29,7 +29,11 @@ inputs:
     required: false
     default: 'true'
   githubReleaseName:
-    description: "In case createGithubReleases: aggregate is set, you can customize the GitHub release name"
+    description: "In case createGithubReleases: aggregate is set, you can customize the GitHub release name. Default to `Release <Date ISO>`"
+    required: false
+    default: ''
+  githubTagName:
+    description: "In case createGithubReleases: aggregate is set, you can customize the GitHub tag name. Default to `release-<timestamp>`"
     required: false
     default: ''
 outputs:
