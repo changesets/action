@@ -15,5 +15,7 @@ process.chdir(path.join(__dirname, ".."));
     /changesets\/action@[^\s]+/g,
     `changesets/action@${releaseLine}`
   );
+
+  console.log(releaseLine, readmePath, content, updatedContent);
   fs.writeFileSync(readmePath, updatedContent);
 })();

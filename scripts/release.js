@@ -25,12 +25,14 @@ process.chdir(path.join(__dirname, ".."));
     throw new Error(`git ls-remote exited with ${exitCode}:\n${stderr}`);
   }
 
+  console.log("执行到这里了");
   await exec("git", ["checkout", "--detach"]);
   await exec("git", ["add", "--force", "dist"]);
   await exec("git", ["commit", "-m", tag]);
 
+  console.log("tag", tag);
   await exec("changeset", ["tag"]);
-
+  console.log("releaseLine", releaseLine);
   await exec("git", [
     "push",
     "--force",
