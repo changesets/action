@@ -26,7 +26,7 @@ const createAggregatedRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
   packages: Package[],
   releaseName?: string,
-  tagName?: string,
+  tagName?: string
 ) => {
   const contentArr = await Promise.all(
     packages.map(async (pkg) => {
@@ -171,12 +171,14 @@ export async function runPublish({
         )
       );
     } else if (createGithubReleases === "aggregate") {
-      await createAggregatedRelease(
-        octokit,
-        releasedPackages,
-        githubReleaseName,
-        githubTagName
-      );
+      if (releasedPackages.length > 0) {
+        await createAggregatedRelease(
+          octokit,
+          releasedPackages,
+          githubReleaseName,
+          githubTagName
+        );
+      }
     }
   } else {
     if (packages.length === 0) {
