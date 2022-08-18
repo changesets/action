@@ -37,6 +37,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
+  const hasNonEmptyChangesets = changesets.some(
+    (changeset) => changeset.releases.length > 0
+  );
   let hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
@@ -96,6 +99,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       }
       return;
     }
+    case hasChangesets && !hasNonEmptyChangesets:
+      console.log("All changesets are empty; not creating PR");
+      return;
     case hasChangesets:
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
