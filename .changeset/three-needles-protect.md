@@ -2,4 +2,4 @@
 "@changesets/action": patch
 ---
 
-Don't create a PR if all changesets are empty
+Skip creating a PR when all existing changesets are empty.
