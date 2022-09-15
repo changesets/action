@@ -21,8 +21,7 @@
     "release": "node ./scripts/release.js"
   },
   "engines": {
-    "node": ">= 16",
-    "npm": ">= 8"
+    "node": ">= 16"
   },
   "dependencies": {
     "@actions/core": "^1.3.0",
