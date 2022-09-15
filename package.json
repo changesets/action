@@ -20,6 +20,9 @@
     "bump": "node ./scripts/bump.js",
     "release": "node ./scripts/release.js"
   },
+  "engines": {
+    "node": ">= 16"
+  },
   "dependencies": {
     "@actions/core": "^1.3.0",
     "@actions/exec": "^1.1.0",
