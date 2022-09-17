@@ -11,7 +11,9 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - commit - The commit message to use. Default to `Version Packages`
 - title - The pull request title. Default to `Version Packages`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- createGithubReleases - A boolean/string value to indicate whether to create Github releases after `publish` or not. Default to `"true"`. Set to `aggregate` if you wish to group all published releases into a single GitHub Release.
+- githubReleaseName - In case `createGithubReleases: aggregate` is set, you can customize the GitHub release name. Default to `Release <Date ISO>`.
+- githubTagName - In case `createGithubReleases: aggregate` is set, enable to customize the GitHub tag name. Default to `release-<timestamp>`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
 
 ### Outputs
