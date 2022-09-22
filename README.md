@@ -19,6 +19,54 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - published - A boolean value to indicate whether a publishing is happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
+### Tokens
+
+This action does two things (Assuming you configure this action to run on `push` to your default branch)
+
+1. Creates and keeps a pull request updated with the result of running its "versioning" logic (by default this is the `version` command from `@changeset/cli`)
+2. When there are no `.changeset/*.md` files in the added or modified files, it runs some publish logic.
+
+For this action to successfully do `1` and `2`, the `GITHUB_TOKEN` input needs to be a Personal Access Token with the following scopes: 
+
+- TODO list scopes
+
+### Permissions
+
+for your Workflow to successfully create the pull request you should configure the job to have certain permissions: 
+
+```
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      pull-requests: write
+      issues: read
+    steps:
+    ...
+```
+
+### Changeset Cli Configuration
+
+You will also need to ensure that your changesets configuration does not enable `commit`: 
+
+```
+{
+  "$schema": "https://unpkg.com/@changesets/config@1.6.2/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,                                                         // 👈
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "master",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}
+
+```
+
+
 ### Example workflow:
 
 #### Without Publishing
