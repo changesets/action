@@ -291,7 +291,7 @@ export async function runVersion({
     });
   }
 
-  let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
+  let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}+is:pull-request`;
   let searchResultPromise = octokit.search.issuesAndPullRequests({
     q: searchQuery,
   });
