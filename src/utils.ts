@@ -1,8 +1,7 @@
-import unified from "unified";
+import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
-// @ts-ignore
-import mdastToString from "mdast-util-to-string";
+import { toString as mdastToString } from "mdast-util-to-string";
 import { exec } from "@actions/exec";
 import { getPackages, Package } from "@manypkg/get-packages";
 

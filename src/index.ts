@@ -1,4 +1,4 @@
-import * as core from "@actions/core";
+import core from "@actions/core";
 import fs from "fs-extra";
 import * as gitUtils from "./gitUtils";
 import { runPublish, runVersion } from "./run";
