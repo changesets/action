@@ -1,5 +1,17 @@
 # @changesets/action
 
+## 1.4.0
+
+### Minor Changes
+
+- [#216](https://github.com/changesets/action/pull/216) [`398d7ed`](https://github.com/changesets/action/commit/398d7ed) Thanks [@quinnjn](https://github.com/quinnjn)! - Execute action with node16 instead of node12.
+
+### Patch Changes
+
+- [#228](https://github.com/changesets/action/pull/228) [`bff53cc`](https://github.com/changesets/action/commit/bff53cc50c1ebb33f8f558f9de2e0eb9a99230c6) Thanks [@iansan5653](https://github.com/iansan5653)! - Add `is:pull-request` to search query when looking for existing PR. This fixes an issue with user-owned PATs.
+
+* [#206](https://github.com/changesets/action/pull/206) [`8c3f5f5`](https://github.com/changesets/action/commit/8c3f5f5637a95a2327e78d5dabcf357978aedcbb) Thanks [@glasser](https://github.com/glasser)! - Skip creating a PR when all existing changesets are empty.
+
 ## 1.3.0
 
 ### Minor Changes
