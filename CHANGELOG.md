@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.1
+
+### Patch Changes
+
+- [#123](https://github.com/changesets/action/pull/123) [`b78f480`](https://github.com/changesets/action/commit/b78f48099899f0a853c5d9cd3feb21a5440babbd) Thanks [@Andarist](https://github.com/Andarist)! - Updated `@actions/*` dependencies to avoid using deprecated features of the runner.
+
 ## 1.4.0
 
 ### Minor Changes
