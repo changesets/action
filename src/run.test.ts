@@ -30,7 +30,9 @@ let mockedGithubMethods = {
     createRelease: jest.fn(),
   },
 };
-(github.getOctokit as any).mockImplementation(() => mockedGithubMethods);
+(github.getOctokit as any).mockImplementation(() => ({
+  rest: mockedGithubMethods,
+}));
 
 let f = fixturez(__dirname);
 
