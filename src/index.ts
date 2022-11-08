@@ -14,8 +14,18 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  console.log("setting git user");
-  await gitUtils.setupUser();
+  const inputCwd = core.getInput("cwd");
+  if (inputCwd) {
+    console.log("changing directory to the one given as the input");
+    process.chdir(inputCwd);
+  }
+
+  let setupGitUser = core.getBooleanInput("setupGitUser");
+
+  if (setupGitUser) {
+    console.log("setting git user");
+    await gitUtils.setupUser();
+  }
 
   console.log("setting GitHub credentials");
   await fs.writeFile(
@@ -27,6 +37,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
+  const hasNonEmptyChangesets = changesets.some(
+    (changeset) => changeset.releases.length > 0
+  );
   let hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
@@ -74,6 +87,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       const result = await runPublish({
         script: publishScript,
         githubToken,
+        createGithubReleases: core.getBooleanInput("createGithubReleases"),
       });
 
       if (result.published) {
@@ -85,14 +99,20 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       }
       return;
     }
+    case hasChangesets && !hasNonEmptyChangesets:
+      console.log("All changesets are empty; not creating PR");
+      return;
     case hasChangesets:
-      await runVersion({
+      const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
         githubToken,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
       });
+
+      core.setOutput("pullRequestNumber", String(pullRequestNumber));
+
       return;
   }
 })().catch((err) => {

@@ -1,6 +1,6 @@
 # Changesets Release Action
 
-This action for [Changesets](https://github.com/atlassian/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on master, the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
+This action for [Changesets](https://github.com/atlassian/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
 
 ## Usage
 
@@ -10,6 +10,9 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
 - commit - The commit message to use. Default to `Version Packages`
 - title - The pull request title. Default to `Version Packages`
+- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
+- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
 
 ### Outputs
 
@@ -28,7 +31,9 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -37,9 +42,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-        with:
-          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
-          fetch-depth: 0
 
       - name: Setup Node.js 12.x
         uses: actions/setup-node@v2
@@ -65,7 +67,9 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -74,9 +78,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-        with:
-          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
-          fetch-depth: 0
 
       - name: Setup Node.js 12.x
         uses: actions/setup-node@v2
@@ -115,11 +116,52 @@ For example, you can add a step before running the Changesets GitHub Action:
 - name: Creating .npmrc
   run: |
     cat << EOF > "$HOME/.npmrc"
-      email=my@email.com
       //registry.npmjs.org/:_authToken=$NPM_TOKEN
     EOF
   env:
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+#### Custom Publishing
+
+If you want to hook into when publishing should occur but have your own publishing functionality you can utilize the `hasChangesets` output.
+
+Note that you might need to account for things already being published in your script because a commit without any new changesets can always land on your base branch after a successful publish. In such a case you need to figure out on your own how to skip over the actual publishing logic or handle errors gracefully as most package registries won't allow you to publish over already published version.
+
+```yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js 12.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12.x
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        # You can do something when a publish should happen.
+        run: yarn publish
 ```
 
 #### With version script
@@ -134,7 +176,9 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -143,8 +187,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js 12.x
         uses: actions/setup-node@v2
