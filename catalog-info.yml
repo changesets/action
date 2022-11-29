@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: actions-changesets
+  description: |
+    Creates a pull request with all of the package versions updated and changelogs updated
+  annotations:
+    github.com/project-slug: Tradeshift/actions-changesets
+  tags:
+    - github-action
+    - nodejs
+spec:
+  type: library
+  owner: developer-productivity
+  lifecycle: production
+
