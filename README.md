@@ -77,12 +77,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v2
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 16.x
 
       - name: Install Dependencies
         run: yarn
@@ -142,12 +142,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v2
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 16.x
 
       - name: Install Dependencies
         run: yarn
@@ -186,12 +186,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v2
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 16.x
 
       - name: Install Dependencies
         run: yarn
