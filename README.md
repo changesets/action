@@ -83,6 +83,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install Dependencies
         run: yarn
@@ -95,31 +96,12 @@ jobs:
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Send a Slack notification if a publish happens
         if: steps.changesets.outputs.published == 'true'
         # You can do something when a publish happens.
         run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
-```
-
-By default the GitHub Action creates a `.npmrc` file with the following content:
-
-```
-//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
-```
-
-However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
-For example, you can add a step before running the Changesets GitHub Action:
-
-```yml
-- name: Creating .npmrc
-  run: |
-    cat << EOF > "$HOME/.npmrc"
-      //registry.npmjs.org/:_authToken=$NPM_TOKEN
-    EOF
-  env:
-    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 #### Custom Publishing
