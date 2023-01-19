@@ -251,6 +251,7 @@ type VersionOptions = {
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
+  branch?: string;
 };
 
 type RunVersionResult = {
@@ -265,9 +266,10 @@ export async function runVersion({
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
+  branch,
 }: VersionOptions): Promise<RunVersionResult> {
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
-  let branch = github.context.ref.replace("refs/heads/", "");
+  branch = branch ?? github.context.ref.replace("refs/heads/", "");
   let versionBranch = `changeset-release/${branch}`;
   let octokit = github.getOctokit(githubToken);
   let { preState } = await readChangesetState(cwd);
