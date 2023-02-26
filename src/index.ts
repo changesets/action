@@ -73,14 +73,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           );
           fs.appendFileSync(
             userNpmrcPath,
-            `\n//registry.npmjs.org/:_authToken=\$\{NPM_TOKEN\}\n`
+            `\n//registry.npmjs.org/:_authToken=\$\{NODE_AUTH_TOKEN\}\n`
           );
         }
       } else {
         console.log("No user .npmrc file found, creating one");
         fs.writeFileSync(
           userNpmrcPath,
-          `//registry.npmjs.org/:_authToken=\$\{NPM_TOKEN\}\n`
+          `//registry.npmjs.org/:_authToken=\$\{NODE_AUTH_TOKEN\}\n`
         );
       }
 
