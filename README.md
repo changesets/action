@@ -128,6 +128,8 @@ If you want to hook into when publishing should occur but have your own publishi
 
 Note that you might need to account for things already being published in your script because a commit without any new changesets can always land on your base branch after a successful publish. In such a case you need to figure out on your own how to skip over the actual publishing logic or handle errors gracefully as most package registries won't allow you to publish over already published version.
 
+If you need GitHub releases and Git tags, make sure to include `changeset tag` in the action publish script.
+
 ```yml
 name: Release
 
@@ -155,6 +157,9 @@ jobs:
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
+        with:
+          # Include this to create GitHub releases and Git tags
+          # publish: yarn changeset tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
