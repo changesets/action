@@ -278,7 +278,8 @@ export async function runVersion({
   let versionsByDirectory = await getVersionsByDirectory(cwd);
 
   if (script) {
-    const scriptLines = script.split(/\r?\n/);
+    consle.log('>>>>', script);
+    const scriptLines = script.split("\n");
     for (cosnt line of scriptLines) {
       let [versionCommand, ...versionArgs] = line.split(/\s+/);
       await exec(versionCommand, versionArgs, { cwd });
