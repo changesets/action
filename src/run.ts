@@ -14,6 +14,7 @@ import {
 import * as gitUtils from "./gitUtils";
 import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
+import { throttling } from "@octokit/plugin-throttling";
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -78,7 +79,31 @@ export async function runPublish({
   createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
-  let octokit = github.getOctokit(githubToken);
+  const opts = {
+    throttle: {
+      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+        octokit.log.warn(
+          `Request quota exhausted for request ${options.method} ${options.url}`
+        );
+
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+      onSecondaryRateLimit: (retryAfter, options, octokit) => {
+        octokit.log.warn(
+          `SecondaryRateLimit detected for request ${options.method} ${options.url}`
+        );
+
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+    },
+  };
+  let octokit = github.getOctokit(githubToken, opts, throttling);
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
   let changesetPublishOutput = await getExecOutput(
