@@ -52,5 +52,8 @@
   "husky": {
     "hooks": {}
   },
-  "prettier": {}
+  "prettier": {},
+  "resolutions": {
+    "**/@octokit/core": "4.2.0"
+  }
 }
