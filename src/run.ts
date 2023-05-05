@@ -17,7 +17,7 @@ import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
 // temporary workaround for https://github.com/octokit/plugin-throttling.js/pull/590
-import "@octokit/plugin-throttling/dist-types/types.d";
+import type {} from "@octokit/plugin-throttling/dist-types/types.d";
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.

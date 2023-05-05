@@ -10,7 +10,7 @@
     "fixturez": "^1.1.0",
     "parcel": "^1.12.3",
     "prettier": "^2.0.5",
-    "typescript": "^3.5.3"
+    "typescript": "^5.0.4"
   },
   "scripts": {
     "build": "parcel build ./src/index.ts --no-source-maps --target=node --bundle-node-modules",
