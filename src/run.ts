@@ -86,12 +86,12 @@ export async function runPublish({
     getOctokitOptions(githubToken, {
       throttle: {
         onRateLimit: (retryAfter, options: any, octokit, retryCount) => {
-          octokit.log.warn(
+          console.log(
             `Request quota exhausted for request ${options.method} ${options.url}`
           );
 
           if (retryCount <= 2) {
-            octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+            console.log(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         },
@@ -101,12 +101,12 @@ export async function runPublish({
           octokit,
           retryCount
         ) => {
-          octokit.log.warn(
+          console.log(
             `SecondaryRateLimit detected for request ${options.method} ${options.url}`
           );
 
           if (retryCount <= 2) {
-            octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+            console.log(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         },
