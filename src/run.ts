@@ -81,12 +81,12 @@ export async function runPublish({
 }: PublishOptions): Promise<PublishResult> {
   const opts = {
     throttle: {
-      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+      onRateLimit: (retryAfter, options, octokit) => {
         octokit.log.warn(
           `Request quota exhausted for request ${options.method} ${options.url}`
         );
 
-        if (retryCount < 3) {
+        if (options.request.retryCount <= 2) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
           return true;
         }
@@ -96,7 +96,7 @@ export async function runPublish({
           `SecondaryRateLimit detected for request ${options.method} ${options.url}`
         );
 
-        if (retryCount < 3) {
+        if (options.request.retryCount <= 2) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
           return true;
         }
