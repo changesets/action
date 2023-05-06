@@ -1,4 +1,5 @@
 import { exec, getExecOutput } from "@actions/exec";
+import { GitHub, getOctokitOptions } from "@actions/github/lib/utils";
 import * as github from "@actions/github";
 import fs from "fs-extra";
 import { getPackages, Package } from "@manypkg/get-packages";
@@ -14,6 +15,9 @@ import {
 import * as gitUtils from "./gitUtils";
 import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
+import { throttling } from "@octokit/plugin-throttling";
+// temporary workaround for https://github.com/octokit/plugin-throttling.js/pull/590
+import type {} from "@octokit/plugin-throttling/dist-types/types.d";
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -78,7 +82,38 @@ export async function runPublish({
   createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
-  let octokit = github.getOctokit(githubToken);
+  const octokit = new (GitHub.plugin(throttling))(
+    getOctokitOptions(githubToken, {
+      throttle: {
+        onRateLimit: (retryAfter, options: any, octokit, retryCount) => {
+          console.log(
+            `Request quota exhausted for request ${options.method} ${options.url}`
+          );
+
+          if (retryCount <= 2) {
+            console.log(`Retrying after ${retryAfter} seconds!`);
+            return true;
+          }
+        },
+        onSecondaryRateLimit: (
+          retryAfter,
+          options: any,
+          octokit,
+          retryCount
+        ) => {
+          console.log(
+            `SecondaryRateLimit detected for request ${options.method} ${options.url}`
+          );
+
+          if (retryCount <= 2) {
+            console.log(`Retrying after ${retryAfter} seconds!`);
+            return true;
+          }
+        },
+      },
+    })
+  );
+
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
   let changesetPublishOutput = await getExecOutput(
