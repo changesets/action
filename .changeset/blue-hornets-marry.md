@@ -2,4 +2,4 @@
 "@changesets/action": patch
 ---
 
-migrate to logging provided by @actions/core
+Use logging provided by `@actions/core`
