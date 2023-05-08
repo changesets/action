@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.3
+
+### Patch Changes
+
+- [#289](https://github.com/changesets/action/pull/289) [`8b28186`](https://github.com/changesets/action/commit/8b2818674de86a7fc69aebb9ed6b486ee32eb96e) Thanks [@varl](https://github.com/varl)! - Use logging provided by `@actions/core`
+
 ## 1.4.2
 
 ### Patch Changes
