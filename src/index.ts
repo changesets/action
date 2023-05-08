@@ -100,7 +100,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
     }
     case hasChangesets && !hasNonEmptyChangesets:
-      core.warning("All changesets are empty; not creating PR");
+      core.info("All changesets are empty; not creating PR");
       return;
     case hasChangesets:
       const { pullRequestNumber } = await runVersion({
