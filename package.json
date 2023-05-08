@@ -30,6 +30,7 @@
     "@babel/core": "^7.13.10",
     "@babel/preset-env": "^7.13.10",
     "@babel/preset-typescript": "^7.13.0",
+    "@changesets/get-release-plan": "^3.0.15",
     "@changesets/pre": "^1.0.9",
     "@changesets/read": "^0.5.3",
     "@manypkg/get-packages": "^1.1.3",
