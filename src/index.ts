@@ -16,18 +16,18 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   const inputCwd = core.getInput("cwd");
   if (inputCwd) {
-    console.log("changing directory to the one given as the input");
+    core.info("changing directory to the one given as the input");
     process.chdir(inputCwd);
   }
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
   if (setupGitUser) {
-    console.log("setting git user");
+    core.info("setting git user");
     await gitUtils.setupUser();
   }
 
-  console.log("setting GitHub credentials");
+  core.info("setting GitHub credentials");
   await fs.writeFile(
     `${process.env.HOME}/.netrc`,
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
@@ -48,27 +48,27 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
-      console.log("No changesets found");
+      core.info("No changesets found");
       return;
     case !hasChangesets && hasPublishScript: {
-      console.log(
+      core.info(
         "No changesets found, attempting to publish any unpublished packages to npm"
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
       if (fs.existsSync(userNpmrcPath)) {
-        console.log("Found existing user .npmrc file");
+        core.info("Found existing user .npmrc file");
         const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
           // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
           return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
         });
         if (authLine) {
-          console.log(
+          core.info(
             "Found existing auth token for the npm registry in the user .npmrc file"
           );
         } else {
-          console.log(
+          core.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
           fs.appendFileSync(
@@ -77,7 +77,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           );
         }
       } else {
-        console.log("No user .npmrc file found, creating one");
+        core.info("No user .npmrc file found, creating one");
         fs.writeFileSync(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
@@ -100,7 +100,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
     }
     case hasChangesets && !hasNonEmptyChangesets:
-      console.log("All changesets are empty; not creating PR");
+      core.warning("All changesets are empty; not creating PR");
       return;
     case hasChangesets:
       const { pullRequestNumber } = await runVersion({
@@ -116,6 +116,6 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
   }
 })().catch((err) => {
-  console.error(err);
+  core.error(err);
   core.setFailed(err.message);
 });
