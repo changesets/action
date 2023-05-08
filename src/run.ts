@@ -1,6 +1,7 @@
 import { exec, getExecOutput } from "@actions/exec";
 import { GitHub, getOctokitOptions } from "@actions/github/lib/utils";
 import * as github from "@actions/github";
+import * as core from "@actions/core";
 import fs from "fs-extra";
 import { getPackages, Package } from "@manypkg/get-packages";
 import path from "path";
@@ -86,12 +87,12 @@ export async function runPublish({
     getOctokitOptions(githubToken, {
       throttle: {
         onRateLimit: (retryAfter, options: any, octokit, retryCount) => {
-          console.log(
+          core.warning(
             `Request quota exhausted for request ${options.method} ${options.url}`
           );
 
           if (retryCount <= 2) {
-            console.log(`Retrying after ${retryAfter} seconds!`);
+            core.info(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         },
@@ -101,12 +102,12 @@ export async function runPublish({
           octokit,
           retryCount
         ) => {
-          console.log(
+          core.warning(
             `SecondaryRateLimit detected for request ${options.method} ${options.url}`
           );
 
           if (retryCount <= 2) {
-            console.log(`Retrying after ${retryAfter} seconds!`);
+            core.info(`Retrying after ${retryAfter} seconds!`);
             return true;
           }
         },
@@ -360,7 +361,7 @@ export async function runVersion({
   await gitUtils.push(versionBranch, { force: true });
 
   let searchResult = await searchResultPromise;
-  console.log(JSON.stringify(searchResult.data, null, 2));
+  core.info(JSON.stringify(searchResult.data, null, 2));
 
   const changedPackagesInfo = (await changedPackagesInfoPromises)
     .filter((x) => x)
@@ -375,7 +376,7 @@ export async function runVersion({
   });
 
   if (searchResult.data.items.length === 0) {
-    console.log("creating pull request");
+    core.info("creating pull request");
     const { data: newPullRequest } = await octokit.rest.pulls.create({
       base: branch,
       head: versionBranch,
@@ -390,7 +391,7 @@ export async function runVersion({
   } else {
     const [pullRequest] = searchResult.data.items;
 
-    console.log(`updating found pull request #${pullRequest.number}`);
+    core.info(`updating found pull request #${pullRequest.number}`);
     await octokit.rest.pulls.update({
       pull_number: pullRequest.number,
       title: finalPrTitle,
