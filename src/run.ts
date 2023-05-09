@@ -61,7 +61,7 @@ const setupOctokit = (githubToken) => {
 };
 
 const createRelease = async (
-  octokit: ReturnType<typeof github.getOctokit>,
+  octokit: ReturnType<typeof GitHub>,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
   try {
