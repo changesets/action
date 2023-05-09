@@ -2,4 +2,4 @@
 "@changesets/action": patch
 ---
 
-use throttling plugin for all octokit instances
+Wire up [`@octokit/plugin-throttling`](https://github.com/octokit/plugin-throttling.js) with all GitHub Octokit instances
