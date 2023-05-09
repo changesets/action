@@ -7,13 +7,13 @@
     "@changesets/changelog-github": "^0.4.2",
     "@changesets/cli": "^2.20.0",
     "@changesets/write": "^0.1.6",
+    "@vercel/ncc": "^0.36.1",
     "fixturez": "^1.1.0",
-    "parcel": "^1.12.3",
     "prettier": "^2.0.5",
     "typescript": "^5.0.4"
   },
   "scripts": {
-    "build": "parcel build ./src/index.ts --no-source-maps --target=node --bundle-node-modules",
+    "build": "ncc build src/index.ts -o dist --transpile-only --minify",
     "test": "jest",
     "test:watch": "yarn test --watch",
     "changeset": "changeset",
