@@ -26,8 +26,42 @@ import type {} from "@octokit/plugin-throttling/dist-types/types.d";
 // To avoid that, we ensure to cap the message to 60k chars.
 const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
+const setupOctokit = (githubToken) => {
+  return new (GitHub.plugin(throttling))(
+    getOctokitOptions(githubToken, {
+      throttle: {
+        onRateLimit: (retryAfter, options: any, octokit, retryCount) => {
+          core.warning(
+            `Request quota exhausted for request ${options.method} ${options.url}`
+          );
+
+          if (retryCount <= 2) {
+            core.info(`Retrying after ${retryAfter} seconds!`);
+            return true;
+          }
+        },
+        onSecondaryRateLimit: (
+          retryAfter,
+          options: any,
+          octokit,
+          retryCount
+        ) => {
+          core.warning(
+            `SecondaryRateLimit detected for request ${options.method} ${options.url}`
+          );
+
+          if (retryCount <= 2) {
+            core.info(`Retrying after ${retryAfter} seconds!`);
+            return true;
+          }
+        },
+      },
+    })
+  );
+};
+
 const createRelease = async (
-  octokit: ReturnType<typeof github.getOctokit>,
+  octokit: ReturnType<typeof GitHub>,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
   try {
@@ -83,37 +117,7 @@ export async function runPublish({
   createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
-  const octokit = new (GitHub.plugin(throttling))(
-    getOctokitOptions(githubToken, {
-      throttle: {
-        onRateLimit: (retryAfter, options: any, octokit, retryCount) => {
-          core.warning(
-            `Request quota exhausted for request ${options.method} ${options.url}`
-          );
-
-          if (retryCount <= 2) {
-            core.info(`Retrying after ${retryAfter} seconds!`);
-            return true;
-          }
-        },
-        onSecondaryRateLimit: (
-          retryAfter,
-          options: any,
-          octokit,
-          retryCount
-        ) => {
-          core.warning(
-            `SecondaryRateLimit detected for request ${options.method} ${options.url}`
-          );
-
-          if (retryCount <= 2) {
-            core.info(`Retrying after ${retryAfter} seconds!`);
-            return true;
-          }
-        },
-      },
-    })
-  );
+  const octokit = setupOctokit(githubToken);
 
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
@@ -302,10 +306,12 @@ export async function runVersion({
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
 }: VersionOptions): Promise<RunVersionResult> {
+  const octokit = setupOctokit(githubToken);
+
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
   let versionBranch = `changeset-release/${branch}`;
-  let octokit = github.getOctokit(githubToken);
+
   let { preState } = await readChangesetState(cwd);
 
   await gitUtils.switchToMaybeExistingBranch(versionBranch);
