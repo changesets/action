@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.4
+
+### Patch Changes
+
+- [#291](https://github.com/changesets/action/pull/291) [`db8a109`](https://github.com/changesets/action/commit/db8a1099bc0ba1dd6f46a5b9df4212e4f69e78c9) Thanks [@varl](https://github.com/varl)! - Wire up [`@octokit/plugin-throttling`](https://github.com/octokit/plugin-throttling.js) with all GitHub Octokit instances
+
 ## 1.4.3
 
 ### Patch Changes
