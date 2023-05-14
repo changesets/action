@@ -17,8 +17,6 @@ import * as gitUtils from "./gitUtils";
 import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
-// temporary workaround for https://github.com/octokit/plugin-throttling.js/pull/590
-import type {} from "@octokit/plugin-throttling/dist-types/types.d";
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -26,7 +24,7 @@ import type {} from "@octokit/plugin-throttling/dist-types/types.d";
 // To avoid that, we ensure to cap the message to 60k chars.
 const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
-const setupOctokit = (githubToken) => {
+const setupOctokit = (githubToken: string) => {
   return new (GitHub.plugin(throttling))(
     getOctokitOptions(githubToken, {
       throttle: {
@@ -61,7 +59,7 @@ const setupOctokit = (githubToken) => {
 };
 
 const createRelease = async (
-  octokit: ReturnType<typeof GitHub>,
+  octokit: ReturnType<typeof setupOctokit>,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
   try {
@@ -87,7 +85,12 @@ const createRelease = async (
     });
   } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
-    if (err.code !== "ENOENT") {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      err.code !== "ENOENT"
+    ) {
       throw err;
     }
   }
@@ -205,7 +208,12 @@ const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
     return require(resolveFrom(cwd, "@changesets/cli/package.json"));
   } catch (err) {
-    if (err && err.code === "MODULE_NOT_FOUND") {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      err.code === "MODULE_NOT_FOUND"
+    ) {
       throw new Error(
         `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
       );
