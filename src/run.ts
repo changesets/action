@@ -418,3 +418,22 @@ export async function runVersion({
     };
   }
 }
+
+export async function runNextRelease({ githubToken }: { githubToken: string }) {
+  const octokit = setupOctokit(githubToken);
+
+  const { version } = require("../package.json");
+
+  let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
+  const branch = github.context.ref.replace("refs/heads/", "");
+
+  core.info('version ->' + version);
+  core.info('branch ->' + branch);
+
+  let versionBranch = `release-${branch}`;
+
+  // let { preState } = await readChangesetState(cwd);
+
+  // await gitUtils.switchToMaybeExistingBranch(versionBranch);
+
+}

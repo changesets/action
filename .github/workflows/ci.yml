@@ -20,5 +20,10 @@ jobs:
       - name: Install Dependencies
         run: yarn --frozen-lockfile
 
-      - name: Test
-        run: yarn test
+      - name: Try out next release
+        id: changesets
+        uses: ./
+        with:
+          nextRelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

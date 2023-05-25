@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
 import * as gitUtils from "./gitUtils";
-import { runPublish, runVersion } from "./run";
+import { runNextRelease, runPublish, runVersion } from "./run";
 import readChangesetState from "./readChangesetState";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
@@ -46,7 +46,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   core.setOutput("publishedPackages", "[]");
   core.setOutput("hasChangesets", String(hasChangesets));
 
+  const nextRelease = core.getBooleanInput("nextRelease");
+
   switch (true) {
+    case nextRelease: {
+      core.info("nextRelease is true, attempting to publish any unpublished packages to npm");
+      runNextRelease({ githubToken });
+      return;
+    }
     case !hasChangesets && !hasPublishScript:
       core.info("No changesets found");
       return;
