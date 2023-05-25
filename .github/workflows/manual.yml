@@ -1,0 +1,28 @@
+name: New release
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        type: choice
+        description: Release type
+        default: Next
+        required: true
+        options:
+        - Next
+        - Patch
+      base-ref:
+        description: Base version
+        default: master
+        required: false
+
+jobs:
+  new-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.base-ref }}
+
+    - run: cat package.json
