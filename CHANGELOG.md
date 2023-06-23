@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.5
+
+### Patch Changes
+
+- [#282](https://github.com/changesets/action/pull/282) [`eb19e25`](https://github.com/changesets/action/commit/eb19e25e7797cf33dc2de4caa071e85a8057a0f0) Thanks [@mark-omarov](https://github.com/mark-omarov)! - Updated a few dependencies to patch the security vulnerabilities that were reported for their older versions.
+
 ## 1.4.4
 
 ### Patch Changes
