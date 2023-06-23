@@ -55,12 +55,6 @@
   "prettier": {},
   "resolutions": {
     "**/@octokit/core": "4.2.0",
-    "glob-parent": "^5.1.2",
-    "node-fetch": "^2.6.7",
-    "minimist": "^1.2.8",
-    "mixme": "^0.5.2",
-    "minimatch": "^3.1.1",
-    "lodash": "^4.17.21",
     "trim": "^0.0.3",
     "y18n": "^4.0.1"
   }
