@@ -1,8 +1,9 @@
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkStringify from "remark-stringify";
-import * as mdast from "mdast-util-to-string";
 import { getPackages, Package } from "@manypkg/get-packages";
+
+const { unified } = await import("unified");
+const remarkParse = (await import("remark-parse")).default;
+const remarkStringify = (await import("remark-stringify")).default;
+const mdast = await import("mdast-util-to-string");
 
 export const BumpLevels = {
   dep: 0,
