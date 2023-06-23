@@ -67,7 +67,10 @@ const createRelease = async (
 
     let changelog = await fs.readFile(changelogFileName, "utf8");
 
-    let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
+    let changelogEntry = await getChangelogEntry(
+      changelog,
+      pkg.packageJson.version
+    );
     if (!changelogEntry) {
       // we can find a changelog but not the entry for this version
       // if this is true, something has probably gone wrong
@@ -352,7 +355,10 @@ export async function runVersion({
         "utf8"
       );
 
-      let entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
+      let entry = await getChangelogEntry(
+        changelogContents,
+        pkg.packageJson.version
+      );
       return {
         highestLevel: entry.highestLevel,
         private: !!pkg.packageJson.private,
