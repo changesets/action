@@ -1,10 +1,5 @@
 import { getPackages, Package } from "@manypkg/get-packages";
 
-const { unified } = await import("unified");
-const remarkParse = (await import("remark-parse")).default;
-const remarkStringify = (await import("remark-stringify")).default;
-const mdast = await import("mdast-util-to-string");
-
 export const BumpLevels = {
   dep: 0,
   patch: 1,
@@ -34,7 +29,12 @@ export async function getChangedPackages(
   return [...changedPackages];
 }
 
-export function getChangelogEntry(changelog: string, version: string) {
+export async function getChangelogEntry(changelog: string, version: string) {
+  const { unified } = await import("unified");
+  const remarkParse = (await import("remark-parse")).default;
+  const remarkStringify = (await import("remark-stringify")).default;
+  const mdast = await import("mdast-util-to-string");
+
   let ast = unified().use(remarkParse).parse(changelog);
 
   let highestLevel: number = BumpLevels.dep;

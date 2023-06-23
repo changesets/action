@@ -67,14 +67,14 @@ let changelog = `# @keystone-alpha/email
   - Update mjml-dependency
 `;
 
-test("it works", () => {
-  let entry = getChangelogEntry(changelog, "3.0.0");
+test("it works", async () => {
+  let entry = await getChangelogEntry(changelog, "3.0.0");
   expect(entry.content).toMatchSnapshot();
   expect(entry.highestLevel).toBe(BumpLevels.major);
 });
 
-test("it works", () => {
-  let entry = getChangelogEntry(changelog, "3.0.1");
+test("it works", async () => {
+  let entry = await getChangelogEntry(changelog, "3.0.1");
   expect(entry.content).toMatchSnapshot();
   expect(entry.highestLevel).toBe(BumpLevels.patch);
 });
