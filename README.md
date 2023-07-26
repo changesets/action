@@ -14,6 +14,19 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
 
+### GitHub personal access token
+
+In order to open a PR and run the relevant GitHub actions, Changesets Release Action needs a [GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) configured with the proper permissions.
+
+The examples below refers to this token as `YOUR_GITHUB_TOKEN`.
+
+1. Go to: `Profile` > `Developer Settings` > `Personal access tokens`
+2. Make sure you have a **Fine-grained token** (suggested) with `Read and write` permissions for `Content` and `Pull requests`
+3. Make sure the token is assigned to your repository
+4. Make the token value available to your GitHub actions in: `Repo settings` > `Secrets and variables` > `Actions`
+
+Read more information about configuring GitHub PAT [here](https://github.com/changesets/action/issues/187).
+
 ### Outputs
 
 - published - A boolean value to indicate whether a publishing is happened or not
@@ -42,6 +55,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
       - name: Setup Node.js 16
         uses: actions/setup-node@v3
@@ -54,7 +69,7 @@ jobs:
       - name: Create Release Pull Request
         uses: changesets/action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.YOUR_GITHUB_TOKEN }}
 ```
 
 #### With Publishing
@@ -78,6 +93,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
       - name: Setup Node.js 16.x
         uses: actions/setup-node@v3
@@ -94,7 +111,7 @@ jobs:
           # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish: yarn release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.YOUR_GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Send a Slack notification if a publish happens
@@ -143,6 +160,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
       - name: Setup Node.js 16.x
         uses: actions/setup-node@v3
@@ -156,7 +175,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
       - name: Publish
         if: steps.changesets.outputs.hasChangesets == 'false'
@@ -187,6 +206,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
       - name: Setup Node.js 16.x
         uses: actions/setup-node@v3
@@ -202,7 +223,7 @@ jobs:
           # this expects you to have a npm script called version that runs some logic and then calls `changeset version`.
           version: yarn version
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.YOUR_GITHUB_TOKEN }}
 ```
 
 #### With Yarn 2 / Plug'n'Play
