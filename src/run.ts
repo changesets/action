@@ -99,6 +99,7 @@ const createRelease = async (
 type PublishOptions = {
   script: string;
   githubToken: string;
+  createNPMReleases: boolean;
   createGithubReleases: boolean;
   cwd?: string;
 };
@@ -117,11 +118,14 @@ type PublishResult =
 export async function runPublish({
   script,
   githubToken,
+  createNPMReleases,
   createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   const octokit = setupOctokit(githubToken);
 
+  console.log('script',script);
+  
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
   let changesetPublishOutput = await getExecOutput(
