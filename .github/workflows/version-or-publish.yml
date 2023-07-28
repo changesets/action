@@ -10,6 +10,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   changesets:
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2

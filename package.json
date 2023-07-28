@@ -1,5 +1,5 @@
 {
-  "name": "@changesets/action",
+  "name": "changesets-optional-npm-action",
   "version": "1.4.5",
   "main": "dist/index.js",
   "license": "MIT",
