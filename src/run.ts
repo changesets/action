@@ -123,83 +123,54 @@ export async function runPublish({
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   const octokit = setupOctokit(githubToken);
+  const { packages, tool } = await getPackages(cwd);
 
-  console.log('script',script);
-  
-  let [publishCommand, ...publishArgs] = script.split(/\s+/);
-
-  let changesetPublishOutput = await getExecOutput(
-    publishCommand,
-    publishArgs,
-    { cwd }
-  );
-  console.log('changesetPublishOutput', changesetPublishOutput);
-
-  await gitUtils.pushTags();
-
-  let { packages, tool } = await getPackages(cwd);
-  let releasedPackages: Package[] = [];
-
-  if (tool !== "root") {
-    let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
-    let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
-
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
-      if (match === null) {
-        continue;
-      }
-      let pkgName = match[1];
-      let pkg = packagesByName.get(pkgName);
-      if (pkg === undefined) {
-        throw new Error(
-          `Package "${pkgName}" not found.` +
-            "This is probably a bug in the action, please open an issue"
-        );
-      }
-      releasedPackages.push(pkg);
-    }
-
-    if (createGithubReleases) {
-      await Promise.all(
-        releasedPackages.map((pkg) =>
-          createRelease(octokit, {
-            pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          })
-        )
-      );
-    }
-  } else {
-    if (packages.length === 0) {
-      throw new Error(
-        `No package found.` +
-          "This is probably a bug in the action, please open an issue"
-      );
-    }
-    let pkg = packages[0];
-    let newTagRegex = /New tag:/;
-
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
-
-      if (match) {
-        releasedPackages.push(pkg);
-        if (createGithubReleases) {
-          await createRelease(octokit, {
-            pkg,
-            tagName: `v${pkg.packageJson.version}`,
-          });
-        }
-        break;
+  // To figure out for what package versions we need to create a release, we iterate over all packages
+  // and see if there's a corresponding github release for that version. If there is, we skip it.
+  // The releases need to be named "@package-name@version"
+  const packagesToRelease: Package[] = [];
+  for (let pkg of packages) {
+    try {
+      await octokit.rest.repos.getReleaseByTag({
+        ...github.context.repo,
+        tag: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+      });
+    } catch (err) {
+      if ((err as any).status === 404) {
+        console.log(`adding ${pkg.packageJson.name}@${pkg.packageJson.version} to release list`);
+        packagesToRelease.push(pkg);
       }
     }
   }
 
-  if (releasedPackages.length) {
+  if (tool !== "root") {
+    await Promise.all(
+      packagesToRelease.map((pkg) =>
+        createRelease(octokit, {
+          pkg,
+          tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+        }),
+      ),
+    );
+  } else {
+    if (packages.length === 0) {
+      throw new Error(
+        `No package found.` + "This is probably a bug in the action, please open an issue",
+      );
+    }
+    let pkg = packages[0];
+
+    packagesToRelease.push(pkg);
+    await createRelease(octokit, {
+      pkg,
+      tagName: `v${pkg.packageJson.version}`,
+    });
+  }
+
+  if (packagesToRelease.length) {
     return {
       published: true,
-      publishedPackages: releasedPackages.map((pkg) => ({
+      publishedPackages: packagesToRelease.map((pkg) => ({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version,
       })),
