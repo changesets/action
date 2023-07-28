@@ -1,4 +1,4 @@
-name: Changesets
+name: Changesets-Optional-NPM-Release
 description: A GitHub action to automate releases with Changesets
 runs:
   using: "node16"
