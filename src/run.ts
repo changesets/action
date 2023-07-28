@@ -133,6 +133,7 @@ export async function runPublish({
     publishArgs,
     { cwd }
   );
+  console.log('changesetPublishOutput', changesetPublishOutput);
 
   await gitUtils.pushTags();
 

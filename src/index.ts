@@ -54,10 +54,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
     case !hasChangesets && hasPublishScript: {
       if (createNPMReleases) {
-
-      core.info(
-        "No changesets found, attempting to publish any unpublished packages to npm"
-      );
+        core.info(
+          "No changesets found, attempting to publish any unpublished packages to npm"
+        );
 
         let userNpmrcPath = `${process.env.HOME}/.npmrc`;
         if (fs.existsSync(userNpmrcPath)) {
