@@ -268,10 +268,11 @@ export async function runVersion({
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
   prBranch,
 }: VersionOptions): Promise<RunVersionResult> {
+  const octokit = github.getOctokit(githubToken);
+
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
   let versionBranch = prBranch || `changeset-release/${branch}`;
-  let octokit = github.getOctokit(githubToken);
   let { preState } = await readChangesetState(cwd);
 
   await gitUtils.switchToMaybeExistingBranch(versionBranch);
