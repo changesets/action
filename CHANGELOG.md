@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.2
+
+### Patch Changes
+
+- [`847b1eb`](https://github.com/changesets/action/commit/847b1eb0d69d3ea2213ade6c7e5e43605e2713c6) Thanks [@DmitryAnansky](https://github.com/DmitryAnansky)! - Added possibility to override PR branch name.
+
 ## 1.4.1
 
 ### Patch Changes
