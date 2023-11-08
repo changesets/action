@@ -2,6 +2,18 @@
 
 This action for [Changesets](https://github.com/atlassian/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
 
+## Requirements
+
+This action is required to have permission to create a pull request in your repository. You can enable this by visiting "Settings -> Actions -> General" and enabling "**Allow GitHub Actions to create and approve pull requests**".
+
+Additionally, you will also need to add the following to your workflow files in order for pull requests and commits to be created:
+
+```yaml
+permissions:
+  pull-requests: write
+  contents: write
+```
+
 ## Usage
 
 ### Inputs
