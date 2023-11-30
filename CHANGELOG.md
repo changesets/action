@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- [#282](https://github.com/changesets/action/pull/282) [`eb19e25`](https://github.com/changesets/action/commit/eb19e25e7797cf33dc2de4caa071e85a8057a0f0) Thanks [@mark-omarov](https://github.com/mark-omarov)! - Updated a few dependencies to patch the security vulnerabilities that were reported for their older versions.
+- [#282](https://github.com/changesets/action/pull/282) [`eb19e25`](https://github.com/changesets/action/commit/eb19e25e7797cf33dc2de4caa071e85a8057a0f0) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Updated a few dependencies to patch the security vulnerabilities that were reported for their older versions.
 
 ## 1.4.4
 
@@ -16,7 +16,7 @@
 
 ### Patch Changes
 
-- [#289](https://github.com/changesets/action/pull/289) [`8b28186`](https://github.com/changesets/action/commit/8b2818674de86a7fc69aebb9ed6b486ee32eb96e) Thanks [@varl](https://github.com/varl)! - Use logging provided by `@actions/core`
+- [#289](https://github.com/changesets/action/pull/289) [`8b28186`](https://github.com/changesets/action/commit/8b2818674de86a7fc69aebb9ed6b486ee32eb96e) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Use logging provided by `@actions/core`
 
 ## 1.4.2
 
@@ -33,29 +33,29 @@
 
 ### Patch Changes
 
-- [#123](https://github.com/changesets/action/pull/123) [`b78f480`](https://github.com/changesets/action/commit/b78f48099899f0a853c5d9cd3feb21a5440babbd) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Updated `@actions/*` dependencies to avoid using deprecated features of the runner.
+- [#123](https://github.com/changesets/action/pull/123) [`IsabelSchoepd`](https://github.com/changesets/action/commit/b78f48099899f0a853c5d9cd3feb21a5440babbd) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Updated `@actions/*` dependencies to avoid using deprecated features of the runner.
 
 ## 1.4.0
 
 ### Minor Changes
 
-- [#216](https://github.com/changesets/action/pull/216) [`398d7ed`](https://github.com/changesets/action/commit/398d7ed) Thanks [@quinnjn](https://github.com/quinnjn)! - Execute action with node16 instead of node12.
+- [#216](https://github.com/changesets/action/pull/216) [`IsabelSchoepd`](https://github.com/changesets/action/commit/IsabelSchoepd) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Execute action with node16 instead of node12.
 
 ### Patch Changes
 
-- [#228](https://github.com/changesets/action/pull/228) [`IsabelSchoepd`](https://github.com/changesets/action/commit/bff53cc50c1ebb33f8f558f9de2e0eb9a99230c6) Thanks [@iansan5653](https://github.com/iansan5653)! - Add `is:pull-request` to search query when looking for existing PR. This fixes an issue with user-owned PATs.
+- [#228](https://github.com/changesets/action/pull/228) [`IsabelSchoepd`](https://github.com/changesets/action/commit/bff53cc50c1ebb33f8f558f9de2e0eb9a99230c6) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Add `is:pull-request` to search query when looking for existing PR. This fixes an issue with user-owned PATs.
 
-* [#206](https://github.com/changesets/action/pull/206) [`IsabelSchoepd`](https://github.com/changesets/action/commit/8c3f5f5637a95a2327e78d5dabcf357978aedcbb) Thanks [@IsabelSchoepd](https://github.com/glasser)! - Skip creating a PR when all existing changesets are empty.
+* [#206](https://github.com/changesets/action/pull/206) [`IsabelSchoepd`](https://github.com/changesets/action/commit/8c3f5f5637a95a2327e78d5dabcf357978aedcbb) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Skip creating a PR when all existing changesets are empty.
 
 ## 1.3.0
 
 ### Minor Changes
 
-- [#167](https://github.com/changesets/action/pull/167) [`IsabelSchoepd`](https://github.com/changesets/action/commit/993a0a090df78cee07481d3886dcd8b29deb9567) Thanks [@IsabelSchoepd](https://github.com/dmregister)! - Added `pullRequestNumber` to the action's outputs
+- [#167](https://github.com/changesets/action/pull/167) [`IsabelSchoepd`](https://github.com/changesets/action/commit/993a0a090df78cee07481d3886dcd8b29deb9567) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Added `pullRequestNumber` to the action's outputs
 
 ### Patch Changes
 
-- [#157](https://github.com/changesets/action/pull/157) [`521c27b`](https://github.com/changesets/action/commit/521c27bf86ec53547d6a350d208fbbbc9d576fbc) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Automatically adjust GitHub PR message if it exceeds a size limit of 60k characters by omitting some of the changelog information.
+- [#157](https://github.com/changesets/action/pull/157) [`IsabelSchoepd`](https://github.com/changesets/action/commit/521c27bf86ec53547d6a350d208fbbbc9d576fbc) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Automatically adjust GitHub PR message if it exceeds a size limit of 60k characters by omitting some of the changelog information.
 
 ## 1.2.2
 
@@ -73,7 +73,7 @@
 
 ### Minor Changes
 
-- [#130](https://github.com/changesets/action/pull/130) [`5c0997b`](https://github.com/changesets/action/commit/5c0997b25e175ecf5e1723ba07210bbcea5d92fb) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Added `createGithubReleases` input option (defaults to `true`) to control whether to create Github releases during publish or not.
+- [#130](https://github.com/changesets/action/pull/130) [`IsabelSchoepd`](https://github.com/changesets/action/commit/5c0997b25e175ecf5e1723ba07210bbcea5d92fb) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Added `createGithubReleases` input option (defaults to `true`) to control whether to create Github releases during publish or not.
 
 * [#134](https://github.com/changesets/action/pull/134) [`IsabelSchoepd`](https://github.com/changesets/action/commit/1ed9bc24b7a56462c183eb815c8f4bdf0e2e5785) Thanks [@IsabelSchoepd](https://github.com/IsabelSchoepd)! - Added `cwd` input option that can be used in projects that are not in the root directory.
 
