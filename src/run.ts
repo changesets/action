@@ -293,6 +293,7 @@ export async function getVersionPrBody({
 
 type VersionOptions = {
   script?: string;
+  beforeCommit?: string;
   githubToken: string;
   cwd?: string;
   prTitle?: string;
@@ -307,6 +308,7 @@ type RunVersionResult = {
 
 export async function runVersion({
   script,
+  beforeCommit,
   githubToken,
   cwd = process.cwd(),
   prTitle = "Version Packages",
@@ -363,6 +365,11 @@ export async function runVersion({
   );
 
   const finalPrTitle = `${prTitle}${!!preState ? ` (${preState.tag})` : ""}`;
+
+  if (beforeCommit) {
+    let [commitCommand, ...commitArgs] = beforeCommit.split(/\s+/);
+    await exec(commitCommand, commitArgs, { cwd });
+  }
 
   // project with `commit: true` setting could have already committed files
   if (!(await gitUtils.checkIfClean())) {

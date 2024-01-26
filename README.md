@@ -8,6 +8,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 - publish - The command to use to build and publish packages
 - version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
+- beforeCommit - Optional command to run before commit.
 - commit - The commit message to use. Default to `Version Packages`
 - title - The pull request title. Default to `Version Packages`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`

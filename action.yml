@@ -13,6 +13,9 @@ inputs:
   cwd:
     description: Sets the cwd for the node process. Default to `process.cwd()`
     required: false
+  beforeCommit:
+    description: Optional command to run before commit
+    required: false
   commit:
     description: |
       The commit message. Default to `Version Packages`

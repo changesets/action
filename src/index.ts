@@ -105,6 +105,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     case hasChangesets:
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
+        beforeCommit: getOptionalInput("beforeCommit"),
         githubToken,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
