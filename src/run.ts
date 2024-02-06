@@ -396,6 +396,7 @@ export async function runVersion({
       head: versionBranch,
       title: finalPrTitle,
       body: prBody,
+      draft: true,
       ...github.context.repo,
     });
 
