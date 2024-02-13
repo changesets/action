@@ -1,7 +1,7 @@
 name: Changesets
 description: A GitHub action to automate releases with Changesets
 runs:
-  using: "node16"
+  using: "node20"
   main: "dist/index.js"
 inputs:
   publish:
