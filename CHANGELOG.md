@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.6
+
+### Patch Changes
+
+- [#350](https://github.com/changesets/action/pull/350) [`9385be9`](https://github.com/changesets/action/commit/9385be9e757839189ea5ee63ec4e3caa8a6ca71b) Thanks [@m-shaka](https://github.com/m-shaka)! - Bump the used node.js from 16 to 20
+
 ## 1.4.5
 
 ### Patch Changes
