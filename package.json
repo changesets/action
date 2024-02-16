@@ -16,7 +16,7 @@
     "@babel/preset-typescript": "^7.13.0",
     "@types/fs-extra": "^8.0.0",
     "@types/jest": "^29.5.1",
-    "@types/node": "^12.7.1",
+    "@types/node": "^20.11.17",
     "@types/semver": "^7.5.0",
     "babel-jest": "^29.5.0",
     "husky": "^3.0.3",
@@ -31,7 +31,7 @@
     "release": "node ./scripts/release.js"
   },
   "engines": {
-    "node": ">= 16"
+    "node": ">= 20"
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
