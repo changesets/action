@@ -28,6 +28,10 @@ inputs:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
+  registry:
+    description: "Specify the registry to publish to. Default to `registry.npmjs.org`"
+    required: false
+    default: "registry.npmjs.org"
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

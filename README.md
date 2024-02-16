@@ -122,6 +122,21 @@ For example, you can add a step before running the Changesets GitHub Action:
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
+If you want to publish package to other registry than NPM, you can do that by providing custom registry domain. GitHub Actions will create a `.npmrc` accordingly to specified registry.
+For example, you can specify changeset to publish a package to GitHub Pcakages
+
+```yml
+- name: Create Release Pull Request or Publish to GitHub Packages
+  id: changesets
+  uses: changesets/action@v1
+  with:
+    publish: yarn release
+    registry: npm.pkg.github.com
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
 #### Custom Publishing
 
 If you want to hook into when publishing should occur but have your own publishing functionality you can utilize the `hasChangesets` output.
