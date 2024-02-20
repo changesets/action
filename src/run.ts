@@ -296,6 +296,7 @@ type VersionOptions = {
   githubToken: string;
   cwd?: string;
   prTitle?: string;
+  prLabels?: string[];
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
@@ -310,6 +311,7 @@ export async function runVersion({
   githubToken,
   cwd = process.cwd(),
   prTitle = "Version Packages",
+  prLabels = [],
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
@@ -399,6 +401,15 @@ export async function runVersion({
       ...github.context.repo,
     });
 
+    if (prLabels.length > 0) {
+      console.log("adding labels to the pull request");
+      await octokit.issues.addLabels({
+        issue_number: newPullRequest.number,
+        labels: prLabels,
+        ...github.context.repo,
+      });
+    }
+
     return {
       pullRequestNumber: newPullRequest.number,
     };
@@ -412,6 +423,18 @@ export async function runVersion({
       body: prBody,
       ...github.context.repo,
     });
+
+    if (prLabels.length > 0) {
+      const existingLabels = pullRequest.labels.map((l) => l.name);
+      if (prLabels.some((l) => !existingLabels.includes(l))) {
+        console.log("adding labels to the pull request");
+        await octokit.issues.addLabels({
+          issue_number: pullRequest.number,
+          labels: prLabels,
+          ...github.context.repo,
+        });
+      }
+    }
 
     return {
       pullRequestNumber: pullRequest.number,
