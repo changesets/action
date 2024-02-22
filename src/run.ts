@@ -130,7 +130,7 @@ export async function runPublish({
     { cwd }
   );
 
-  await gitUtils.pushTags();
+  await gitUtils.pushFollowTags();
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
