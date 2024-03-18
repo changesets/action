@@ -3,7 +3,6 @@ import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
-import { exec } from "@actions/exec";
 import { getPackages, Package } from "@manypkg/get-packages";
 
 export const BumpLevels = {

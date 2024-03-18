@@ -1,7 +1,7 @@
 name: Changesets
 description: A GitHub action to automate releases with Changesets
 runs:
-  using: "node16"
+  using: "node20"
   main: "dist/index.js"
 inputs:
   publish:
@@ -28,6 +28,9 @@ inputs:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
+  branch:
+    description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
+    required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

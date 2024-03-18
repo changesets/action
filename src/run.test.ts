@@ -1,5 +1,6 @@
 import fixturez from "fixturez";
 import * as github from "@actions/github";
+import * as githubUtils from "@actions/github/lib/utils";
 import fs from "fs-extra";
 import path from "path";
 import writeChangeset from "@changesets/write";
@@ -15,7 +16,19 @@ jest.mock("@actions/github", () => ({
     ref: "refs/heads/some-branch",
     sha: "xeac7",
   },
-  getOctokit: jest.fn(),
+}));
+jest.mock("@actions/github/lib/utils", () => ({
+    GitHub: {
+        plugin: () => {
+            // function necessary to be used as constructor
+            return function() {
+                return {
+                    rest: mockedGithubMethods,
+                }
+            }
+        },
+    },
+    getOctokitOptions: jest.fn(),
 }));
 jest.mock("./gitUtils");
 
@@ -30,9 +43,6 @@ let mockedGithubMethods = {
     createRelease: jest.fn(),
   },
 };
-(github.getOctokit as any).mockImplementation(() => ({
-  rest: mockedGithubMethods,
-}));
 
 let f = fixturez(__dirname);
 

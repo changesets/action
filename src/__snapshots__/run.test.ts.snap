@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`version creates simple PR 1`] = `
-Array [
-  Object {
+[
+  {
     "base": "some-branch",
     "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
 
@@ -34,8 +34,8 @@ Array [
 `;
 
 exports[`version does not include any release information if a message with simplified release info exceeds size limit 1`] = `
-Array [
-  Object {
+[
+  {
     "base": "some-branch",
     "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
 
@@ -52,8 +52,8 @@ Array [
 `;
 
 exports[`version does not include changelog entries if full message exceeds size limit 1`] = `
-Array [
-  Object {
+[
+  {
     "base": "some-branch",
     "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
 
@@ -74,8 +74,8 @@ Array [
 `;
 
 exports[`version doesn't include ignored package that got a dependency update in the PR body 1`] = `
-Array [
-  Object {
+[
+  {
     "base": "some-branch",
     "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
 
@@ -96,8 +96,8 @@ Array [
 `;
 
 exports[`version only includes bumped packages in the PR body 1`] = `
-Array [
-  Object {
+[
+  {
     "base": "some-branch",
     "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
 
