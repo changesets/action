@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.7
+
+### Patch Changes
+
+- [#255](https://github.com/changesets/action/pull/255) [`f2660aa`](https://github.com/changesets/action/commit/f2660aa7e78365f53dbeb4cfa774c1499ec6483a) Thanks [@ernestognw](https://github.com/ernestognw)! - Allow customize PR `branch` field
+
 ## 1.4.6
 
 ### Patch Changes
