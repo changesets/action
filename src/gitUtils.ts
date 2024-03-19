@@ -29,8 +29,17 @@ export const push = async (
   );
 };
 
+/**
+ * Push new tags 1 by 1 to avoid github create event limits
+ */
 export const pushTags = async () => {
-  await exec("git", ["push", "origin", "--tags"]);
+  const tagsOutput = await getExecOutput("git tag --contains HEAD");
+  const tagsArray = tagsOutput.stdout.split("\n").filter(Boolean);
+  await Promise.all(
+    tagsArray.map(async (tag) => {
+      await getExecOutput(`git push origin ${tag}`);
+    })
+  );
 };
 
 export const switchToMaybeExistingBranch = async (branch: string) => {
