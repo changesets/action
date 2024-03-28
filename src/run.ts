@@ -76,13 +76,15 @@ const createRelease = async (
       );
     }
 
-    await octokit.rest.repos.createRelease({
+    const { data: release } = await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
       ...github.context.repo,
     });
+
+    return release;
   } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
     if (
@@ -114,6 +116,11 @@ type PublishResult =
       published: false;
     };
 
+type GitHubRelease = {
+  id: number;
+  upload_url: string;
+};
+
 export async function runPublish({
   script,
   githubToken,
@@ -133,7 +140,7 @@ export async function runPublish({
   await gitUtils.pushTags();
 
   let { packages, tool } = await getPackages(cwd);
-  let releasedPackages: Package[] = [];
+  let releasedPackages: (Package & { githubRelease?: GitHubRelease })[] = [];
 
   if (tool !== "root") {
     let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
@@ -156,13 +163,23 @@ export async function runPublish({
     }
 
     if (createGithubReleases) {
-      await Promise.all(
-        releasedPackages.map((pkg) =>
-          createRelease(octokit, {
+      releasedPackages = await Promise.all(
+        releasedPackages.map(async (pkg) => {
+          const release = await createRelease(octokit, {
             pkg,
             tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          })
-        )
+          });
+
+          return {
+            ...pkg,
+            githubRelease: release
+              ? {
+                  id: release.id,
+                  upload_url: release.upload_url,
+                }
+              : undefined,
+          };
+        })
       );
     }
   } else {
@@ -179,12 +196,21 @@ export async function runPublish({
       let match = line.match(newTagRegex);
 
       if (match) {
-        releasedPackages.push(pkg);
         if (createGithubReleases) {
-          await createRelease(octokit, {
+          const release = await createRelease(octokit, {
             pkg,
             tagName: `v${pkg.packageJson.version}`,
           });
+          const githubRelease = release
+            ? {
+                id: release.id,
+                upload_url: release.upload_url,
+              }
+            : undefined;
+
+          releasedPackages.push({ ...pkg, githubRelease });
+        } else {
+          releasedPackages.push(pkg);
         }
         break;
       }
@@ -197,6 +223,7 @@ export async function runPublish({
       publishedPackages: releasedPackages.map((pkg) => ({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version,
+        githubRelease: pkg.githubRelease,
       })),
     };
   }

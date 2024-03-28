@@ -17,7 +17,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 ### Outputs
 
 - published - A boolean value to indicate whether a publishing is happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0", "githubRelease": {"id":123, "upload_url": "..."}}, {"name": "@xx/xy", "version": "0.8.9"}]`. `githubRelease` is the Github release object with `id` and `upload_url` if `createGithubReleases` is `true`
 
 ### Example workflow:
 
