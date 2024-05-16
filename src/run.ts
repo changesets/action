@@ -18,9 +18,7 @@ import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
 
-// GitHub Issues/PRs messages have a max size limit on th
-
-
+// GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
 // `body is too long (maximum is 65536 characters)`.
 // To avoid that, we ensure to cap the message to 60k chars.
