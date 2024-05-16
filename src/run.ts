@@ -20,9 +20,7 @@ import {
 
 const require = createRequire(import.meta.url);
 
-// GitHub Issues/PRs messages have a max size limit on th
-
-
+// GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
 // `body is too long (maximum is 65536 characters)`.
 // To avoid that, we ensure to cap the message to 60k chars.
