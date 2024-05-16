@@ -28,6 +28,9 @@ inputs:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
+  branchName:
+    description: Sets the branch name for the pull request. Default to `changeset-release/{{$github.ref_name}}`
+    required: false
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false

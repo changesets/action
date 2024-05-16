@@ -18,7 +18,9 @@ import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
 
-// GitHub Issues/PRs messages have a max size limit on the
+// GitHub Issues/PRs messages have a max size limit on th
+
+
 // message body payload.
 // `body is too long (maximum is 65536 characters)`.
 // To avoid that, we ensure to cap the message to 60k chars.
@@ -300,6 +302,7 @@ type VersionOptions = {
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
   branch?: string;
+  branchName?: string;
 };
 
 type RunVersionResult = {
@@ -315,12 +318,13 @@ export async function runVersion({
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
   branch,
+  branchName
 }: VersionOptions): Promise<RunVersionResult> {
   const octokit = setupOctokit(githubToken);
 
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   branch = branch ?? github.context.ref.replace("refs/heads/", "");
-  let versionBranch = `changeset-release/${branch}`;
+  let versionBranch = branchName ?? `changeset-release/${branch}`;
 
   let { preState } = await readChangesetState(cwd);
 
