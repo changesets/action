@@ -2,6 +2,10 @@
 
 This action for [Changesets](https://github.com/atlassian/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
 
+## Rationale
+
+This fork has been created in order to circumvent a [rate limit issue](https://github.com/changesets/action/issues/192) that can occur when using the original repository.
+
 ## Usage
 
 ### Inputs
