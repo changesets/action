@@ -2,12 +2,12 @@
   "$schema": "https://unpkg.com/@changesets/config@1.6.2/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "changesets/action" }
+    { "repo": "krizzu/changesets-action" }
   ],
   "commit": false,
   "linked": [],
   "access": "restricted",
-  "baseBranch": "main",
+  "baseBranch": "origin/main",
   "updateInternalDependencies": "patch",
   "ignore": []
 }

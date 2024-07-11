@@ -29,6 +29,7 @@ jobs:
         id: changesets
         uses: ./
         with:
+          setupGitUser: 'false'
           version: yarn bump
           publish: yarn release
         env:
