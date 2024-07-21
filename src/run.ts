@@ -33,7 +33,7 @@ const createRelease = async (
       );
     }
 
-    await octokit.repos.createRelease({
+    await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
@@ -42,7 +42,12 @@ const createRelease = async (
     });
   } catch (err) {
     // if we can't find a changelog, the user has probably disabled changelogs
-    if (err.code !== "ENOENT") {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      err.code !== "ENOENT"
+    ) {
       throw err;
     }
   }
@@ -159,7 +164,12 @@ const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
     return require(resolveFrom(cwd, "@changesets/cli/package.json"));
   } catch (err) {
-    if (err && err.code === "MODULE_NOT_FOUND") {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      err.code === "MODULE_NOT_FOUND"
+    ) {
       throw new Error(
         `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
       );
@@ -210,7 +220,7 @@ export async function runVersion({
   }
 
   let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}`;
-  let searchResultPromise = octokit.search.issuesAndPullRequests({
+  let searchResultPromise = octokit.rest.search.issuesAndPullRequests({
     q: searchQuery,
   });
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
@@ -280,7 +290,7 @@ ${
   console.log(JSON.stringify(searchResult.data, null, 2));
   if (searchResult.data.items.length === 0) {
     console.log("creating pull request");
-    await octokit.pulls.create({
+    await octokit.rest.pulls.create({
       base: branch,
       head: versionBranch,
       title: finalPrTitle,
@@ -288,7 +298,7 @@ ${
       ...github.context.repo,
     });
   } else {
-    octokit.pulls.update({
+    octokit.rest.pulls.update({
       pull_number: searchResult.data.items[0].number,
       title: finalPrTitle,
       body: await prBodyPromise,
