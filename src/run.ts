@@ -15,6 +15,8 @@ import * as gitUtils from "./gitUtils";
 import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 
+const MAX_CHARACTERS_PER_MESSAGE = 60000;
+
 const createRelease = async (
   octokit: ReturnType<typeof github.getOctokit>,
   { pkg, tagName }: { pkg: Package; tagName: string }
@@ -185,6 +187,7 @@ type VersionOptions = {
   prTitle?: string;
   commitMessage?: string;
   hasPublishScript?: boolean;
+  prBodyMaxCharacters?: number;
 };
 
 export async function runVersion({
@@ -194,6 +197,7 @@ export async function runVersion({
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
   hasPublishScript = false,
+  prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
 }: VersionOptions) {
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
