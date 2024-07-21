@@ -8,12 +8,14 @@
     "@changesets/cli": "^2.20.0",
     "@changesets/write": "^0.1.6",
     "fixturez": "^1.1.0",
+    "metro-react-native-babel-preset": "^0.77.0",
     "parcel": "^1.12.3",
     "prettier": "^2.0.5",
-    "typescript": "^3.5.3"
+    "typescript": "^3.5.3",
+    "@vercel/ncc": "^0.36.1"
   },
   "scripts": {
-    "build": "parcel build ./src/index.ts --no-source-maps --target=node --bundle-node-modules",
+   "build": "ncc build src/index.ts -o dist --transpile-only --minify",
     "test": "jest",
     "test:watch": "yarn test --watch",
     "changeset": "changeset",
@@ -24,7 +26,7 @@
     "@actions/core": "^1.10.0",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^5.1.1",
-    "@babel/core": "^7.13.10",
+    "@babel/core": "*",
     "@babel/preset-env": "^7.13.10",
     "@babel/preset-typescript": "^7.13.0",
     "@changesets/pre": "^1.0.9",
