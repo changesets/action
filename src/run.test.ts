@@ -1,5 +1,6 @@
 import fixturez from "fixturez";
 import * as github from "@actions/github";
+import * as githubUtils from "@actions/github/lib/utils";
 import fs from "fs-extra";
 import path from "path";
 import writeChangeset from "@changesets/write";
@@ -15,7 +16,19 @@ jest.mock("@actions/github", () => ({
     ref: "refs/heads/some-branch",
     sha: "xeac7",
   },
-  getOctokit: jest.fn(),
+}));
+jest.mock("@actions/github/lib/utils", () => ({
+    GitHub: {
+        plugin: () => {
+            // function necessary to be used as constructor
+            return function() {
+                return {
+                    rest: mockedGithubMethods,
+                }
+            }
+        },
+    },
+    getOctokitOptions: jest.fn(),
 }));
 jest.mock("./gitUtils");
 
@@ -30,7 +43,6 @@ let mockedGithubMethods = {
     createRelease: jest.fn(),
   },
 };
-(github.getOctokit as any).mockImplementation(() => mockedGithubMethods);
 
 let f = fixturez(__dirname);
 
@@ -56,6 +68,10 @@ describe("version", () => {
     mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
       () => ({ data: { items: [] } })
     );
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
 
     await writeChangesets(
       [
@@ -92,6 +108,10 @@ describe("version", () => {
       () => ({ data: { items: [] } })
     );
 
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
     await writeChangesets(
       [
         {
@@ -123,6 +143,10 @@ describe("version", () => {
       () => ({ data: { items: [] } })
     );
 
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
     await writeChangesets(
       [
         {
@@ -144,5 +168,123 @@ describe("version", () => {
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it("does not include changelog entries if full message exceeds size limit", async () => {
+    let cwd = f.copy("simple-project");
+    linkNodeModules(cwd);
+
+    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
+      () => ({ data: { items: [] } })
+    );
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+          ],
+          summary: `# Non manus superum
+
+## Nec cornibus aequa numinis multo onerosior adde
+
+Lorem markdownum undas consumpserat malas, nec est lupus; memorant gentisque ab
+limine auctore. Eatque et promptu deficit, quam videtur aequa est **faciat**,
+locus. Potentia deus habebat pia quam qui coniuge frater, tibi habent fertque
+viribus. E et cognoscere arcus, lacus aut sic pro crimina fuit tum **auxilium**
+dictis, qua, in.
+
+In modo. Nomen illa membra.
+
+> Corpora gratissima parens montibus tum coeperat qua remulus caelum Helenamque?
+> Non poenae modulatur Amathunta in concita superi, procerum pariter rapto cornu
+> munera. Perrhaebum parvo manus contingere, morari, spes per totiens ut
+> dividite proculcat facit, visa.
+
+Adspicit sequitur diffamatamque superi Phoebo qua quin lammina utque: per? Exit
+decus aut hac inpia, seducta mirantia extremo. Vidi pedes vetus. Saturnius
+fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
+`,
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      prBodyMaxCharacters: 1000,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
+      /The changelog information of each package has been omitted from this message/
+    );
+  });
+
+  it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
+    let cwd = f.copy("simple-project");
+    linkNodeModules(cwd);
+
+    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
+      () => ({ data: { items: [] } })
+    );
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+          ],
+          summary: `# Non manus superum
+
+## Nec cornibus aequa numinis multo onerosior adde
+
+Lorem markdownum undas consumpserat malas, nec est lupus; memorant gentisque ab
+limine auctore. Eatque et promptu deficit, quam videtur aequa est **faciat**,
+locus. Potentia deus habebat pia quam qui coniuge frater, tibi habent fertque
+viribus. E et cognoscere arcus, lacus aut sic pro crimina fuit tum **auxilium**
+dictis, qua, in.
+
+In modo. Nomen illa membra.
+
+> Corpora gratissima parens montibus tum coeperat qua remulus caelum Helenamque?
+> Non poenae modulatur Amathunta in concita superi, procerum pariter rapto cornu
+> munera. Perrhaebum parvo manus contingere, morari, spes per totiens ut
+> dividite proculcat facit, visa.
+
+Adspicit sequitur diffamatamque superi Phoebo qua quin lammina utque: per? Exit
+decus aut hac inpia, seducta mirantia extremo. Vidi pedes vetus. Saturnius
+fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
+`,
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      prBodyMaxCharacters: 500,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
+      /All release information have been omitted from this message, as the content exceeds the size limit/
+    );
   });
 });
