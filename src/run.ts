@@ -311,7 +311,7 @@ export async function runVersion({
   githubToken,
   cwd = process.cwd(),
   prTitle = "Version Packages",
-  commitMessage = "Version Packages",
+  commitMessage = "chore: changeset version packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
   branch,
