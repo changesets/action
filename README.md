@@ -16,7 +16,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 ### Outputs
 
-- published - A boolean value to indicate whether a publishing is happened or not
+- published - A boolean value to indicate whether a publishing has happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
 ### Example workflow:
@@ -124,7 +124,7 @@ For example, you can add a step before running the Changesets GitHub Action:
 
 #### Custom Publishing
 
-If you want to hook into when publishing should occur but have your own publishing functionality you can utilize the `hasChangesets` output.
+If you want to hook into when publishing should occur but have your own publishing functionality, you can utilize the `hasChangesets` output.
 
 Note that you might need to account for things already being published in your script because a commit without any new changesets can always land on your base branch after a successful publish. In such a case you need to figure out on your own how to skip over the actual publishing logic or handle errors gracefully as most package registries won't allow you to publish over already published version.
 
