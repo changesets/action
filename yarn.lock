@@ -1618,10 +1618,10 @@
   dependencies:
     "@octokit/openapi-types" "^17.2.0"
 
-"@s0/ghcommit@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@s0/ghcommit/-/ghcommit-1.1.0.tgz#789858feb3a9e9a799a6ce7abada988cd925c21f"
-  integrity sha512-1jEUzrfa9QvEdCaFicv2oc5ep9zFG4HE60vU48dIp+W1JzeOmPHOxNt9y5rE5TvXzTGAdLpoCvPnRrR6jCwFyw==
+"@s0/ghcommit@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@s0/ghcommit/-/ghcommit-1.2.0.tgz#27b7e474653f98fb8126e249db929180b025082c"
+  integrity sha512-v3HlIX/OYWG32mT97JLPJQ2iCFI7hWtC2OONFoEAeiySAnbLhiToC1xlbT7fdlUcXTT2FktEJosfNbEbS9LniQ==
   dependencies:
     isomorphic-git "^1.27.1"
 

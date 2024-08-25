@@ -41,7 +41,7 @@
     "@changesets/read": "^0.5.3",
     "@manypkg/get-packages": "^1.1.3",
     "@octokit/plugin-throttling": "^5.2.1",
-    "@s0/ghcommit": "^1.1.0",
+    "@s0/ghcommit": "^1.2.0",
     "fs-extra": "^8.1.0",
     "mdast-util-to-string": "^1.0.6",
     "remark-parse": "^7.0.1",

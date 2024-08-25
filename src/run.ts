@@ -391,14 +391,9 @@ export async function runVersion({
 
   await commitChangesFromRepo({
     octokit,
-    owner: github.context.repo.owner,
-    repository: github.context.repo.repo,
+    ...github.context.repo,
     branch: versionBranch,
-    // TODO: switch this to use direct string input when supported
-    message: {
-      headline: finalCommitMessage.split("\n", 2)[0].trim(),
-      body: finalCommitMessage.split("\n", 2)[1]?.trim(),
-    },
+    message: finalCommitMessage,
     base: {
       commit: github.context.sha,
     },
