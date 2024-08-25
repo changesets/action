@@ -160,11 +160,16 @@ export async function runPublish({
           const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
           // Tag will only be created locally,
           // Create it using the GitHub API so it's signed.
-          await octokit.rest.git.createRef({
-            ...github.context.repo,
-            ref: `refs/tags/${tagName}`,
-            sha: github.context.sha,
-          });
+          await octokit.rest.git
+            .createRef({
+              ...github.context.repo,
+              ref: `refs/tags/${tagName}`,
+              sha: github.context.sha,
+            })
+            .catch((err) => {
+              // Assuming tag was manually pushed in custom publish script
+              core.warning(`Failed to create tag ${tagName}: ${err.message}`);
+            });
           if (createGithubReleases) {
             await createRelease(octokit, { pkg, tagName });
           }
@@ -189,11 +194,16 @@ export async function runPublish({
         const tagName = `v${pkg.packageJson.version}`;
         // Tag will only be created locally,
         // Create it using the GitHub API so it's signed.
-        await octokit.rest.git.createRef({
-          ...github.context.repo,
-          ref: `refs/tags/${tagName}`,
-          sha: github.context.sha,
-        });
+        await octokit.rest.git
+          .createRef({
+            ...github.context.repo,
+            ref: `refs/tags/${tagName}`,
+            sha: github.context.sha,
+          })
+          .catch((err) => {
+            // Assuming tag was manually pushed in custom publish script
+            core.warning(`Failed to create tag ${tagName}: ${err.message}`);
+          });
         if (createGithubReleases) {
           await createRelease(octokit, { pkg, tagName });
         }
