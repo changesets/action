@@ -2,4 +2,4 @@
 "@changesets/action": patch
 ---
 
-Ensure the PR remains opwn when updated
+Ensure the PR remains open when updated
