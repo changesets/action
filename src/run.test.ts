@@ -33,11 +33,9 @@ jest.mock("@actions/github/lib/utils", () => ({
 jest.mock("./gitUtils");
 
 let mockedGithubMethods = {
-  search: {
-    issuesAndPullRequests: jest.fn(),
-  },
   pulls: {
     create: jest.fn(),
+    list: jest.fn(),
   },
   repos: {
     createRelease: jest.fn(),
@@ -65,9 +63,7 @@ describe("version", () => {
     let cwd = f.copy("simple-project");
     linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -104,9 +100,7 @@ describe("version", () => {
     let cwd = f.copy("simple-project");
     linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -139,9 +133,7 @@ describe("version", () => {
     let cwd = f.copy("ignored-package");
     linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -174,9 +166,7 @@ describe("version", () => {
     let cwd = f.copy("simple-project");
     linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -233,9 +223,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     let cwd = f.copy("simple-project");
     linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },

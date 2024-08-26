@@ -342,9 +342,11 @@ export async function runVersion({
     });
   }
 
-  let searchQuery = `repo:${repo}+state:open+head:${versionBranch}+base:${branch}+is:pull-request`;
-  let searchResultPromise = octokit.rest.search.issuesAndPullRequests({
-    q: searchQuery,
+  const existingPullRequestsPromise = octokit.rest.pulls.list({
+    ...github.context.repo,
+    state: "open",
+    head: `${github.context.repo.owner}:${versionBranch}`,
+    base: branch,
   });
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
   let changedPackagesInfoPromises = Promise.all(
@@ -376,8 +378,8 @@ export async function runVersion({
 
   await gitUtils.push(versionBranch, { force: true });
 
-  let searchResult = await searchResultPromise;
-  core.info(JSON.stringify(searchResult.data, null, 2));
+  let existingPullRequests = await existingPullRequestsPromise;
+  core.info(JSON.stringify(existingPullRequests.data, null, 2));
 
   const changedPackagesInfo = (await changedPackagesInfoPromises)
     .filter((x) => x)
@@ -391,7 +393,7 @@ export async function runVersion({
     prBodyMaxCharacters,
   });
 
-  if (searchResult.data.items.length === 0) {
+  if (existingPullRequests.data.length === 0) {
     core.info("creating pull request");
     const { data: newPullRequest } = await octokit.rest.pulls.create({
       base: branch,
@@ -405,7 +407,7 @@ export async function runVersion({
       pullRequestNumber: newPullRequest.number,
     };
   } else {
-    const [pullRequest] = searchResult.data.items;
+    const [pullRequest] = existingPullRequests.data;
 
     core.info(`updating found pull request #${pullRequest.number}`);
     await octokit.rest.pulls.update({
