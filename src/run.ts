@@ -415,6 +415,7 @@ export async function runVersion({
       title: finalPrTitle,
       body: prBody,
       ...github.context.repo,
+      state: "open",
     });
 
     return {
