@@ -1,5 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`version can opt out of prettier 1`] = `
+[
+  {
+    "base": "some-branch",
+    "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
+
+
+# Releases
+## simple-project-pkg-b@1.1.0
+
+### Minor Changes
+
+-   This is a summary
+
+    \`\`\`html
+    <style>custom-element::part(thing) {color:blue}</style>
+    \`\`\`
+
+## simple-project-pkg-a@1.0.1
+
+### Patch Changes
+
+-   Updated dependencies
+    -   simple-project-pkg-b@1.1.0
+",
+    "head": "changeset-release/some-branch",
+    "owner": "changesets",
+    "repo": "action",
+    "title": "Version Packages",
+  },
+]
+`;
+
 exports[`version creates simple PR 1`] = `
 [
   {

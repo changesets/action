@@ -299,6 +299,7 @@ type VersionOptions = {
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
+  formatChangesetsWithPrettier?: boolean;
   branch?: string;
 };
 
@@ -314,6 +315,7 @@ export async function runVersion({
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
+  formatChangesetsWithPrettier = true,
   branch,
 }: VersionOptions): Promise<RunVersionResult> {
   const octokit = setupOctokit(githubToken);
@@ -337,7 +339,11 @@ export async function runVersion({
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
-    await exec("node", [resolveFrom(cwd, "@changesets/cli/bin.js"), cmd], {
+
+    const args = [resolveFrom(cwd, "@changesets/cli/bin.js"), cmd];
+    if (formatChangesetsWithPrettier === false)
+      args.push("--noFormatChangesetsWithPrettier");
+    await exec("node", args, {
       cwd,
     });
   }

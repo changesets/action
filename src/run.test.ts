@@ -18,17 +18,17 @@ jest.mock("@actions/github", () => ({
   },
 }));
 jest.mock("@actions/github/lib/utils", () => ({
-    GitHub: {
-        plugin: () => {
-            // function necessary to be used as constructor
-            return function() {
-                return {
-                    rest: mockedGithubMethods,
-                }
-            }
-        },
+  GitHub: {
+    plugin: () => {
+      // function necessary to be used as constructor
+      return function () {
+        return {
+          rest: mockedGithubMethods,
+        };
+      };
     },
-    getOctokitOptions: jest.fn(),
+  },
+  getOctokitOptions: jest.fn(),
 }));
 jest.mock("./gitUtils");
 
@@ -83,6 +83,44 @@ describe("version", () => {
             },
           ],
           summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it("can opt out of prettier", async () => {
+    let cwd = f.copy("simple-project");
+    linkNodeModules(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    const summary = `This is a summary
+~~~html
+<style>custom-element::part(thing) {color:blue}</style>
+~~~`;
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary,
         },
       ],
       cwd
