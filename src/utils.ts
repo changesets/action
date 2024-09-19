@@ -1,9 +1,10 @@
 import unified from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
+// @ts-ignore
 import mdastToString from "mdast-util-to-string";
 import { getPackages, Package } from "@manypkg/get-packages";
-
+import { Parent } from "unist";
 
 export const BumpLevels = {
   dep: 0,
@@ -35,7 +36,7 @@ export async function getChangedPackages(
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
-  let ast = unified().use(remarkParse).parse(changelog);
+  let ast = unified().use(remarkParse).parse(changelog) as Parent;
 
   let highestLevel: number = BumpLevels.dep;
 
@@ -98,4 +99,3 @@ export function sortTheThings(
   }
   return -1;
 }
-
