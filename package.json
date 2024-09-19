@@ -9,7 +9,7 @@
     "@babel/preset-typescript": "^7.24.7",
     "@changesets/changelog-github": "^0.4.8",
     "@changesets/cli": "^2.27.8",
-    "@changesets/write": "^0.1.9",
+    "@changesets/write": "^0.3.2",
     "@types/fs-extra": "^8.1.5",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.16.5",
