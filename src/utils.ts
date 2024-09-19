@@ -2,7 +2,7 @@ import unified from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 // @ts-ignore
-import mdastToString from "mdast-util-to-string";
+import {toString as mdastToString } from "mdast-util-to-string";
 import { getPackages, Package } from "@manypkg/get-packages";
 import { Parent } from "unist";
 

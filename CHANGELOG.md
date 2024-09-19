@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.1.0
+
+### Minor Changes
+
+- replace jest with bun for testing and package management
+
 ## 2.0.1
 
 ### Patch Changes

@@ -1,3 +1,4 @@
+import { jest, mock, beforeEach, it, describe, expect } from "bun:test";
 import fixturez from "fixturez";
 import fs from "fs-extra";
 import path from "path";
@@ -5,7 +6,7 @@ import writeChangeset from "@changesets/write";
 import { Changeset } from "@changesets/types";
 import { runVersion } from "./run";
 
-jest.mock("@actions/github", () => ({
+mock.module("@actions/github", () => ({
   context: {
     repo: {
       owner: "changesets",
@@ -15,7 +16,7 @@ jest.mock("@actions/github", () => ({
     sha: "xeac7",
   },
 }));
-jest.mock("@actions/github/lib/utils", () => ({
+mock.module("@actions/github/lib/utils", () => ({
   GitHub: {
     plugin: () => {
       // function necessary to be used as constructor
@@ -28,7 +29,18 @@ jest.mock("@actions/github/lib/utils", () => ({
   },
   getOctokitOptions: jest.fn(),
 }));
-jest.mock("./gitUtils");
+mock.module("./gitUtils", () => {
+  return {
+    push: jest.fn(),
+    setupUser: jest.fn(),
+    commitAll: jest.fn(),
+    pushTags: jest.fn(),
+    pullBranch: jest.fn(),
+    switchToMaybeExistingBranch: jest.fn(),
+    reset: jest.fn(),
+    checkIfClean: jest.fn(),
+  };
+});
 
 let mockedGithubMethods = {
   pulls: {
@@ -59,7 +71,7 @@ beforeEach(() => {
 describe("version", () => {
   it("creates simple PR", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -96,7 +108,7 @@ describe("version", () => {
 
   it("only includes bumped packages in the PR body", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -129,7 +141,7 @@ describe("version", () => {
 
   it("doesn't include ignored package that got a dependency update in the PR body", async () => {
     let cwd = f.copy("ignored-package");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -161,49 +173,7 @@ describe("version", () => {
   });
 
   it("does not include changelog entries if full message exceeds size limit", async () => {
-    let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
-
-    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
-
-    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
-      data: { number: 123 },
-    }));
-
-    await writeChangesets(
-      [
-        {
-          releases: [
-            {
-              name: "simple-project-pkg-a",
-              type: "minor",
-            },
-          ],
-          summary: `# Non manus superum
-
-## Nec cornibus aequa numinis multo onerosior adde
-
-Lorem markdownum undas consumpserat malas, nec est lupus; memorant gentisque ab
-limine auctore. Eatque et promptu deficit, quam videtur aequa est **faciat**,
-locus. Potentia deus habebat pia quam qui coniuge frater, tibi habent fertque
-viribus. E et cognoscere arcus, lacus aut sic pro crimina fuit tum **auxilium**
-dictis, qua, in.
-
-In modo. Nomen illa membra.
-
-> Corpora gratissima parens montibus tum coeperat qua remulus caelum Helenamque?
-> Non poenae modulatur Amathunta in concita superi, procerum pariter rapto cornu
-> munera. Perrhaebum parvo manus contingere, morari, spes per totiens ut
-> dividite proculcat facit, visa.
-
-Adspicit sequitur diffamatamque superi Phoebo qua quin lammina utque: per? Exit
-decus aut hac inpia, seducta mirantia extremo. Vidi pedes vetus. Saturnius
-fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
-`,
-        },
-      ],
-      cwd
-    );
+    let cwd = await setupTestEnvironment();
 
     await runVersion({
       githubToken: "@@GITHUB_TOKEN",
@@ -212,31 +182,48 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
-    expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]?.[0].body).toMatch(
       /The changelog information of each package has been omitted from this message/
     );
   });
 
   it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
-    let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    let cwd = await setupTestEnvironment();
 
-    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+    await runVersion({
+      githubToken: "@@GITHUB_TOKEN",
+      cwd,
+      prBodyMaxCharacters: 500,
+    });
 
-    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
-      data: { number: 123 },
-    }));
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]?.[0].body).toMatch(
+      /All release information have been omitted from this message, as the content exceeds the size limit/
+    );
+  });
+});
 
-    await writeChangesets(
-      [
-        {
-          releases: [
-            {
-              name: "simple-project-pkg-a",
-              type: "minor",
-            },
-          ],
-          summary: `# Non manus superum
+
+async function setupTestEnvironment() {
+  let cwd = f.copy("simple-project");
+  await linkNodeModules(cwd);
+
+  mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+
+  mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+    data: { number: 123 },
+  }));
+
+  await writeChangesets(
+    [
+      {
+        releases: [
+          {
+            name: "simple-project-pkg-a",
+            type: "minor",
+          },
+        ],
+        summary: `# Non manus superum
 
 ## Nec cornibus aequa numinis multo onerosior adde
 
@@ -257,20 +244,9 @@ Adspicit sequitur diffamatamque superi Phoebo qua quin lammina utque: per? Exit
 decus aut hac inpia, seducta mirantia extremo. Vidi pedes vetus. Saturnius
 fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 `,
-        },
-      ],
-      cwd
-    );
-
-    await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
-      cwd,
-      prBodyMaxCharacters: 500,
-    });
-
-    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
-    expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
-      /All release information have been omitted from this message, as the content exceeds the size limit/
-    );
-  });
-});
+      },
+    ],
+    cwd
+  );
+  return cwd;
+}
