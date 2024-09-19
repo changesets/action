@@ -38,17 +38,31 @@ async function main() {
   const { changesets } = await readChangesetState();
   const publishScript = core.getInput("publish");
   const hasChangesets = changesets.length !== 0;
-  const hasNonEmptyChangesets = changesets.some(changeset => changeset.releases.length > 0);
+  const hasNonEmptyChangesets = changesets.some(
+    (changeset) => changeset.releases.length > 0
+  );
   const hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
   core.setOutput("hasChangesets", String(hasChangesets));
 
-  await handleChangesetCases(hasChangesets, hasNonEmptyChangesets, hasPublishScript, publishScript, githubToken);
+  await handleChangesetCases(
+    hasChangesets,
+    hasNonEmptyChangesets,
+    hasPublishScript,
+    publishScript,
+    githubToken
+  );
 }
 
-async function handleChangesetCases(hasChangesets: boolean, hasNonEmptyChangesets: boolean, hasPublishScript: boolean, publishScript: string, githubToken: string) {
+async function handleChangesetCases(
+  hasChangesets: boolean,
+  hasNonEmptyChangesets: boolean,
+  hasPublishScript: boolean,
+  publishScript: string,
+  githubToken: string
+) {
   if (!hasChangesets && !hasPublishScript) {
     await handleNoChangesetsNoPublishScript();
   } else if (!hasChangesets && hasPublishScript) {
@@ -68,7 +82,9 @@ async function handleNoChangesetsHasPublishScript(
   publishScript: string,
   githubToken: string
 ) {
-  core.info("No changesets found, attempting to publish any unpublished packages to npm");
+  core.info(
+    "No changesets found, attempting to publish any unpublished packages to npm"
+  );
   await setupNpmrc();
   const result = await runPublish({
     script: publishScript,
@@ -126,11 +142,11 @@ async function setupNpmrc() {
   if (fs.existsSync(userNpmrcPath)) {
     await processExisting(userNpmrcPath, registry);
   } else {
-    createNpmrcFile(userNpmrcPath,registry);
+    createNpmrcFile(userNpmrcPath, registry);
   }
 }
 
-async function processExisting(userNpmrcPath: string, registry:string) {
+async function processExisting(userNpmrcPath: string, registry: string) {
   const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
   const authLine = userNpmrcContent
     .split("\n")
@@ -152,7 +168,7 @@ async function processExisting(userNpmrcPath: string, registry:string) {
   }
 }
 
-function createNpmrcFile(userNpmrcPath: string, registry:string) {
+function createNpmrcFile(userNpmrcPath: string, registry: string) {
   core.info("No user .npmrc file found, creating one");
   fs.writeFileSync(
     userNpmrcPath,

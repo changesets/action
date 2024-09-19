@@ -162,7 +162,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-#        Publishing to GPR
+          #        Publishing to GPR
           REGISTRY: "npm.pkg.github.com"
 
       - name: Send a Slack notification if a publish happens

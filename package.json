@@ -29,7 +29,8 @@
     "test:watch": "yarn test --watch",
     "changeset": "changeset",
     "bump": "node ./scripts/bump.js",
-    "release": "node ./scripts/release.js"
+    "release": "node ./scripts/release.js",
+    "format": "prettier --write ."
   },
   "engines": {
     "node": ">= 20"

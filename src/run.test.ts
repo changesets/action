@@ -18,17 +18,17 @@ jest.mock("@actions/github", () => ({
   },
 }));
 jest.mock("@actions/github/lib/utils", () => ({
-    GitHub: {
-        plugin: () => {
-            // function necessary to be used as constructor
-            return function() {
-                return {
-                    rest: mockedGithubMethods,
-                }
-            }
-        },
+  GitHub: {
+    plugin: () => {
+      // function necessary to be used as constructor
+      return function () {
+        return {
+          rest: mockedGithubMethods,
+        };
+      };
     },
-    getOctokitOptions: jest.fn(),
+  },
+  getOctokitOptions: jest.fn(),
 }));
 jest.mock("./gitUtils");
 
