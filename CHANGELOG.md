@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.1.1
+
+### Patch Changes
+
+- update other scripts to use bun
+
 ## 2.1.0
 
 ### Minor Changes

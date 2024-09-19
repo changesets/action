@@ -1,15 +1,15 @@
 {
   "name": "@changesets/action",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist --transpile-only --minify",
+    "build": "bun build ./src/index.ts --outfile=./dist/index.js --target=node --minify",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "changeset": "changeset",
-    "bump": "node ./scripts/bump.js",
-    "release": "node ./scripts/release.js",
+    "bump": "bun ./scripts/bump.js",
+    "release": "bun ./scripts/release.js",
     "format": "prettier --write ."
   },
   "dependencies": {
