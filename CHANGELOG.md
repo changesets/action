@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.0.1
+
+### Patch Changes
+
+- [`a23e5ce1db7ebbf5173592144b56e5b470a48aac`](https://github.com/changesets/action/commit/a23e5ce1db7ebbf5173592144b56e5b470a48aac) Thanks [@graffhyrum](https://github.com/graffhyrum)! - update to satisfying versions
+
 ## 2.0.0
 
 ### Major Changes
