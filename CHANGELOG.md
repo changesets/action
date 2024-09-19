@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.0.0
+
+### Major Changes
+
+- v1 of registry parameterization
+
 ## 1.4.8
 
 ### Patch Changes
