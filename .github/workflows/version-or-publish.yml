@@ -14,22 +14,20 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install Dependencies
-        run: yarn --frozen-lockfile
+        run: bun i --frozen-lockfile
 
       - name: Build
-        run: yarn build
+        run: bun run build
 
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: ./
         with:
-          version: yarn bump
-          publish: yarn release
+          version: bun bump
+          publish: bun release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

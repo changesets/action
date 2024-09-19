@@ -1,6 +1,6 @@
 name: Node CI
 
-on: [pull_request]
+on: [ pull_request ]
 
 jobs:
   build:
@@ -12,13 +12,11 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install Dependencies
-        run: yarn --frozen-lockfile
+        run: bun i --frozen-lockfile
 
       - name: Test
-        run: yarn test
+        run: bun test
