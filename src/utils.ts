@@ -1,9 +1,9 @@
 import unified from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
-// @ts-ignore
 import mdastToString from "mdast-util-to-string";
 import { getPackages, Package } from "@manypkg/get-packages";
+
 
 export const BumpLevels = {
   dep: 0,
@@ -51,13 +51,13 @@ export function getChangelogEntry(changelog: string, version: string) {
   for (let i = 0; i < nodes.length; i++) {
     let node = nodes[i];
     if (node.type === "heading") {
-      let stringified: string = mdastToString(node);
-      let match = stringified.toLowerCase().match(/(major|minor|patch)/);
+      let nodeString: string = mdastToString(node);
+      let match = nodeString.toLowerCase().match(/(major|minor|patch)/);
       if (match !== null) {
         let level = BumpLevels[match[0] as "major" | "minor" | "patch"];
         highestLevel = Math.max(level, highestLevel);
       }
-      if (headingStartInfo === undefined && stringified === version) {
+      if (headingStartInfo === undefined && nodeString === version) {
         headingStartInfo = {
           index: i,
           depth: node.depth,
@@ -98,3 +98,4 @@ export function sortTheThings(
   }
   return -1;
 }
+
