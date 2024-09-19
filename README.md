@@ -13,6 +13,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+- registry - Sets the target publishing registry URL. Default to `registry.npmjs.org`
 
 ### Outputs
 
@@ -120,6 +121,54 @@ For example, you can add a step before running the Changesets GitHub Action:
     EOF
   env:
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+#### Custom Registry
+
+If you want to publish to a custom registry, you can use the `registry` input.
+
+```yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          # This expects you to have a script called release which does a build for your packages and calls changeset publish
+          publish: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+#        Publishing to GPR
+          REGISTRY: "npm.pkg.github.com"
+
+      - name: Send a Slack notification if a publish happens
+        if: steps.changesets.outputs.published == 'true'
+        # You can do something when a publish happens.
+        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
 ```
 
 #### Custom Publishing
