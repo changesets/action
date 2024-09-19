@@ -31,6 +31,11 @@ inputs:
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false
+  registry:
+    description: Sets the registry to publish packages. Default to `registry.npmjs.org` if not provided. Do not add a trailing slash
+    required: false
+    default: "registry.npmjs.org"
+    
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
