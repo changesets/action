@@ -262,5 +262,5 @@ If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you shoul
 - uses: changesets/action@v1
   with:
     version: yarn changeset version
-    ...
+#    ...
 ```
