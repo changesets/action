@@ -23,11 +23,11 @@ inputs:
   setupGitUser:
     description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
     required: false
-    default: 'true'
+    default: "true"
   createGithubReleases:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
-    default: 'true'
+    default: "true"
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false

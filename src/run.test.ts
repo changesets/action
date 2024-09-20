@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import path from "path";
 import writeChangeset from "@changesets/write";
 import { Changeset } from "@changesets/types";
-import { runVersion } from "./run";
+import { runVersion } from "./run.js";
 
 mock.module("@actions/github", () => ({
   context: {
@@ -202,7 +202,6 @@ describe("version", () => {
     );
   });
 });
-
 
 async function setupTestEnvironment() {
   let cwd = f.copy("simple-project");

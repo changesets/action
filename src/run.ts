@@ -1,5 +1,5 @@
 import { exec, getExecOutput } from "@actions/exec";
-import { GitHub, getOctokitOptions } from "@actions/github/lib/utils";
+import { GitHub, getOctokitOptions } from "@actions/github/lib/utils.js";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import fs from "fs-extra";
@@ -12,9 +12,9 @@ import {
   getChangedPackages,
   sortTheThings,
   getVersionsByDirectory,
-} from "./utils";
-import * as gitUtils from "./gitUtils";
-import readChangesetState from "./readChangesetState";
+} from "./utils.js";
+import * as gitUtils from "./gitUtils.js";
+import readChangesetState from "./readChangesetState.js";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
 

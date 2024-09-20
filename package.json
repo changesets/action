@@ -3,6 +3,7 @@
   "version": "2.1.1",
   "main": "dist/index.js",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "build": "bun build ./src/index.ts --outfile=./dist/index.js --target=node --minify",
     "test": "bun test",
