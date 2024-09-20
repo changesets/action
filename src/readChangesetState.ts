@@ -11,6 +11,7 @@ export default async function readChangesetState(
   cwd: string = process.cwd()
 ): Promise<ChangesetState> {
   let preState = await readPreState(cwd);
+  // @ts-ignore
   let changesets = await readChangesets(cwd);
 
   if (preState !== undefined && preState.mode === "pre") {
