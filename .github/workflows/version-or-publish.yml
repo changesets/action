@@ -29,5 +29,6 @@ jobs:
         with:
           version: bun bump
           publish: bun release
+          registry: npm.pkg.github.com
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
