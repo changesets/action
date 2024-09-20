@@ -1,4 +1,4 @@
-import { getChangelogEntry, BumpLevels, sortTheThings } from "./utils";
+import { getChangelogEntry, BumpLevels, sortTheThings } from "./utils.js";
 
 let changelog = `# @keystone-alpha/email
 
