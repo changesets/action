@@ -4,14 +4,14 @@ import remarkStringify from "remark-stringify";
 // @ts-ignore
 import { toString as mdastToString } from "mdast-util-to-string";
 import { getPackages, Package } from "@manypkg/get-packages";
-import { Parent } from "unist";
-
-export const BumpLevels = {
-  dep: 0,
-  patch: 1,
-  minor: 2,
-  major: 3,
-} as const;
+import { Node, Parent } from "unist";
+import { Heading } from "mdast";
+import {
+  assertIsReleaseLevelIndex,
+  checkForLevelsInString,
+  getHigherIndex,
+  ReleaseLevelIndex,
+} from "./releaseLevels.js";
 
 export async function getVersionsByDirectory(cwd: string) {
   let { packages } = await getPackages(cwd);
@@ -36,55 +36,117 @@ export async function getChangedPackages(
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
-  let ast = unified().use(remarkParse).parse(changelog) as Parent;
+  const ast = parseChangelog(changelog);
+  const { headingStartInfo, endIndex, highestLevel } = findVersionSection(
+    ast,
+    version
+  );
+  const content = extractContent(ast, headingStartInfo, endIndex);
+  return { content, highestLevel };
+}
 
-  let highestLevel: number = BumpLevels.dep;
+function parseChangelog(changelog: string): Parent {
+  return unified().use(remarkParse).parse(changelog) as Parent;
+}
 
-  let nodes = ast.children as Array<any>;
-  let headingStartInfo:
+function isTargetVersion(node: Node, version: string) {
+  return mdastToString(node).toLowerCase() === version;
+}
+
+function findVersionSection(ast: Parent, version: string) {
+  const nodes: Node[] = ast.children;
+  let highestLevel: ReleaseLevelIndex = 0;
+  let headingStartInfo: { index: number; depth: number } | undefined;
+  let endIndex: number | undefined;
+  
+  for (const [index, node] of nodes.entries()) {
+    if(endIndex) {
+      break;
+    } else {
+      processTheNode(node,index);
+    }
+  }
+  return { headingStartInfo, endIndex, highestLevel };
+
+  function processTheNode(node: Node, index: number) {
+    const nodeString: string = mdastToString(node);
+    if (isHeading(node)) {
+      if (isTargetVersion(node, version)) {
+        headingStartInfo = { index, depth: node.depth };
+      } else {
+        if (isEndOfSection(node, headingStartInfo, endIndex)) {
+          endIndex = index;
+          return;
+        }
+      }
+    }
+    if (headingStartInfo && containsReleaseLevel(node)) {
+      extractAndUpdateLevel(nodeString);
+    }
+  }
+  function extractAndUpdateLevel(nodeString: string) {
+    const bumpLevel = getBumpLevel(nodeString);
+    highestLevel = getHigherIndex(bumpLevel, highestLevel);
+  }
+}
+
+function getBumpLevel(nodeString: string): ReleaseLevelIndex {
+  const matches = checkForLevelsInString(nodeString);
+  let highest = -1;
+  // return the highest level
+  if (matches !== null) {
+    for (let { index } of matches) {
+      highest = index > highest ? index : highest;
+    }
+  }
+  assertIsReleaseLevelIndex(highest);
+  return highest;
+}
+
+function isEndOfSection(
+  node: Heading,
+  headingStartInfo:
     | {
         index: number;
         depth: number;
       }
-    | undefined;
-  let endIndex: number | undefined;
+    | undefined,
+  endIndex: number | undefined
+) {
+  return (
+    haventFoundTheEnd() && haveAStart() && thisHeadingHasSameDepthAsStart()
+  );
 
-  for (let i = 0; i < nodes.length; i++) {
-    let node = nodes[i];
-    if (node.type === "heading") {
-      let nodeString: string = mdastToString(node);
-      let match = nodeString.toLowerCase().match(/(major|minor|patch)/);
-      if (match !== null) {
-        let level = BumpLevels[match[0] as "major" | "minor" | "patch"];
-        highestLevel = Math.max(level, highestLevel);
-      }
-      if (headingStartInfo === undefined && nodeString === version) {
-        headingStartInfo = {
-          index: i,
-          depth: node.depth,
-        };
-        continue;
-      }
-      if (
-        endIndex === undefined &&
-        headingStartInfo !== undefined &&
-        headingStartInfo.depth === node.depth
-      ) {
-        endIndex = i;
-        break;
-      }
-    }
+  function haventFoundTheEnd() {
+    return endIndex === undefined;
   }
+
+  function haveAStart() {
+    return headingStartInfo !== undefined;
+  }
+
+  function thisHeadingHasSameDepthAsStart() {
+    return headingStartInfo?.depth === node.depth;
+  }
+}
+
+function extractContent(
+  ast: Parent,
+  headingStartInfo:
+    | {
+        index: number;
+        depth: number;
+      }
+    | undefined,
+  endIndex: number | undefined
+) {
   if (headingStartInfo) {
     ast.children = (ast.children as any).slice(
       headingStartInfo.index + 1,
       endIndex
     );
   }
-  return {
-    content: unified().use(remarkStringify).stringify(ast),
-    highestLevel: highestLevel,
-  };
+  return unified().use(remarkStringify).stringify(ast);
 }
 
 export function sortTheThings(
@@ -98,4 +160,13 @@ export function sortTheThings(
     return 1;
   }
   return -1;
+}
+
+function isHeading(x: unknown): x is Heading {
+  return (x as Heading).type === "heading";
+}
+
+function containsReleaseLevel(node: Node) {
+  const nodeString: string = mdastToString(node);
+  return nodeString.toLowerCase().match(/(major|minor|patch)/) !== null;
 }

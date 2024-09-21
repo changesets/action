@@ -1,6 +1,6 @@
 import { PreState, NewChangeset } from "@changesets/types";
 import { readPreState } from "@changesets/pre";
-import { default as readChangesets } from "@changesets/read";
+import readChangesets from "@changesets/read";
 
 export type ChangesetState = {
   preState: PreState | undefined;
@@ -11,7 +11,7 @@ export default async function readChangesetState(
   cwd: string = process.cwd()
 ): Promise<ChangesetState> {
   let preState = await readPreState(cwd);
-  // @ts-ignore
+
   let changesets = await readChangesets(cwd);
 
   if (preState !== undefined && preState.mode === "pre") {

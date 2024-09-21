@@ -1,101 +1,76 @@
-import { getChangelogEntry, BumpLevels, sortTheThings } from "./utils.js";
+import path from "path";
+import { getChangelogEntry, sortTheThings } from "./utils.js";
+import fs from "fs";
+import { getLevel, ReleaseLevelKey } from "./releaseLevels.js";
 
-let changelog = `# @keystone-alpha/email
+const filePath = path.join(__dirname, "testlog.md");
+let changelog = fs.readFileSync(filePath, "utf-8");
 
-## 3.0.1
-
-### Patch Changes
-
-- [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
-
-  Move frontmatter in docs into comments
-
-## 3.0.0
-
-### Major Changes
-
-- [2164a779](https://github.com/keystonejs/keystone-5/commit/2164a779):
-
-  - Replace jade with pug because Jade was renamed to Pug, and \`jade\` package is outdated
-
-### Patch Changes
-
-- [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
-
-  - Update dependencies
-
-## 2.0.0
-
-- [patch][b69fb9b7](https://github.com/keystonejs/keystone-5/commit/b69fb9b7):
-
-  - Update dev devependencies
-
-- [major][f97e4ecf](https://github.com/keystonejs/keystone-5/commit/f97e4ecf):
-
-  - Export { emailSender } as the API, rather than a default export
-
-## 1.0.2
-
-- [patch][7417ea3a](https://github.com/keystonejs/keystone-5/commit/7417ea3a):
-
-  - Update patch-level dependencies
-
-## 1.0.1
-
-- [patch][1f0bc236](https://github.com/keystonejs/keystone-5/commit/1f0bc236):
-
-  - Update the package.json author field to "The Keystone Development Team"
-
-## 1.0.0
-
-- [major] 8b6734ae:
-
-  - This is the first release of keystone-alpha (previously voussoir).
-    All packages in the \`@voussoir\` namespace are now available in the \`@keystone-alpha\` namespace, starting at version \`1.0.0\`.
-    To upgrade your project you must update any \`@voussoir/<foo>\` dependencies in \`package.json\` to point to \`@keystone-alpha/<foo>: "^1.0.0"\` and update any \`require\`/\`import\` statements in your code.
-
-# @voussoir/email
-
-## 0.0.2
-
-- [patch] 113e16d4:
-
-  - Remove unused dependencies
-
-- [patch] 625c1a6d:
-
-  - Update mjml-dependency
-`;
-
-test("it works", () => {
+test("it works for version 3.0.0", () => {
   let entry = getChangelogEntry(changelog, "3.0.0");
-  expect(entry.content).toMatchSnapshot();
-  expect(entry.highestLevel).toBe(BumpLevels.major);
+  expect(entry.highestLevel).toBe(getLevel({ key: "major" }).index);
+  expect(entry.content).toContain("Replace jade with pug");
 });
 
-test("it works", () => {
+test("it works for version 3.0.1", () => {
   let entry = getChangelogEntry(changelog, "3.0.1");
-  expect(entry.content).toMatchSnapshot();
-  expect(entry.highestLevel).toBe(BumpLevels.patch);
+  expect(entry.highestLevel).toBe(getLevel({ key: "patch" }).index);
+  expect(entry.content).toContain("Move frontmatter in docs into comments");
+});
+
+test("it works for version 2.0.0", () => {
+  let entry = getChangelogEntry(changelog, "2.0.0");
+  expect(entry.highestLevel).toBe(getLevel({ key: "major" }).index);
+  expect(entry.content).toContain("Export { emailSender } as the API");
+});
+
+test("it works for version 1.0.2", () => {
+  let entry = getChangelogEntry(changelog, "1.0.2");
+  expect(entry.highestLevel).toBe(getLevel({ key: "patch" }).index);
+  expect(entry.content).toContain("Update patch-level dependencies");
+});
+
+test("it works for version 1.0.0", () => {
+  let entry = getChangelogEntry(changelog, "1.0.0");
+  expect(entry.highestLevel).toBe(getLevel({ key: "major" }).index);
+  expect(entry.content).toContain(
+    "This is the first release of keystone-alpha"
+  );
 });
 
 test("it sorts the things right", () => {
   let things = [
     {
       name: "a",
-      highestLevel: BumpLevels.major,
+      highestLevel: getLevel({ key: "major" }).index,
       private: true,
     },
     {
       name: "b",
-      highestLevel: BumpLevels.patch,
+      highestLevel: getLevel({ key: "minor" }).index,
       private: false,
     },
     {
       name: "c",
-      highestLevel: BumpLevels.major,
+      highestLevel: getLevel({ key: "major" }).index,
       private: false,
     },
+    {
+      name: "d",
+      highestLevel: getLevel({ key: "patch" }).index,
+      private: true,
+    },
+    {
+      name: "e",
+      highestLevel: getLevel({ key: "patch" }).index,
+      private: false,
+    },
+    {
+      name: "f",
+      highestLevel: getLevel({ key: "minor" }).index,
+      private: true,
+    },
   ];
-  expect(things.sort(sortTheThings)).toMatchSnapshot();
+  const sorted = things.sort(sortTheThings);
+  expect(sorted.map((t) => t.name)).toEqual(["c", "b", "e", "a", "f", "d"]);
 });

@@ -375,17 +375,11 @@ async function runDefaultVersionCommand(cwd: string) {
   });
 }
 
-async function getChangedPackagesInfo(changedPackages: any[]) {
-  return Promise.all(
+async function getChangedPackagesInfo(changedPackages: Package[]) {
+  const results = await Promise.all(
     changedPackages.map(async (pkg) => {
-      const changelogContents = await fs.readFile(
-        path.join(pkg.dir, "CHANGELOG.md"),
-        "utf8"
-      );
-      const entry = getChangelogEntry(
-        changelogContents,
-        pkg.packageJson.version
-      );
+      const changelogContents = await fs.readFile(path.join(pkg.dir, "CHANGELOG.md"), "utf8");
+      const entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
       return {
         highestLevel: entry.highestLevel,
         private: !!pkg.packageJson.private,
@@ -393,7 +387,8 @@ async function getChangedPackagesInfo(changedPackages: any[]) {
         header: `## ${pkg.packageJson.name}@${pkg.packageJson.version}`,
       };
     })
-  ).then((results) => results.filter((x) => x).sort(sortTheThings));
+  );
+  return results.filter(Boolean).sort(sortTheThings);
 }
 
 function getFinalPrTitle(prTitle: string, preState?: any) {

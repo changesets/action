@@ -103,7 +103,9 @@ describe("version", () => {
       cwd,
     });
 
-    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot(
+      "Simple PR"
+    );
   });
 
   it("only includes bumped packages in the PR body", async () => {
@@ -136,7 +138,9 @@ describe("version", () => {
       cwd,
     });
 
-    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot(
+      "bumped only"
+    );
   });
 
   it("doesn't include ignored package that got a dependency update in the PR body", async () => {
@@ -169,7 +173,9 @@ describe("version", () => {
       cwd,
     });
 
-    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot(
+      "ignored package"
+    );
   });
 
   it("does not include changelog entries if full message exceeds size limit", async () => {
@@ -181,7 +187,9 @@ describe("version", () => {
       prBodyMaxCharacters: 1000,
     });
 
-    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot(
+      "full message exceeds size limit"
+    );
     expect(mockedGithubMethods.pulls.create.mock.calls[0]?.[0].body).toMatch(
       /The changelog information of each package has been omitted from this message/
     );
@@ -196,7 +204,9 @@ describe("version", () => {
       prBodyMaxCharacters: 500,
     });
 
-    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot(
+      "simplified release info exceeds size limit"
+    );
     expect(mockedGithubMethods.pulls.create.mock.calls[0]?.[0].body).toMatch(
       /All release information have been omitted from this message, as the content exceeds the size limit/
     );
