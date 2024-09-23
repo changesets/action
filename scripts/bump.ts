@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const { exec } = require("@actions/exec");
+import fs from "fs";
+import path from "path";
+import { exec } from "@actions/exec";
 
 process.chdir(path.join(__dirname, ".."));
 
@@ -13,7 +13,7 @@ process.chdir(path.join(__dirname, ".."));
   const content = fs.readFileSync(readmePath, "utf8");
   const updatedContent = content.replace(
     /changesets\/action@[^\s]+/g,
-    `changesets/action@${releaseLine}`
+    `changesets/action@${releaseLine}`,
   );
   fs.writeFileSync(readmePath, updatedContent);
 })();

@@ -1,3 +1,4 @@
+import { expect, it } from "vitest";
 import { getChangelogEntry, BumpLevels, sortTheThings } from "./utils";
 
 let changelog = `# @keystone-alpha/email
@@ -67,19 +68,39 @@ let changelog = `# @keystone-alpha/email
   - Update mjml-dependency
 `;
 
-test("it works", () => {
+it("it works", () => {
   let entry = getChangelogEntry(changelog, "3.0.0");
-  expect(entry.content).toMatchSnapshot();
+  expect(entry.content).toMatchInlineSnapshot(`
+    "### Major Changes
+
+    * [2164a779](https://github.com/keystonejs/keystone-5/commit/2164a779):
+
+      * Replace jade with pug because Jade was renamed to Pug, and \`jade\` package is outdated
+
+    ### Patch Changes
+
+    * [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
+
+      * Update dependencies
+    "
+  `);
   expect(entry.highestLevel).toBe(BumpLevels.major);
 });
 
-test("it works", () => {
+it("it works", () => {
   let entry = getChangelogEntry(changelog, "3.0.1");
-  expect(entry.content).toMatchSnapshot();
+  expect(entry.content).toMatchInlineSnapshot(`
+    "### Patch Changes
+
+    * [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
+
+      Move frontmatter in docs into comments
+    "
+  `);
   expect(entry.highestLevel).toBe(BumpLevels.patch);
 });
 
-test("it sorts the things right", () => {
+it("it sorts the things right", () => {
   let things = [
     {
       name: "a",

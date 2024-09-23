@@ -1,7 +1,7 @@
-const path = require("path");
-const { exec, getExecOutput } = require("@actions/exec");
+import path from "path";
+import { exec, getExecOutput } from "@actions/exec";
 
-const { version } = require("../package.json");
+import { version } from "../package.json";
 const tag = `v${version}`;
 const releaseLine = `v${version.split(".")[0]}`;
 
@@ -13,14 +13,16 @@ process.chdir(path.join(__dirname, ".."));
     ["ls-remote", "--exit-code", "origin", "--tags", `refs/tags/${tag}`],
     {
       ignoreReturnCode: true,
-    }
+    },
   );
+
   if (exitCode === 0) {
     console.log(
-      `Action is not being published because version ${tag} is already published`
+      `Action is not being published because version ${tag} is already published`,
     );
     return;
   }
+
   if (exitCode !== 2) {
     throw new Error(`git ls-remote exited with ${exitCode}:\n${stderr}`);
   }
