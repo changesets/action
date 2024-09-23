@@ -5,10 +5,23 @@ import fs from "fs-extra";
 export async function execWithOutput(
   command: string,
   args?: string[],
-  options?: { ignoreReturnCode?: boolean; cwd?: string }
+  options?: {
+    ignoreReturnCode?: boolean;
+    cwd?: string;
+    env?: { [key: string]: string };
+  }
 ) {
   let myOutput = "";
   let myError = "";
+
+  // inject the rest of process env vars
+  if (options?.env) {
+    for (const [key, val] of Object.entries(process.env)) {
+      if (!(key in options.env) && val) {
+        options.env[key] = val;
+      }
+    }
+  }
 
   return {
     code: await exec(command, args, {

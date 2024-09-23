@@ -65,6 +65,11 @@ export async function runPublish({
       tagName,
     ],
     {
+      env: {
+        // changesets cli outputs stuff with ASCII colors which can polute the stdout with
+        // color characters and therefore incorrectly parse which packages have been published
+        NO_COLOR: "1",
+      },
       cwd,
     }
   );

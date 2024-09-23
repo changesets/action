@@ -33492,6 +33492,13 @@ var import_fs_extra = __toESM(require_lib2());
 async function execWithOutput(command, args, options) {
   let myOutput = "";
   let myError = "";
+  if (options == null ? void 0 : options.env) {
+    for (const [key, val] of Object.entries(process.env)) {
+      if (!(key in options.env) && val) {
+        options.env[key] = val;
+      }
+    }
+  }
   return {
     code: await (0, import_exec.exec)(command, args, {
       listeners: {
@@ -33616,6 +33623,9 @@ async function runPublish({
       tagName
     ],
     {
+      env: {
+        NO_COLOR: "1"
+      },
       cwd
     }
   );
