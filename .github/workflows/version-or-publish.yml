@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-      - uses: .github/actions/setup
+      - uses: ./.github/actions/setup
       - name: Build
         run: pnpm build
       - name: Create Release Pull Request or Publish
