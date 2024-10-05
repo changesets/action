@@ -1,13 +1,5 @@
 # @changesets/action
 
-## 1.4.8
-
-### Patch Changes
-
-- [#393](https://github.com/changesets/action/pull/393) [`48ab0d2`](https://github.com/changesets/action/commit/48ab0d2f2e77ae169182d022591ef5c18c931ff2) Thanks [@s0](https://github.com/s0)! - Ensure the PR remains open when updated
-
-- [#393](https://github.com/changesets/action/pull/393) [`48ab0d2`](https://github.com/changesets/action/commit/48ab0d2f2e77ae169182d022591ef5c18c931ff2) Thanks [@s0](https://github.com/s0)! - Switch to cheaper API for querying existing PRs
-
 ## 1.4.7
 
 ### Patch Changes
