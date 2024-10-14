@@ -48,11 +48,11 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
-      core.info("No changesets found");
+      core.info("No publish script found");
       return;
     case !hasChangesets && hasPublishScript: {
       core.info(
-        "No changesets found, attempting to publish any unpublished packages to npm"
+        "Attempting to publish any unpublished packages to npm"
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
