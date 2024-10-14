@@ -109,6 +109,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
+        createPrAsDraft: core.getBooleanInput("createPrAsDraft"),
         branch: getOptionalInput("branch"),
       });
 
