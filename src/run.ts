@@ -101,6 +101,7 @@ type PublishOptions = {
   script: string;
   githubToken: string;
   createGithubReleases: boolean;
+  commitUsingApi: boolean;
   cwd?: string;
 };
 
@@ -119,6 +120,7 @@ export async function runPublish({
   script,
   githubToken,
   createGithubReleases,
+  commitUsingApi,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   const octokit = setupOctokit(githubToken);
@@ -130,6 +132,10 @@ export async function runPublish({
     publishArgs,
     { cwd }
   );
+
+  if (!commitUsingApi) {
+    await gitUtils.pushTags();
+  }
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -158,21 +164,21 @@ export async function runPublish({
       await Promise.all(
         releasedPackages.map(async (pkg) => {
           const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          // Tag will only be created locally,
-          // Create it using the GitHub API so it's signed.
-          await octokit.rest.git
-            .createRef({
-              ...github.context.repo,
-              ref: `refs/tags/${tagName}`,
-              sha: github.context.sha,
-            })
-            .catch((err) => {
-              // Assuming tag was manually pushed in custom publish script
-              core.warning(`Failed to create tag ${tagName}: ${err.message}`);
-            });
-          if (createGithubReleases) {
-            await createRelease(octokit, { pkg, tagName });
+          if (commitUsingApi) {
+            // Tag will usually only be created locally,
+            // Create it using the GitHub API so it's signed.
+            await octokit.rest.git
+              .createRef({
+                ...github.context.repo,
+                ref: `refs/tags/${tagName}`,
+                sha: github.context.sha,
+              })
+              .catch((err) => {
+                // Assuming tag was manually pushed in custom publish script
+                core.warning(`Failed to create tag ${tagName}: ${err.message}`);
+              });
           }
+          await createRelease(octokit, { pkg, tagName });
         })
       );
     }
@@ -191,20 +197,22 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        const tagName = `v${pkg.packageJson.version}`;
-        // Tag will only be created locally,
-        // Create it using the GitHub API so it's signed.
-        await octokit.rest.git
-          .createRef({
-            ...github.context.repo,
-            ref: `refs/tags/${tagName}`,
-            sha: github.context.sha,
-          })
-          .catch((err) => {
-            // Assuming tag was manually pushed in custom publish script
-            core.warning(`Failed to create tag ${tagName}: ${err.message}`);
-          });
         if (createGithubReleases) {
+          const tagName = `v${pkg.packageJson.version}`;
+          if (commitUsingApi) {
+            // Tag will only be created locally,
+            // Create it using the GitHub API so it's signed.
+            await octokit.rest.git
+              .createRef({
+                ...github.context.repo,
+                ref: `refs/tags/${tagName}`,
+                sha: github.context.sha,
+              })
+              .catch((err) => {
+                // Assuming tag was manually pushed in custom publish script
+                core.warning(`Failed to create tag ${tagName}: ${err.message}`);
+              });
+          }
           await createRelease(octokit, { pkg, tagName });
         }
         break;
@@ -320,6 +328,7 @@ type VersionOptions = {
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
+  commitUsingApi: boolean;
   branch?: string;
 };
 
@@ -335,6 +344,7 @@ export async function runVersion({
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
+  commitUsingApi,
   branch,
 }: VersionOptions): Promise<RunVersionResult> {
   const octokit = setupOctokit(githubToken);
@@ -344,6 +354,11 @@ export async function runVersion({
   let versionBranch = `changeset-release/${branch}`;
 
   let { preState } = await readChangesetState(cwd);
+
+  if (!commitUsingApi) {
+    await gitUtils.switchToMaybeExistingBranch(versionBranch);
+    await gitUtils.reset(github.context.sha);
+  }
 
   let versionsByDirectory = await getVersionsByDirectory(cwd);
 
@@ -389,16 +404,27 @@ export async function runVersion({
     !!preState ? ` (${preState.tag})` : ""
   }`;
 
-  await commitChangesFromRepo({
-    octokit,
-    ...github.context.repo,
-    branch: versionBranch,
-    message: finalCommitMessage,
-    base: {
-      commit: github.context.sha,
-    },
-    force: true,
-  });
+  if (commitUsingApi) {
+    await commitChangesFromRepo({
+      octokit,
+      ...github.context.repo,
+      branch: versionBranch,
+      message: finalCommitMessage,
+      base: {
+        commit: github.context.sha,
+      },
+      force: true,
+    });
+  } else {
+    // project with `commit: true` setting could have already committed files
+    if (!(await gitUtils.checkIfClean())) {
+      await gitUtils.commitAll(finalCommitMessage);
+    }
+  }
+
+  if (!commitUsingApi) {
+    await gitUtils.push(versionBranch, { force: true });
+  }
 
   let existingPullRequests = await existingPullRequestsPromise;
   core.info(JSON.stringify(existingPullRequests.data, null, 2));

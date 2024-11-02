@@ -1,10 +1,10 @@
 ---
-"@changesets/action": major
+"@changesets/action": minor
 ---
 
-Start using GitHub API to push tags and commits to repos
+Introduce a new input commitUsingApi that allows pushing tags and commits
+using the GitHub API instead of the git CLI.
 
-Rather than use local git commands to push changes to GitHub,
-this action now uses the GitHub API directly,
-which means that all tags and commits will be attributed to the user whose
-GITHUB_TOKEN is used, and signed.
+When used, this means means that all tags and commits will be attributed
+to the user whose GITHUB_TOKEN is used,
+and also signed using GitHub's internal GPG key.
