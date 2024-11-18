@@ -2,7 +2,8 @@ import * as core from "@actions/core";
 import fs from "fs-extra";
 import * as gitUtils from "./gitUtils";
 import { runPublish, runVersion } from "./run";
-import readChangesetState from "./readChangesetState";
+// import readChangesetState from "./readChangesetState";
+import getReleasePlan from "@changesets/get-release-plan";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -33,26 +34,31 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
 
-  let { changesets } = await readChangesetState();
+  const { changesets, releases } = await getReleasePlan(process.cwd());
 
   let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
-  const hasNonEmptyChangesets = changesets.some(
-    (changeset) => changeset.releases.length > 0
-  );
+  // const hasNonEmptyChangesets = changesets.some(
+  //   (changeset) => changeset.releases.length > 0
+  // );
   let hasPublishScript = !!publishScript;
+  const hasReleases = releases.length !== 0;
 
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
+  // TODO: deprecate `hasChangesets` in favor of `hasReleases`
   core.setOutput("hasChangesets", String(hasChangesets));
+  core.setOutput("hasReleases", String(hasReleases));
 
   switch (true) {
-    case !hasChangesets && !hasPublishScript:
-      core.info("No changesets present or were removed by merging release PR. Not publishing because no publish script found.");
-      return;
-    case !hasChangesets && hasPublishScript: {
+    case !hasReleases && !hasPublishScript:
       core.info(
-        "No changesets found. Attempting to publish any unpublished packages to npm"
+        "No releases present or were removed by merging release PR. Not publishing because no publish script found."
+      );
+      return;
+    case !hasReleases && hasPublishScript: {
+      core.info(
+        "No releases found. Attempting to publish any unpublished packages to npm"
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
@@ -99,10 +105,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       }
       return;
     }
-    case hasChangesets && !hasNonEmptyChangesets:
-      core.info("All changesets are empty; not creating PR");
-      return;
-    case hasChangesets:
+    case hasReleases:
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
         githubToken,
