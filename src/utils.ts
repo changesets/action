@@ -98,3 +98,20 @@ export function sortTheThings(
   }
   return -1;
 }
+
+/**
+ * Extracts the line containing the auth token from .npmrc content.
+ * 
+ * @param {string} npmrcContent - The content of the .npmrc file as a string.
+ * @returns {string | undefined} - The line containing the auth token or undefined if not found.
+ */
+export function extractAuthTokenLine(npmrcContent:string) {
+  /**
+   * @see https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
+   * Also dynamically adapt to any registry by looking for :_authToken= pattern
+   */
+  const line =  npmrcContent.split("\n").find((line) => {
+    return /^\s*\/\/.*\/:[_-]authToken=/i.test(line);
+  });
+  return line ? line.trim() : undefined; 
+};
