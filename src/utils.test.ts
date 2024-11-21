@@ -107,7 +107,7 @@ describe("extractAuthTokenLine", () => {
   it("should correctly find the auth token line for multiple registries", () => {
     const testCases = [
       {
-        name: "Custom private registry",
+        name: "Custom private registry with _authToken",
         npmrc: `
           registry=https://custom.private-registry.com/api/npm/npm/
           //custom.private-registry.com/api/npm/npm/:_authToken=abcd1234
@@ -116,7 +116,16 @@ describe("extractAuthTokenLine", () => {
         expected: "//custom.private-registry.com/api/npm/npm/:_authToken=abcd1234",
       },
       {
-        name: "NPM default registry",
+        name: "Custom private registry with _auth",
+        npmrc: `
+          registry=https://custom.private-registry.com/api/npm/npm/
+          //custom.private-registry.com/api/npm/npm/:_auth=abcd1234
+          always-auth=true
+        `,
+        expected: "//custom.private-registry.com/api/npm/npm/:_auth=abcd1234",
+      },
+      {
+        name: "NPM default registry with _authToken",
         npmrc: `
           registry=https://registry.npmjs.org/
           //registry.npmjs.org/:_authToken=efgh5678
@@ -124,7 +133,15 @@ describe("extractAuthTokenLine", () => {
         expected: "//registry.npmjs.org/:_authToken=efgh5678",
       },
       {
-        name: "AWS CodeArtifact registry",
+        name: "NPM default registry with _auth",
+        npmrc: `
+          registry=https://registry.npmjs.org/
+          //registry.npmjs.org/:_auth=efgh5678
+        `,
+        expected: "//registry.npmjs.org/:_auth=efgh5678",
+      },
+      {
+        name: "AWS CodeArtifact registry with _authToken",
         npmrc: `
           registry=https://mydomain-111122223333.d.codeartifact.us-east-1.amazonaws.com/npm/repository-name/
           //mydomain-111122223333.d.codeartifact.us-east-1.amazonaws.com/npm/repository-name/:_authToken=ijkl9012
@@ -133,13 +150,31 @@ describe("extractAuthTokenLine", () => {
           "//mydomain-111122223333.d.codeartifact.us-east-1.amazonaws.com/npm/repository-name/:_authToken=ijkl9012",
       },
       {
-        name: "Azure DevOps registry",
+        name: "AWS CodeArtifact registry with _auth",
+        npmrc: `
+          registry=https://mydomain-111122223333.d.codeartifact.us-east-1.amazonaws.com/npm/repository-name/
+          //mydomain-111122223333.d.codeartifact.us-east-1.amazonaws.com/npm/repository-name/:_auth=ijkl9012
+        `,
+        expected:
+          "//mydomain-111122223333.d.codeartifact.us-east-1.amazonaws.com/npm/repository-name/:_auth=ijkl9012",
+      },
+      {
+        name: "Azure DevOps registry with _authToken",
         npmrc: `
           registry=https://pkgs.dev.azure.com/myorg/_packaging/myfeed/npm/registry/
           //pkgs.dev.azure.com/myorg/_packaging/myfeed/npm/registry/:_authToken=mnop3456
         `,
         expected:
           "//pkgs.dev.azure.com/myorg/_packaging/myfeed/npm/registry/:_authToken=mnop3456",
+      },
+      {
+        name: "Azure DevOps registry with _auth",
+        npmrc: `
+          registry=https://pkgs.dev.azure.com/myorg/_packaging/myfeed/npm/registry/
+          //pkgs.dev.azure.com/myorg/_packaging/myfeed/npm/registry/:_auth=mnop3456
+        `,
+        expected:
+          "//pkgs.dev.azure.com/myorg/_packaging/myfeed/npm/registry/:_auth=mnop3456",
       },
     ];
 
