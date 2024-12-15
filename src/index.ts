@@ -27,6 +27,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     await gitUtils.setupUser();
   }
 
+  const commitUsingApi = core.getBooleanInput("commitUsingApi");
+
   core.info("setting GitHub credentials");
   await fs.writeFile(
     `${process.env.HOME}/.netrc`,
@@ -88,6 +90,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         script: publishScript,
         githubToken,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        commitUsingApi
       });
 
       if (result.published) {
@@ -109,6 +112,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
+        commitUsingApi,
         branch: getOptionalInput("branch"),
       });
 

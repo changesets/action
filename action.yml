@@ -28,6 +28,13 @@ inputs:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
+  commitUsingApi:
+    description: >
+      A boolean value to indicate whether to push changes via Github API or not,
+      this will mean all commits and tags are signed using GitHub's GPG key,
+      and attributed to the user or app who owns the GITHUB_TOKEN
+    required: false
+    default: false
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false
