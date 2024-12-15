@@ -95,7 +95,7 @@ jobs:
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Send a Slack notification if a publish happens
         if: steps.changesets.outputs.published == 'true'
@@ -103,23 +103,23 @@ jobs:
         run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
 ```
 
-By default the GitHub Action creates a `.npmrc` file with the following content:
+If you include the `registry-url` option with the (`setup-node` Github Action)[https://github.com/actions/setup-node], the action creates a `.npmrc` file (with the following content)[https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages#publishing-packages-to-the-npm-registry]:
 
 ```
-//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
+//registry.npmjs.org/:_authToken=NODE_AUTH_TOKEN
 ```
 
-However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
+If a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
 For example, you can add a step before running the Changesets GitHub Action:
 
 ```yml
 - name: Creating .npmrc
   run: |
     cat << EOF > "$HOME/.npmrc"
-      //registry.npmjs.org/:_authToken=$NPM_TOKEN
+      //registry.npmjs.org/:_authToken=\$NODE_AUTH_TOKEN
     EOF
   env:
-    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 #### Custom Publishing
