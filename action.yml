@@ -31,6 +31,9 @@ inputs:
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false
+  baseBranch:
+    description: Sets the base branch for the pull request. Default to the branch the action runs on if not provided
+    required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
