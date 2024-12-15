@@ -19,7 +19,27 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - published - A boolean value to indicate whether a publishing has happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
-### Example workflow:
+### Example workflows
+
+> [!WARNING]
+>
+> Before run one of the following workflows be sure that the `GITHUB_TOKEN` has the permission to access the repository contents and create a PR
+>
+> - Go into [repository Action settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#setting-the-permissions-of-the-github_token-for-your-repository)
+>
+> - Under "Workflow permissions" section, enable "Allow GitHub Actions to create and approve pull requests"
+>
+> - Now you should grant write permission, you can do this by
+>
+>   1. [Using `permissions` key in the workflow file](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions)
+>
+>       ```yml
+>       permissions:
+>         contents: write
+>         pull-requests: write
+>       ```
+>
+>   2. selecting "Read and write permissions" in the same section
 
 #### Without Publishing
 
@@ -105,7 +125,7 @@ jobs:
 
 By default the GitHub Action creates a `.npmrc` file with the following content:
 
-```
+```text
 //registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
 ```
 
