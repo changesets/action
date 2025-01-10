@@ -1,6 +1,5 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
-import * as github from "@actions/github";
 
 import { runPublish, runVersion } from "./run";
 import readChangesetState from "./readChangesetState";
