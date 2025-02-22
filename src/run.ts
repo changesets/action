@@ -60,7 +60,8 @@ const setupOctokit = (githubToken: string) => {
 
 const createRelease = async (
   octokit: ReturnType<typeof setupOctokit>,
-  { pkg, tagName }: { pkg: Package; tagName: string }
+  { pkg, tagName }: { pkg: Package; tagName: string },
+  draftGithubReleases: boolean
 ) => {
   try {
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
@@ -80,6 +81,7 @@ const createRelease = async (
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
+      draft: draftGithubReleases,
       prerelease: pkg.packageJson.version.includes("-"),
       ...github.context.repo,
     });
@@ -100,6 +102,7 @@ type PublishOptions = {
   script: string;
   githubToken: string;
   createGithubReleases: boolean;
+  draftGithubReleases: boolean;
   cwd?: string;
 };
 
@@ -118,6 +121,7 @@ export async function runPublish({
   script,
   githubToken,
   createGithubReleases,
+  draftGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   const octokit = setupOctokit(githubToken);
@@ -158,10 +162,14 @@ export async function runPublish({
     if (createGithubReleases) {
       await Promise.all(
         releasedPackages.map((pkg) =>
-          createRelease(octokit, {
-            pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          })
+          createRelease(
+            octokit,
+            {
+              pkg,
+              tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+            },
+            draftGithubReleases
+          )
         )
       );
     }
@@ -181,10 +189,14 @@ export async function runPublish({
       if (match) {
         releasedPackages.push(pkg);
         if (createGithubReleases) {
-          await createRelease(octokit, {
-            pkg,
-            tagName: `v${pkg.packageJson.version}`,
-          });
+          await createRelease(
+            octokit,
+            {
+              pkg,
+              tagName: `v${pkg.packageJson.version}`,
+            },
+            draftGithubReleases
+          );
         }
         break;
       }

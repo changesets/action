@@ -5,31 +5,34 @@ runs:
   main: "dist/index.js"
 inputs:
   publish:
-    description: "The command to use to build and publish packages"
+    description: "The command used to build and publish packages."
     required: false
   version:
-    description: "The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided"
+    description: "The command to update the version, edit the CHANGELOG, and manage changesets. Defaults to `changeset version` if not provided."
     required: false
   cwd:
-    description: Sets the cwd for the node process. Default to `process.cwd()`
+    description: "The working directory for the process, useful when the project is not in the root. Defaults to `process.cwd()`."
     required: false
   commit:
-    description: |
-      The commit message. Default to `Version Packages`
+    description: "The commit message for version updates. Defaults to `Version Packages`."
     required: false
   title:
-    description: The pull request title. Default to `Version Packages`
+    description: "The title for the version update pull request. Defaults to `Version Packages`."
     required: false
   setupGitUser:
-    description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
+    description: 'Configures the Git user for commits as `"github-actions[bot]"`. Defaults to `true`.'
     required: false
     default: true
   createGithubReleases:
-    description: "A boolean value to indicate whether to create Github releases after `publish` or not"
+    description: "Whether to create a GitHub release after publishing. Defaults to `true`."
     required: false
     default: true
+  draftGithubReleases:
+    description: "Whether to publish the GitHub release as a draft (unpublished). Defaults to `false`."
+    required: false
+    default: false
   branch:
-    description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
+    description: "The branch in which the action will run. Defaults to `github.ref_name` if not provided."
     required: false
 outputs:
   published:
