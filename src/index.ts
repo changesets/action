@@ -28,9 +28,10 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   core.info("setting GitHub credentials");
+  const gitHubUser = core.getInput("gitHubUser") ? core.getInput("gitHubUser") : "github-actions[bot]";
   await fs.writeFile(
     `${process.env.HOME}/.netrc`,
-    `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
+    `machine github.com\nlogin ${gitHubUser}\npassword ${githubToken}`
   );
 
   let { changesets } = await readChangesetState();
