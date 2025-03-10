@@ -79,6 +79,7 @@ const createRelease = async (
     await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
+      target_commitish: github.context.sha,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
       ...github.context.repo,
@@ -130,7 +131,11 @@ export async function runPublish({
     { cwd }
   );
 
-  await gitUtils.pushTags();
+  // if we are creating github releases, we want to create the tag through the release api
+  // this allows tag workflows to be triggered if a custom token is provided
+  if (!createGithubReleases) {
+    await gitUtils.pushTags();
+  }
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
