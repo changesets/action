@@ -13,6 +13,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+- createPrAsDraft - A boolean value to indicate whether to create the PR as draft or not. Default to `false`
 
 ### Outputs
 
