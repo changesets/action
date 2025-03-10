@@ -48,7 +48,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
-      core.info("No changesets present or were removed by merging release PR. Not publishing because no publish script found.");
+      core.info(
+        "No changesets present or were removed by merging release PR. Not publishing because no publish script found."
+      );
       return;
     case !hasChangesets && hasPublishScript: {
       core.info(
@@ -88,6 +90,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         script: publishScript,
         githubToken,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        draftGithubReleases: core.getBooleanInput("draftGithubReleases"),
       });
 
       if (result.published) {
