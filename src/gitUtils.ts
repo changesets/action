@@ -29,8 +29,8 @@ export const push = async (
   );
 };
 
-export const pushTags = async () => {
-  await exec("git", ["push", "origin", "--tags"]);
+export const pushFollowTags = async () => {
+  await exec("git", ["push", "origin", "--follow-tags"]);
 };
 
 export const switchToMaybeExistingBranch = async (branch: string) => {
