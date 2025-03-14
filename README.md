@@ -16,8 +16,17 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 
 ### Outputs
 
+"/https:\/\/uploads\.github\.com\/repos\/([^/]+)\/([^/]+)\/releases\/(\d+)\/assets(?:\?name=([^&]+))?(?:&label=([^&]+))?/"
+
 - published - A boolean value to indicate whether a publishing has happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- publishedPackages - A JSON array to present the published packages.
+  The format is
+  ```
+  [
+    {"name": "@org/package1", "version": "1.2.0", "uploadUrl": "https://uploads.github.com/repos/org/repo/releases/package1_releaseId/assets{?name, label}" },
+    {"name": "@org/package2", "version": "0.8.9", "uploadUrl": "https://uploads.github.com/repos/org/repo/releases/package2_releaseId/assets{?name, label}" }
+  ]
+  ```
 
 ### Example workflow:
 
@@ -120,6 +129,46 @@ For example, you can add a step before running the Changesets GitHub Action:
     EOF
   env:
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+#### Uploading extra assets
+
+If you want to upload extra assets after a release is created you can utilize the `publishedPackages[0].uploadUrl` output.
+
+```yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish
+        if: steps.changesets.outputs.published == 'true'
+        # You can do something with the published packages array
+        run: my-file-uploader upload-files {{ steps.changesets.outputs.publishedPackages }}
 ```
 
 #### Custom Publishing

@@ -18,6 +18,8 @@ import readChangesetState from "./readChangesetState";
 import resolveFrom from "resolve-from";
 import { throttling } from "@octokit/plugin-throttling";
 
+type ReleasedPackage = Package & { uploadUrl: string };
+
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
 // `body is too long (maximum is 65536 characters)`.
@@ -76,7 +78,7 @@ const createRelease = async (
       );
     }
 
-    await octokit.rest.repos.createRelease({
+    return await octokit.rest.repos.createRelease({
       name: tagName,
       tag_name: tagName,
       body: changelogEntry.content,
@@ -133,7 +135,8 @@ export async function runPublish({
   await gitUtils.pushTags();
 
   let { packages, tool } = await getPackages(cwd);
-  let releasedPackages: Package[] = [];
+  let packagesToRelease: Package[] = [];
+  let releasedPackages: ReleasedPackage[] = [];
 
   if (tool !== "root") {
     let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
@@ -152,18 +155,23 @@ export async function runPublish({
             "This is probably a bug in the action, please open an issue"
         );
       }
-      releasedPackages.push(pkg);
+      packagesToRelease.push(pkg);
     }
 
     if (createGithubReleases) {
-      await Promise.all(
-        releasedPackages.map((pkg) =>
-          createRelease(octokit, {
-            pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+      releasedPackages = (
+        await Promise.all(
+          packagesToRelease.map(async (pkg) => {
+            const release = await createRelease(octokit, {
+              pkg,
+              tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+            });
+            if (release) {
+              return { ...pkg, uploadUrl: release.data.upload_url };
+            }
           })
         )
-      );
+      ).filter((pkg) => pkg !== undefined);
     }
   } else {
     if (packages.length === 0) {
@@ -179,12 +187,18 @@ export async function runPublish({
       let match = line.match(newTagRegex);
 
       if (match) {
-        releasedPackages.push(pkg);
+        packagesToRelease.push(pkg);
         if (createGithubReleases) {
-          await createRelease(octokit, {
+          const release = await createRelease(octokit, {
             pkg,
             tagName: `v${pkg.packageJson.version}`,
           });
+          if (release) {
+            releasedPackages.push({
+              ...pkg,
+              uploadUrl: release.data.upload_url,
+            });
+          }
         }
         break;
       }
@@ -197,6 +211,7 @@ export async function runPublish({
       publishedPackages: releasedPackages.map((pkg) => ({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version,
+        uploadUrl: pkg.uploadUrl,
       })),
     };
   }
