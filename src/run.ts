@@ -330,8 +330,11 @@ export async function runVersion({
   let versionsByDirectory = await getVersionsByDirectory(cwd);
 
   if (script) {
-    let [versionCommand, ...versionArgs] = script.split(/\s+/);
-    await exec(versionCommand, versionArgs, { cwd });
+    const scriptLines = script.split(/\r?\n/);
+    for (cosnt line of scriptLines) {
+      let [versionCommand, ...versionArgs] = line.split(/\s+/);
+      await exec(versionCommand, versionArgs, { cwd });
+    }
   } else {
     let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
     let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
