@@ -12,6 +12,7 @@ This action for [Changesets](https://github.com/atlassian/changesets) creates a 
 - title - The pull request title. Default to `Version Packages`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- commitUsingApi - A boolean value to indicate whether to use the GitHub API to push changes or not, so changes are GPG-signed. Default to `false`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
 
 ### Outputs
