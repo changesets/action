@@ -315,10 +315,14 @@ export async function runVersion({
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
 }: VersionOptions): Promise<RunVersionResult> {
   const octokit = setupOctokit(githubToken);
+  const skipPR = core.getBooleanInput("skipPR");
 
   let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
   let branch = github.context.ref.replace("refs/heads/", "");
   let versionBranch = `changeset-release/${branch}`;
+  if (skipPR) {
+    versionBranch = branch;
+  }
 
   let { preState } = await readChangesetState(cwd);
 
@@ -373,6 +377,10 @@ export async function runVersion({
   }
 
   await gitUtils.push(versionBranch, { force: true });
+
+  if (skipPR) {
+    return { pullRequestNumber: -1 };
+  }
 
   let searchResult = await searchResultPromise;
   core.info(JSON.stringify(searchResult.data, null, 2));
