@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import path from "path";
 import writeChangeset from "@changesets/write";
 import { Changeset } from "@changesets/types";
-import { runVersion } from "./run";
+import { getCliPushStrategy, runVersion, setupOctokit } from "./run";
 
 jest.mock("@actions/github", () => ({
   context: {
@@ -18,17 +18,17 @@ jest.mock("@actions/github", () => ({
   },
 }));
 jest.mock("@actions/github/lib/utils", () => ({
-    GitHub: {
-        plugin: () => {
-            // function necessary to be used as constructor
-            return function() {
-                return {
-                    rest: mockedGithubMethods,
-                }
-            }
-        },
+  GitHub: {
+    plugin: () => {
+      // function necessary to be used as constructor
+      return function () {
+        return {
+          rest: mockedGithubMethods,
+        };
+      };
     },
-    getOctokitOptions: jest.fn(),
+  },
+  getOctokitOptions: jest.fn(),
 }));
 jest.mock("./gitUtils");
 jest.mock("@s0/ghcommit/git");
@@ -90,7 +90,8 @@ describe("version", () => {
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      gitPushStrategy: getCliPushStrategy(),
       cwd,
     });
 
@@ -123,7 +124,8 @@ describe("version", () => {
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      gitPushStrategy: getCliPushStrategy(),
       cwd,
     });
 
@@ -156,7 +158,8 @@ describe("version", () => {
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      gitPushStrategy: getCliPushStrategy(),
       cwd,
     });
 
@@ -209,7 +212,8 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      gitPushStrategy: getCliPushStrategy(),
       cwd,
       prBodyMaxCharacters: 1000,
     });
@@ -266,7 +270,8 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      gitPushStrategy: getCliPushStrategy(),
       cwd,
       prBodyMaxCharacters: 500,
     });

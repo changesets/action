@@ -1,7 +1,15 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
 import * as gitUtils from "./gitUtils";
-import { runPublish, runVersion } from "./run";
+import {
+  getApiPushStrategy,
+  getApiTaggingStrategy,
+  getCliPushStrategy,
+  getCliTaggingStrategy,
+  runPublish,
+  runVersion,
+  setupOctokit,
+} from "./run";
 import readChangesetState from "./readChangesetState";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
@@ -50,7 +58,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
-      core.info("No changesets present or were removed by merging release PR. Not publishing because no publish script found.");
+      core.info(
+        "No changesets present or were removed by merging release PR. Not publishing because no publish script found."
+      );
       return;
     case !hasChangesets && hasPublishScript: {
       core.info(
@@ -86,11 +96,16 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         );
       }
 
+      const octokit = setupOctokit(githubToken);
+      const taggingStrategy = commitUsingApi
+        ? getApiTaggingStrategy(octokit)
+        : getCliTaggingStrategy();
+
       const result = await runPublish({
         script: publishScript,
-        githubToken,
+        octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
-        commitUsingApi
+        taggingStrategy,
       });
 
       if (result.published) {
@@ -105,20 +120,25 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     case hasChangesets && !hasNonEmptyChangesets:
       core.info("All changesets are empty; not creating PR");
       return;
-    case hasChangesets:
+    case hasChangesets: {
+      const octokit = setupOctokit(githubToken);
+      const gitPushStrategy = commitUsingApi
+        ? getApiPushStrategy(octokit)
+        : getCliPushStrategy();
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
-        githubToken,
+        octokit,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
-        commitUsingApi,
+        gitPushStrategy,
         branch: getOptionalInput("branch"),
       });
 
       core.setOutput("pullRequestNumber", String(pullRequestNumber));
 
       return;
+    }
   }
 })().catch((err) => {
   core.error(err);
