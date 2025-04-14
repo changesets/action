@@ -52,8 +52,7 @@ export const reset = async (
 };
 
 export const commitAll = async (message: string) => {
-  const apiProtocol = core.getInput("apiProtocol");
-  if (apiProtocol === "graphql") {
+  if (core.getBooleanInput("commitViaApi")) {
     let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
     const branch = github.context.ref.replace("refs/heads/", "");
     let versionBranch = `changeset-release/${branch}`;

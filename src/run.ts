@@ -325,8 +325,8 @@ export async function runVersion({
   let { preState } = await readChangesetState(cwd);
 
   await gitUtils.switchToMaybeExistingBranch(versionBranch);
-  if (core.getInput("apiProtocol") === "graphql") {
-    await gitUtils.push(versionBranch);
+  if (core.getBooleanInput("commitViaApi")) {
+    await gitUtils.push(versionBranch, { force: true });
   }
   await gitUtils.reset(github.context.sha);
 
@@ -379,7 +379,7 @@ export async function runVersion({
     await gitUtils.commitAll(finalCommitMessage);
   }
 
-  if (core.getInput("apiProtocol") !== "graphql") {
+  if (!core.getBooleanInput("commitViaApi")) {
     await gitUtils.push(versionBranch, { force: true });
   }
 

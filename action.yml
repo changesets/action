@@ -31,14 +31,10 @@ inputs:
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false
-  apiProtocol:
+  commitViaApi:
     description: Optionally uses graphql API. Used in combination with setting setupGitUser to false will give you signed commits.
     required: false
-    default: 'rest'
-    type: choice
-    options:
-      - rest
-      - graphql
+    default: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
