@@ -325,6 +325,9 @@ export async function runVersion({
   let { preState } = await readChangesetState(cwd);
 
   await gitUtils.switchToMaybeExistingBranch(versionBranch);
+  if (core.getInput("apiProtocol") === "graphql") {
+    await gitUtils.push(versionBranch);
+  }
   await gitUtils.reset(github.context.sha);
 
   let versionsByDirectory = await getVersionsByDirectory(cwd);
@@ -376,7 +379,9 @@ export async function runVersion({
     await gitUtils.commitAll(finalCommitMessage);
   }
 
-  await gitUtils.push(versionBranch, { force: true });
+  if (core.getInput("apiProtocol") === "rest") {
+    await gitUtils.push(versionBranch, { force: true });
+  }
 
   let existingPullRequests = await existingPullRequestsPromise;
   core.info(JSON.stringify(existingPullRequests.data, null, 2));

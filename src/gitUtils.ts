@@ -1,11 +1,10 @@
+import * as core from "@actions/core";
+import * as github from "@actions/github";
 import { exec, getExecOutput } from "@actions/exec";
+import { commitWithGraphqlApi } from "./commitWithGraphqlApi";
 
 export const setupUser = async () => {
-  await exec("git", [
-    "config",
-    "user.name",
-    `"github-actions[bot]"`,
-  ]);
+  await exec("git", ["config", "user.name", `"github-actions[bot]"`]);
   await exec("git", [
     "config",
     "user.email",
@@ -53,8 +52,24 @@ export const reset = async (
 };
 
 export const commitAll = async (message: string) => {
-  await exec("git", ["add", "."]);
-  await exec("git", ["commit", "-m", message]);
+  const apiProtocol = core.getInput("apiProtocol");
+  if (apiProtocol === "rest") {
+    await exec("git", ["add", "."]);
+    await exec("git", ["commit", "-m", message]);
+  }
+  if (apiProtocol === "graphql") {
+    let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
+    const branch = github.context.ref.replace("refs/heads/", "");
+    let versionBranch = `changeset-release/${branch}`;
+
+    await commitWithGraphqlApi({
+      commitMessage: message,
+      repo,
+      branch: versionBranch,
+    }).catch((error) => {
+      core.setFailed(error.message);
+    });
+  }
 };
 
 export const checkIfClean = async (): Promise<boolean> => {
