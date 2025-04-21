@@ -37,8 +37,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
-  const isAllChangesetsEmpty = changesets.every(
-    (changeset) => changeset.releases.length === 0
+  const hasNonEmptyChangesets = changesets.some(
+    (changeset) => changeset.releases.length > 0
   );
   let hasPublishScript = !!publishScript;
 
@@ -48,9 +48,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
-      core.info(
-        "No changesets present or were removed by merging release PR. Not publishing because no publish script found."
-      );
+      core.info("No changesets present or were removed by merging release PR. Not publishing because no publish script found.");
       return;
     case !hasChangesets && hasPublishScript: {
       core.info(
@@ -101,7 +99,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       }
       return;
     }
-    case hasChangesets && isAllChangesetsEmpty:
+    case hasChangesets && !hasNonEmptyChangesets:
       core.info("All changesets are empty; not creating PR");
       return;
     case hasChangesets:
