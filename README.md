@@ -1,27 +1,43 @@
-# Changesets Release Action
+<h1>Changesets Release Action</h1>
 
 This action for [Changesets](https://github.com/atlassian/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
+
+- [Usage](#usage)
+  - [Inputs](#inputs)
+  - [Outputs](#outputs)
+- [Example workflow:](#example-workflow)
+  - [Without Publishing](#without-publishing)
+  - [With Publishing](#with-publishing)
+    - [Workflow permissions](#workflow-permissions)
+  - [Custom Publishing](#custom-publishing)
+  - [With version script](#with-version-script)
+  - [With Yarn 2 / Plug'n'Play](#with-yarn-2--plugnplay)
 
 ## Usage
 
 ### Inputs
 
-- publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
-- commit - The commit message to use. Default to `Version Packages`
-- title - The pull request title. Default to `Version Packages`
-- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
-- cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+| Name                   | Description                                                                        | Default             |
+| ---------------------- | ---------------------------------------------------------------------------------- | ------------------- |
+| `publish`              | The command used to build and publish packages.                                    |                     |
+| `version`              | The command to update the version, edit the CHANGELOG, and manage changesets.      | `changeset version` |
+| `commit`               | The commit message for version updates.                                            | `Version Packages`  |
+| `title`                | The title for the version update pull request.                                     | `Version Packages`  |
+| `setupGitUser`         | Configures the Git user for commits as `"github-actions[bot]"`.                    | `true`              |
+| `createGithubReleases` | Whether to create a GitHub release after publishing.                               | `true`              |
+| `draftGithubReleases`  | Whether to publish the GitHub release as a draft (unpublished).                    | `false`             |
+| `cwd`                  | The working directory for the process, useful when the project is not in the root. | `process.cwd()`     |
 
 ### Outputs
 
-- published - A boolean value to indicate whether a publishing has happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+| Name                | Description                                                     | Type      | Example                                                                            |
+| ------------------- | --------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------- |
+| `publish`           | Indicates whether publishing has occurred.                      | `boolean` | `true`                                                                             |
+| `publishedPackages` | A JSON array listing the published packages and their versions. | `string`  | `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]` |
 
-### Example workflow:
+## Example workflow:
 
-#### Without Publishing
+### Without Publishing
 
 Create a file at `.github/workflows/release.yml` with the following content.
 
@@ -57,7 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-#### With Publishing
+### With Publishing
 
 Before you can setup this action with publishing, you'll need to have an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) that can publish the packages in the repo you're setting up the action for and doesn't have 2FA on publish enabled ([2FA on auth can be enabled](https://docs.npmjs.com/about-two-factor-authentication)). You'll also need to [add it as a secret on your GitHub repo](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) with the name `NPM_TOKEN`. Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
 
@@ -122,7 +138,15 @@ For example, you can add a step before running the Changesets GitHub Action:
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
-#### Custom Publishing
+#### Workflow permissions
+
+Some organizations and users may not have enabled GitHub Actions to create pull requests. To ensure this feature works correctly, you might need to enable it in your repository settings:
+
+![Workflows Permission](docs/workflow-permissions.png)
+
+You can find this setting at: **`https://github.com/user/repo/settings/actions`**
+
+### Custom Publishing
 
 If you want to hook into when publishing should occur but have your own publishing functionality, you can utilize the `hasChangesets` output.
 
@@ -164,7 +188,7 @@ jobs:
         run: yarn publish
 ```
 
-#### With version script
+### With version script
 
 If you need to add additional logic to the version command, you can do so by using a version script.
 
@@ -205,7 +229,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-#### With Yarn 2 / Plug'n'Play
+### With Yarn 2 / Plug'n'Play
 
 If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you should use a custom `version` command so that the action can resolve the `changeset` CLI:
 
