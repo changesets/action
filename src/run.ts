@@ -299,6 +299,7 @@ type VersionOptions = {
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
+  createPrAsDraft?: boolean;
   branch?: string;
 };
 
@@ -314,6 +315,7 @@ export async function runVersion({
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
+  createPrAsDraft = false,
   branch,
 }: VersionOptions): Promise<RunVersionResult> {
   const octokit = setupOctokit(githubToken);
@@ -399,6 +401,7 @@ export async function runVersion({
       head: versionBranch,
       title: finalPrTitle,
       body: prBody,
+      draft: createPrAsDraft,
       ...github.context.repo,
     });
 
