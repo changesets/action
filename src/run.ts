@@ -60,7 +60,7 @@ const setupOctokit = (githubToken: string) => {
 
 const createRelease = async (
   octokit: ReturnType<typeof setupOctokit>,
-  { pkg, tagName }: { pkg: Package; tagName: string }
+  { pkg, tagName, makeLatest }: { pkg: Package; tagName: string; makeLatest: boolean }
 ) => {
   try {
     let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
@@ -81,6 +81,7 @@ const createRelease = async (
       tag_name: tagName,
       body: changelogEntry.content,
       prerelease: pkg.packageJson.version.includes("-"),
+      make_latest: makeLatest,
       ...github.context.repo,
     });
   } catch (err) {
@@ -100,6 +101,7 @@ type PublishOptions = {
   script: string;
   githubToken: string;
   createGithubReleases: boolean;
+  makeGitHubReleasesLatest: boolean;
   cwd?: string;
 };
 
@@ -118,6 +120,7 @@ export async function runPublish({
   script,
   githubToken,
   createGithubReleases,
+  makeGitHubReleasesLatest,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
   const octokit = setupOctokit(githubToken);
@@ -161,6 +164,7 @@ export async function runPublish({
           createRelease(octokit, {
             pkg,
             tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
+            makeLatest: makeGitHubReleasesLatest,
           })
         )
       );
@@ -184,6 +188,7 @@ export async function runPublish({
           await createRelease(octokit, {
             pkg,
             tagName: `v${pkg.packageJson.version}`,
+            makeLatest: makeGitHubReleasesLatest,
           });
         }
         break;
