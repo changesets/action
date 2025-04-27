@@ -88,8 +88,11 @@ const createRelease = async (
     if (
       err &&
       typeof err === "object" &&
-      "code" in err &&
-      err.code !== "ENOENT"
+      // Handle file system errors
+      (("code" in err && err.code !== "ENOENT") ||
+        // Handle HTTP errors (ignore 404 and 422 - already exists)
+        // code is deprecated in @octokit/request-error
+        ("status" in err && err.status !== 404 && err.status !== 422))
     ) {
       throw err;
     }
