@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.4.10
+
+### Patch Changes
+
+- [#448](https://github.com/changesets/action/pull/448) [`8b16070`](https://github.com/changesets/action/commit/8b16070fe386eed3456c83eeed9460160432cf26) Thanks [@bluwy](https://github.com/bluwy)! - Use full git email (`41898282+github-actions[bot]@users.noreply.github.com`) for github-actions bot when making commits
+
 ## 1.4.9
 
 ### Patch Changes
