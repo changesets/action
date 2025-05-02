@@ -22,8 +22,12 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   const octokit = setupOctokit(githubToken);
-  const commitUsingApi = core.getBooleanInput("commitUsingApi");
-  const git = new Git(commitUsingApi ? octokit : undefined);
+  const commitMode = getOptionalInput("commitMode") ?? "git-cli";
+  if (commitMode !== "git-cli" && commitMode !== "github-api") {
+    core.setFailed(`Invalid commit mode: ${commitMode}`);
+    return;
+  }
+  const git = new Git(commitMode === "github-api" ? octokit : undefined);
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
@@ -114,7 +118,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       const octokit = setupOctokit(githubToken);
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
-        git: new Git(commitUsingApi ? octokit : undefined),
+        git,
         octokit,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
