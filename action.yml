@@ -28,6 +28,14 @@ inputs:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
+  commitMode:
+    description: >
+      An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI,
+      or "github-api" to push changes via the GitHub API. When using "github-api",
+      all commits and tags are signed using GitHub's GPG key and attributed to the user
+      or app who owns the GITHUB_TOKEN.
+    required: false
+    default: "git-cli"
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false

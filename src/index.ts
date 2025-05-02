@@ -1,8 +1,9 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
-import * as gitUtils from "./gitUtils";
-import { runPublish, runVersion } from "./run";
+import { Git } from "./git";
+import { setupOctokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
+import { runPublish, runVersion } from "./run";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -20,11 +21,19 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     process.chdir(inputCwd);
   }
 
+  const octokit = setupOctokit(githubToken);
+  const commitMode = getOptionalInput("commitMode") ?? "git-cli";
+  if (commitMode !== "git-cli" && commitMode !== "github-api") {
+    core.setFailed(`Invalid commit mode: ${commitMode}`);
+    return;
+  }
+  const git = new Git(commitMode === "github-api" ? octokit : undefined);
+
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
   if (setupGitUser) {
     core.info("setting git user");
-    await gitUtils.setupUser();
+    await git.setupUser();
   }
 
   core.info("setting GitHub credentials");
@@ -48,7 +57,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
-      core.info("No changesets present or were removed by merging release PR. Not publishing because no publish script found.");
+      core.info(
+        "No changesets present or were removed by merging release PR. Not publishing because no publish script found."
+      );
       return;
     case !hasChangesets && hasPublishScript: {
       core.info(
@@ -86,7 +97,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       const result = await runPublish({
         script: publishScript,
-        githubToken,
+        git,
+        octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
       });
 
@@ -102,10 +114,12 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     case hasChangesets && !hasNonEmptyChangesets:
       core.info("All changesets are empty; not creating PR");
       return;
-    case hasChangesets:
+    case hasChangesets: {
+      const octokit = setupOctokit(githubToken);
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
-        githubToken,
+        git,
+        octokit,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
@@ -115,6 +129,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       core.setOutput("pullRequestNumber", String(pullRequestNumber));
 
       return;
+    }
   }
 })().catch((err) => {
   core.error(err);

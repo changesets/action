@@ -1,22 +1,21 @@
-import { exec, getExecOutput } from "@actions/exec";
-import { GitHub, getOctokitOptions } from "@actions/github/lib/utils";
-import * as github from "@actions/github";
 import * as core from "@actions/core";
-import fs from "fs-extra";
-import { getPackages, Package } from "@manypkg/get-packages";
-import path from "path";
-import * as semver from "semver";
+import { exec, getExecOutput } from "@actions/exec";
+import * as github from "@actions/github";
 import { PreState } from "@changesets/types";
-import {
-  getChangelogEntry,
-  getChangedPackages,
-  sortTheThings,
-  getVersionsByDirectory,
-} from "./utils";
-import * as gitUtils from "./gitUtils";
-import readChangesetState from "./readChangesetState";
+import { Package, getPackages } from "@manypkg/get-packages";
+import fs from "fs-extra";
+import path from "path";
 import resolveFrom from "resolve-from";
-import { throttling } from "@octokit/plugin-throttling";
+import * as semver from "semver";
+import { Git } from "./git";
+import { Octokit } from "./octokit";
+import readChangesetState from "./readChangesetState";
+import {
+  getChangedPackages,
+  getChangelogEntry,
+  getVersionsByDirectory,
+  sortTheThings,
+} from "./utils";
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -24,42 +23,8 @@ import { throttling } from "@octokit/plugin-throttling";
 // To avoid that, we ensure to cap the message to 60k chars.
 const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
-const setupOctokit = (githubToken: string) => {
-  return new (GitHub.plugin(throttling))(
-    getOctokitOptions(githubToken, {
-      throttle: {
-        onRateLimit: (retryAfter, options: any, octokit, retryCount) => {
-          core.warning(
-            `Request quota exhausted for request ${options.method} ${options.url}`
-          );
-
-          if (retryCount <= 2) {
-            core.info(`Retrying after ${retryAfter} seconds!`);
-            return true;
-          }
-        },
-        onSecondaryRateLimit: (
-          retryAfter,
-          options: any,
-          octokit,
-          retryCount
-        ) => {
-          core.warning(
-            `SecondaryRateLimit detected for request ${options.method} ${options.url}`
-          );
-
-          if (retryCount <= 2) {
-            core.info(`Retrying after ${retryAfter} seconds!`);
-            return true;
-          }
-        },
-      },
-    })
-  );
-};
-
 const createRelease = async (
-  octokit: ReturnType<typeof setupOctokit>,
+  octokit: Octokit,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
   try {
@@ -98,8 +63,9 @@ const createRelease = async (
 
 type PublishOptions = {
   script: string;
-  githubToken: string;
+  octokit: Octokit;
   createGithubReleases: boolean;
+  git: Git;
   cwd?: string;
 };
 
@@ -116,12 +82,11 @@ type PublishResult =
 
 export async function runPublish({
   script,
-  githubToken,
+  git,
+  octokit,
   createGithubReleases,
   cwd = process.cwd(),
 }: PublishOptions): Promise<PublishResult> {
-  const octokit = setupOctokit(githubToken);
-
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
   let changesetPublishOutput = await getExecOutput(
@@ -129,8 +94,6 @@ export async function runPublish({
     publishArgs,
     { cwd }
   );
-
-  await gitUtils.pushTags();
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -157,12 +120,11 @@ export async function runPublish({
 
     if (createGithubReleases) {
       await Promise.all(
-        releasedPackages.map((pkg) =>
-          createRelease(octokit, {
-            pkg,
-            tagName: `${pkg.packageJson.name}@${pkg.packageJson.version}`,
-          })
-        )
+        releasedPackages.map(async (pkg) => {
+          const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
+          await git.pushTag(tagName);
+          await createRelease(octokit, { pkg, tagName });
+        })
       );
     }
   } else {
@@ -181,10 +143,9 @@ export async function runPublish({
       if (match) {
         releasedPackages.push(pkg);
         if (createGithubReleases) {
-          await createRelease(octokit, {
-            pkg,
-            tagName: `v${pkg.packageJson.version}`,
-          });
+          const tagName = `v${pkg.packageJson.version}`;
+          await git.pushTag(tagName);
+          await createRelease(octokit, { pkg, tagName });
         }
         break;
       }
@@ -293,7 +254,8 @@ export async function getVersionPrBody({
 
 type VersionOptions = {
   script?: string;
-  githubToken: string;
+  git: Git;
+  octokit: Octokit;
   cwd?: string;
   prTitle?: string;
   commitMessage?: string;
@@ -308,23 +270,20 @@ type RunVersionResult = {
 
 export async function runVersion({
   script,
-  githubToken,
+  git,
+  octokit,
   cwd = process.cwd(),
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
-  branch,
+  branch = github.context.ref.replace("refs/heads/", ""),
 }: VersionOptions): Promise<RunVersionResult> {
-  const octokit = setupOctokit(githubToken);
-
-  branch = branch ?? github.context.ref.replace("refs/heads/", "");
   let versionBranch = `changeset-release/${branch}`;
 
   let { preState } = await readChangesetState(cwd);
 
-  await gitUtils.switchToMaybeExistingBranch(versionBranch);
-  await gitUtils.reset(github.context.sha);
+  await git.prepareBranch(versionBranch);
 
   let versionsByDirectory = await getVersionsByDirectory(cwd);
 
@@ -366,16 +325,11 @@ export async function runVersion({
   );
 
   const finalPrTitle = `${prTitle}${!!preState ? ` (${preState.tag})` : ""}`;
+  const finalCommitMessage = `${commitMessage}${
+    !!preState ? ` (${preState.tag})` : ""
+  }`;
 
-  // project with `commit: true` setting could have already committed files
-  if (!(await gitUtils.checkIfClean())) {
-    const finalCommitMessage = `${commitMessage}${
-      !!preState ? ` (${preState.tag})` : ""
-    }`;
-    await gitUtils.commitAll(finalCommitMessage);
-  }
-
-  await gitUtils.push(versionBranch, { force: true });
+  await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
 
   let existingPullRequests = await existingPullRequestsPromise;
   core.info(JSON.stringify(existingPullRequests.data, null, 2));
