@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
-import { commitChangesFromRepo } from "@s0/ghcommit/git";
+import { commitChangesFromRepo } from "@changesets/ghcommit/git";
 import { Octokit } from "./octokit";
 
 const push = async (branch: string, { force }: { force?: boolean } = {}) => {

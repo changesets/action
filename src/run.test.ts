@@ -31,7 +31,7 @@ jest.mock("@actions/github/lib/utils", () => ({
   getOctokitOptions: jest.fn(),
 }));
 jest.mock("./git");
-jest.mock("@s0/ghcommit/git");
+jest.mock("@changesets/ghcommit/git");
 
 let mockedGithubMethods = {
   pulls: {
