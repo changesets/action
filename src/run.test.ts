@@ -1,11 +1,11 @@
+import { Changeset } from "@changesets/types";
+import writeChangeset from "@changesets/write";
 import fixturez from "fixturez";
-import * as github from "@actions/github";
-import * as githubUtils from "@actions/github/lib/utils";
 import fs from "fs-extra";
 import path from "path";
-import writeChangeset from "@changesets/write";
-import { Changeset } from "@changesets/types";
-import { getCliPushStrategy, runVersion, setupOctokit } from "./run";
+import { Git } from "./git";
+import { setupOctokit } from "./octokit";
+import { runVersion } from "./run";
 
 jest.mock("@actions/github", () => ({
   context: {
@@ -91,7 +91,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
-      gitPushStrategy: getCliPushStrategy(),
+      git: new Git(),
       cwd,
     });
 
@@ -125,7 +125,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
-      gitPushStrategy: getCliPushStrategy(),
+      git: new Git(),
       cwd,
     });
 
@@ -159,7 +159,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
-      gitPushStrategy: getCliPushStrategy(),
+      git: new Git(),
       cwd,
     });
 
@@ -213,7 +213,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
-      gitPushStrategy: getCliPushStrategy(),
+      git: new Git(),
       cwd,
       prBodyMaxCharacters: 1000,
     });
@@ -271,7 +271,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
-      gitPushStrategy: getCliPushStrategy(),
+      git: new Git(),
       cwd,
       prBodyMaxCharacters: 500,
     });

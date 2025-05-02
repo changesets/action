@@ -1,16 +1,9 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
-import * as gitUtils from "./gitUtils";
-import {
-  getApiPushStrategy,
-  getApiTaggingStrategy,
-  getCliPushStrategy,
-  getCliTaggingStrategy,
-  runPublish,
-  runVersion,
-  setupOctokit,
-} from "./run";
+import { Git } from "./git";
+import { setupOctokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
+import { runPublish, runVersion } from "./run";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -28,14 +21,16 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     process.chdir(inputCwd);
   }
 
+  const octokit = setupOctokit(githubToken);
+  const commitUsingApi = core.getBooleanInput("commitUsingApi");
+  const git = new Git(commitUsingApi ? octokit : undefined);
+
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
   if (setupGitUser) {
     core.info("setting git user");
-    await gitUtils.setupUser();
+    await git.setupUser();
   }
-
-  const commitUsingApi = core.getBooleanInput("commitUsingApi");
 
   core.info("setting GitHub credentials");
   await fs.writeFile(
@@ -96,16 +91,11 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         );
       }
 
-      const octokit = setupOctokit(githubToken);
-      const taggingStrategy = commitUsingApi
-        ? getApiTaggingStrategy(octokit)
-        : getCliTaggingStrategy();
-
       const result = await runPublish({
         script: publishScript,
+        git,
         octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
-        taggingStrategy,
       });
 
       if (result.published) {
@@ -122,16 +112,13 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       return;
     case hasChangesets: {
       const octokit = setupOctokit(githubToken);
-      const gitPushStrategy = commitUsingApi
-        ? getApiPushStrategy(octokit)
-        : getCliPushStrategy();
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
+        git: new Git(commitUsingApi ? octokit : undefined),
         octokit,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
-        gitPushStrategy,
         branch: getOptionalInput("branch"),
       });
 
