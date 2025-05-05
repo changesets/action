@@ -1,5 +1,13 @@
 # @changesets/action
 
+## 1.5.0
+
+### Minor Changes
+
+- [#391](https://github.com/changesets/action/pull/391) [`207dc3d`](https://github.com/changesets/action/commit/207dc3da2d1907cae0454ce123935401332be72b) Thanks [@s0](https://github.com/s0)! - Introduce a new input `commitMode` that allows using the GitHub API for pushing tags and commits instead of the Git CLI.
+
+  When used with `"github-api"` value all tags and commits will be attributed to the user whose GITHUB_TOKEN is used, and also signed using GitHub's internal GPG key.
+
 ## 1.4.10
 
 ### Patch Changes
