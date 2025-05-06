@@ -300,12 +300,6 @@ export async function runVersion({
     });
   }
 
-  const existingPullRequestsPromise = octokit.rest.pulls.list({
-    ...github.context.repo,
-    state: "open",
-    head: `${github.context.repo.owner}:${versionBranch}`,
-    base: branch,
-  });
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
   let changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
@@ -331,7 +325,12 @@ export async function runVersion({
 
   await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
 
-  let existingPullRequests = await existingPullRequestsPromise;
+  let existingPullRequests = await octokit.rest.pulls.list({
+    ...github.context.repo,
+    state: "open",
+    head: `${github.context.repo.owner}:${versionBranch}`,
+    base: branch,
+  });
   core.info(JSON.stringify(existingPullRequests.data, null, 2));
 
   const changedPackagesInfo = (await changedPackagesInfoPromises)
