@@ -28,6 +28,8 @@ If your repository has [restrictive default permissions](https://docs.github.com
 permissions:
   contents: write
   pull-requests: write
+  # uncomment this if you're publishing with provenance https://docs.npmjs.com/generating-provenance-statements
+  # id-token: write
 ```
 
 You also need to check `Allow GitHub Actions to create and approve pull requests` in your repositories Actions settings.
