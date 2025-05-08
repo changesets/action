@@ -34,7 +34,7 @@ You also need to check `Allow GitHub Actions to create and approve pull requests
 
 ### Triggering other workflows
 
-When using the built-in `GITHUB_TOKEN`, tags or releases created by this action won't trigger other workflows. From the [GitHub Docs docs](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow):
+When using the built-in `GITHUB_TOKEN`, tags, releases and some pull request events created by this action won't trigger other workflows. From the [GitHub Docs docs](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow):
 
 > When you use the repository's `GITHUB_TOKEN` to perform tasks, events triggered by the `GITHUB_TOKEN`, will not create a new workflow run. This prevents you from accidentally creating recursive workflow runs.
 
