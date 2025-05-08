@@ -20,6 +20,28 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 - published - A boolean value to indicate whether a publishing has happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
+### Permissions
+
+If your repository has [restrictive default permissions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token), you need to set the following permissions:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+```
+
+You also need to check `Allow GitHub Actions to create and approve pull requests` in your repositories Actions settings.
+
+### Triggering other workflows
+
+When using the built-in `GITHUB_TOKEN`, tags or releases created by this action won't trigger other workflows. From the [GitHub Docs docs](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow):
+
+> When you use the repository's `GITHUB_TOKEN` to perform tasks, events triggered by the `GITHUB_TOKEN`, will not create a new workflow run. This prevents you from accidentally creating recursive workflow runs.
+
+To fix this, you should use a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) or a [GitHub App token](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow) for this action. You also need to set the `commitMode` input to `github-api`.
+
+This is useful when using this action for [managing applications or non-npm packages](https://github.com/changesets/changesets/blob/main/docs/versioning-apps.md), and using tag or release triggers for custom release workflows.
+
 ### Example workflow:
 
 #### Without Publishing
