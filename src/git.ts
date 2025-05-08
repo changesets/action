@@ -87,6 +87,13 @@ export class Git {
 
   async pushChanges({ branch, message }: { branch: string; message: string }) {
     if (this.octokit) {
+      /** 
+       * Only add files form the current working directory
+       * 
+       * This will emulate the behavior of `git add .`,
+       * used in {@link commitAll}.
+       */
+      const addFromDirectory = process.cwd();
       return commitChangesFromRepo({
         octokit: this.octokit,
         ...github.context.repo,
@@ -95,6 +102,7 @@ export class Git {
         base: {
           commit: github.context.sha,
         },
+        addFromDirectory,
         force: true,
       });
     }
