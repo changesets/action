@@ -70,12 +70,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -106,12 +106,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -171,12 +171,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -215,12 +215,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
