@@ -6,19 +6,23 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 
 ### Inputs
 
-- publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
-- commit - The commit message to use. Default to `Version Packages`
-- title - The pull request title. Default to `Version Packages`
-- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
-- commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
-- cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+| Input                  | Default Value       | Description                                                                                                                                   |
+| :--------------------- | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `publish`              | ``                  | The command to use to build and publish packages                                                                                              |
+| `version`              | `changeset version` | The command to update version, edit CHANGELOG, read and delete changesets                                                                     |
+| `commit`               | `Version Packages`  | The commit message to use                                                                                                                     |
+| `title`                | `Version Packages`  | The pull request title                                                                                                                        |
+| `setupGitUser`         | `true`              | Sets up the git user for commits as `"github-actions[bot]"`                                                                                   |
+| `createGithubReleases` | `true`              | A boolean value to indicate whether to create Github releases after `publish` or not                                                          |
+| `commitMode`           | `git-cli`           | Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. [More info](#github-api-commit-mode) |
+| `cwd`                  | `process.cwd()`     | Changes node's `process.cwd()` if the project is not located on the root                                                                      |
 
 ### Outputs
 
-- published - A boolean value to indicate whether a publishing has happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+| Output              | Description                                                                                                                                      |
+| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `published`         | A boolean value to indicate whether a publishing has happened or not                                                                             |
+| `publishedPackages` | A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]` |
 
 ### Permissions
 
