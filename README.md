@@ -38,16 +38,6 @@ permissions:
 
 You also need to check `Allow GitHub Actions to create and approve pull requests` in your repositories Actions settings.
 
-### Triggering other workflows
-
-When using the built-in `GITHUB_TOKEN`, tags, releases and some pull request events created by this action won't trigger other workflows. From the [GitHub Docs docs](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow):
-
-> When you use the repository's `GITHUB_TOKEN` to perform tasks, events triggered by the `GITHUB_TOKEN`, will not create a new workflow run. This prevents you from accidentally creating recursive workflow runs.
-
-To fix this, you should use a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) or a [GitHub App token](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow) for this action. You also need to set the `commitMode` input to `github-api`.
-
-This is useful when using this action for [managing applications or non-npm packages](https://github.com/changesets/changesets/blob/main/docs/versioning-apps.md), and using tag or release triggers for custom release workflows.
-
 ### Example workflow:
 
 #### Without Publishing
@@ -244,3 +234,21 @@ If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you shoul
     version: yarn changeset version
     ...
 ```
+
+## Advanced
+
+### Triggering other workflows
+
+When using the built-in `GITHUB_TOKEN`, tags, releases and some pull request events created by this action won't trigger other workflows. From the [GitHub Docs docs](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow):
+
+> When you use the repository's `GITHUB_TOKEN` to perform tasks, events triggered by the `GITHUB_TOKEN`, will not create a new workflow run. This prevents you from accidentally creating recursive workflow runs.
+
+To fix this, you should use a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) or a [GitHub App token](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow) for this action. You also need to set the `commitMode` input to `github-api`.
+
+This is useful when using this action for [managing applications or non-npm packages](https://github.com/changesets/changesets/blob/main/docs/versioning-apps.md), and using tag or release triggers for custom release workflows.
+
+### GitHub API commit mode
+
+When using `github-api` for the `commitMode` input, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`.
+
+Due to calling the GitHub API more often, you may experience hitting [the rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28). This is more likely when using changesets in multiple, large, or very active projects.
