@@ -1,8 +1,12 @@
 import * as core from "@actions/core";
-import { exec, ExecOptions, getExecOutput } from "@actions/exec";
+import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
 import { commitChangesFromRepo } from "@changesets/ghcommit/git";
 import { Octokit } from "./octokit";
+
+type ExecOptions = {
+  cwd: string;
+}
 
 const push = async (branch: string, options: ExecOptions) => {
   await exec(
