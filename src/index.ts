@@ -15,11 +15,12 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  const inputCwd = core.getInput("cwd");
+  const inputCwd = getOptionalInput("cwd");
   if (inputCwd) {
     core.info("changing directory to the one given as the input");
     process.chdir(inputCwd);
   }
+  const cwd = inputCwd || process.cwd();
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
@@ -27,7 +28,10 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     core.setFailed(`Invalid commit mode: ${commitMode}`);
     return;
   }
-  const git = new Git(commitMode === "github-api" ? octokit : undefined);
+  const git = new Git({
+    octokit: commitMode === "github-api" ? octokit : undefined,
+    cwd
+  });
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
@@ -100,6 +104,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         git,
         octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        cwd,
       });
 
       if (result.published) {
