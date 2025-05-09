@@ -8,7 +8,7 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 
 | Input                  | Default Value       | Description                                                                                                                                   |
 | :--------------------- | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------- |
-| `publish`              | ``                  | The command to use to build and publish packages                                                                                              |
+| `publish`              |                     | The command to use to build and publish packages                                                                                              |
 | `version`              | `changeset version` | The command to update version, edit CHANGELOG, read and delete changesets                                                                     |
 | `commit`               | `Version Packages`  | The commit message to use                                                                                                                     |
 | `title`                | `Version Packages`  | The pull request title                                                                                                                        |
