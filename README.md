@@ -12,7 +12,7 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 | `version`              | `changeset version` | The command to update version, edit CHANGELOG, read and delete changesets                                                                     |
 | `commit`               | `Version Packages`  | The commit message to use                                                                                                                     |
 | `title`                | `Version Packages`  | The pull request title                                                                                                                        |
-| `setupGitUser`         | `true`              | Sets up the git user for commits as `"github-actions[bot]"`                                                                                   |
+| `setupGitUser`         | `true`              | Sets up the git user for commits as `"github-actions[bot]"`. No effect when using `commitMode: github-api`                                    |
 | `createGithubReleases` | `true`              | A boolean value to indicate whether to create Github releases after `publish` or not                                                          |
 | `commitMode`           | `git-cli`           | Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. [More info](#github-api-commit-mode) |
 | `cwd`                  | `process.cwd()`     | Changes node's `process.cwd()` if the project is not located on the root                                                                      |
