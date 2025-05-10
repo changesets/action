@@ -1,5 +1,14 @@
 # @changesets/action
 
+## 1.5.2
+
+### Patch Changes
+
+- [#473](https://github.com/changesets/action/pull/473) [`3c24abe`](https://github.com/changesets/action/commit/3c24abeab26da6335c181222faa2ea485a092cf8) Thanks [@s0](https://github.com/s0)! - Make git add work consistently with subdirectories
+
+  Ensure that when running the action from a subdirectory of a repository,
+  only the files from that directory are added, regardless of `commitMode`.
+
 ## 1.5.1
 
 ### Patch Changes
