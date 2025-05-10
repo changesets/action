@@ -9,13 +9,7 @@ type GitOptions = {
 };
 
 const push = async (branch: string, options: GitOptions) => {
-  await exec(
-    "git",
-    ["push", "origin", `HEAD:${branch}`, "--force"].filter<string>(
-      Boolean as any
-    ),
-    options
-  );
+  await exec("git", ["push", "origin", `HEAD:${branch}`, "--force"], options);
 };
 
 const switchToMaybeExistingBranch = async (
