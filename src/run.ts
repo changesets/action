@@ -66,7 +66,7 @@ type PublishOptions = {
   octokit: Octokit;
   createGithubReleases: boolean;
   git: Git;
-  cwd?: string;
+  cwd: string;
 };
 
 type PublishedPackage = { name: string; version: string };
@@ -85,7 +85,7 @@ export async function runPublish({
   git,
   octokit,
   createGithubReleases,
-  cwd = process.cwd(),
+  cwd,
 }: PublishOptions): Promise<PublishResult> {
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
 
