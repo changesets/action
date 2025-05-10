@@ -34,14 +34,15 @@
     "node": ">= 20"
   },
   "dependencies": {
-    "@actions/core": "^1.10.0",
+    "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
-    "@actions/github": "^5.1.1",
+    "@actions/github": "^6.0.1",
     "@changesets/ghcommit": "1.4.0",
     "@changesets/pre": "^1.0.9",
     "@changesets/read": "^0.5.3",
     "@manypkg/get-packages": "^1.1.3",
-    "@octokit/plugin-throttling": "^5.2.1",
+    "@octokit/core": "^5.2.1",
+    "@octokit/plugin-throttling": "^8.0.0",
     "fs-extra": "^8.1.0",
     "mdast-util-to-string": "^1.0.6",
     "remark-parse": "^7.0.1",
@@ -55,7 +56,6 @@
   },
   "prettier": {},
   "resolutions": {
-    "**/@octokit/core": "4.2.0",
     "trim": "^0.0.3",
     "y18n": "^4.0.1"
   },
