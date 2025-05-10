@@ -4,11 +4,11 @@ import * as github from "@actions/github";
 import { commitChangesFromRepo } from "@changesets/ghcommit/git";
 import { Octokit } from "./octokit";
 
-type ExecOptions = {
+type GitOptions = {
   cwd: string;
-}
+};
 
-const push = async (branch: string, options: ExecOptions) => {
+const push = async (branch: string, options: GitOptions) => {
   await exec(
     "git",
     ["push", "origin", `HEAD:${branch}`, "--force"].filter<string>(
@@ -20,7 +20,7 @@ const push = async (branch: string, options: ExecOptions) => {
 
 const switchToMaybeExistingBranch = async (
   branch: string,
-  options: ExecOptions
+  options: GitOptions
 ) => {
   let { stderr } = await getExecOutput("git", ["checkout", branch], {
     ignoreReturnCode: true,
@@ -34,16 +34,16 @@ const switchToMaybeExistingBranch = async (
   }
 };
 
-const reset = async (pathSpec: string, options: ExecOptions) => {
+const reset = async (pathSpec: string, options: GitOptions) => {
   await exec("git", ["reset", `--hard`, pathSpec], options);
 };
 
-const commitAll = async (message: string, options: ExecOptions) => {
+const commitAll = async (message: string, options: GitOptions) => {
   await exec("git", ["add", "."], options);
   await exec("git", ["commit", "-m", message], options);
 };
 
-const checkIfClean = async (options: ExecOptions): Promise<boolean> => {
+const checkIfClean = async (options: GitOptions): Promise<boolean> => {
   const { stdout } = await getExecOutput(
     "git",
     ["status", "--porcelain"],
