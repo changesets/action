@@ -16,19 +16,9 @@ jest.mock("@actions/github", () => ({
     ref: "refs/heads/some-branch",
     sha: "xeac7",
   },
-}));
-jest.mock("@actions/github/lib/utils", () => ({
-  GitHub: {
-    plugin: () => {
-      // function necessary to be used as constructor
-      return function () {
-        return {
-          rest: mockedGithubMethods,
-        };
-      };
-    },
-  },
-  getOctokitOptions: jest.fn(),
+  getOctokit: () => ({
+    rest: mockedGithubMethods,
+  }),
 }));
 jest.mock("./git");
 jest.mock("@changesets/ghcommit/git");
