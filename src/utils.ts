@@ -96,3 +96,12 @@ export function sortTheThings(
   }
   return -1;
 }
+
+export function isErrorWithCode(err: unknown, code: string) {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    err.code === code
+  );
+}
