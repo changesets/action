@@ -1,6 +1,7 @@
 import unified from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
+import type { Root } from "mdast";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
 import { getPackages, Package } from "@manypkg/get-packages";
@@ -35,11 +36,11 @@ export async function getChangedPackages(
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
-  let ast = unified().use(remarkParse).parse(changelog);
+  let ast = unified().use(remarkParse).parse(changelog) as Root;
 
   let highestLevel: number = BumpLevels.dep;
 
-  let nodes = ast.children as Array<any>;
+  let nodes = ast.children;
   let headingStartInfo:
     | {
         index: number;
@@ -75,10 +76,7 @@ export function getChangelogEntry(changelog: string, version: string) {
     }
   }
   if (headingStartInfo) {
-    ast.children = (ast.children as any).slice(
-      headingStartInfo.index + 1,
-      endIndex
-    );
+    ast.children = ast.children.slice(headingStartInfo.index + 1, endIndex);
   }
   return {
     content: unified().use(remarkStringify).stringify(ast),
