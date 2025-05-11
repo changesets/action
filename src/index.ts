@@ -1,9 +1,9 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
-import { Git } from "./git";
-import { setupOctokit } from "./octokit";
-import readChangesetState from "./readChangesetState";
-import { runPublish, runVersion } from "./run";
+import { Git } from "./git.ts";
+import { setupOctokit } from "./octokit.ts";
+import readChangesetState from "./readChangesetState.ts";
+import { runPublish, runVersion } from "./run.ts";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -30,7 +30,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
   const git = new Git({
     octokit: commitMode === "github-api" ? octokit : undefined,
-    cwd
+    cwd,
   });
 
   let setupGitUser = core.getBooleanInput("setupGitUser");

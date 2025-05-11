@@ -1,12 +1,12 @@
-import { Changeset } from "@changesets/types";
+import type { Changeset } from "@changesets/types";
 import writeChangeset from "@changesets/write";
 import fixturez from "fixturez";
 import fs from "fs-extra";
 import path from "path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Git } from "./git";
-import { setupOctokit } from "./octokit";
-import { runVersion } from "./run";
+import { Git } from "./git.ts";
+import { setupOctokit } from "./octokit.ts";
+import { runVersion } from "./run.ts";
 
 vi.mock("@actions/github", () => ({
   context: {
@@ -21,7 +21,7 @@ vi.mock("@actions/github", () => ({
     rest: mockedGithubMethods,
   }),
 }));
-vi.mock("./git");
+vi.mock("./git.ts");
 vi.mock("@changesets/ghcommit/git");
 
 let mockedGithubMethods = {
@@ -34,11 +34,11 @@ let mockedGithubMethods = {
   },
 };
 
-let f = fixturez(__dirname);
+let f = fixturez(import.meta.dirname);
 
 const linkNodeModules = async (cwd: string) => {
   await fs.symlink(
-    path.join(__dirname, "..", "node_modules"),
+    path.join(import.meta.dirname, "..", "node_modules"),
     path.join(cwd, "node_modules")
   );
 };

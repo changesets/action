@@ -1,22 +1,26 @@
 import * as core from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
-import { PreState } from "@changesets/types";
-import { Package, getPackages } from "@manypkg/get-packages";
+import type { PreState } from "@changesets/types";
+import { type Package, getPackages } from "@manypkg/get-packages";
 import fs from "fs-extra";
+import { resolve } from "import-meta-resolve";
+import { createRequire } from "node:module";
+import { pathToFileURL, fileURLToPath } from "node:url";
 import path from "path";
-import resolveFrom from "resolve-from";
-import semverLt from "semver/functions/lt";
-import { Git } from "./git";
-import { Octokit } from "./octokit";
-import readChangesetState from "./readChangesetState";
+import semverLt from "semver/functions/lt.js";
+import { Git } from "./git.ts";
+import type { Octokit } from "./octokit.ts";
+import readChangesetState from "./readChangesetState.ts";
 import {
   getChangedPackages,
   getChangelogEntry,
   getVersionsByDirectory,
   isErrorWithCode,
   sortTheThings,
-} from "./utils";
+} from "./utils.ts";
+
+const require = createRequire(import.meta.url);
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -162,7 +166,9 @@ export async function runPublish({
 
 const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
-    return require(resolveFrom(cwd, "@changesets/cli/package.json"));
+    return require(require.resolve("@changesets/cli/package.json", {
+      paths: [cwd],
+    }));
   } catch (err) {
     if (isErrorWithCode(err, "MODULE_NOT_FOUND")) {
       throw new Error(
@@ -286,9 +292,21 @@ export async function runVersion({
     let cmd = semverLt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
-    await exec("node", [resolveFrom(cwd, "@changesets/cli/bin.js"), cmd], {
-      cwd,
-    });
+    await exec(
+      "node",
+      [
+        fileURLToPath(
+          resolve(
+            "@changesets/cli/bin.js",
+            pathToFileURL(path.join(cwd, "x.cjs")).toString()
+          )
+        ),
+        cmd,
+      ],
+      {
+        cwd,
+      }
+    );
   }
 
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
