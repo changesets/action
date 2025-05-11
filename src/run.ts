@@ -14,6 +14,7 @@ import {
   getChangedPackages,
   getChangelogEntry,
   getVersionsByDirectory,
+  isErrorWithCode,
   sortTheThings,
 } from "./utils";
 
@@ -27,38 +28,32 @@ const createRelease = async (
   octokit: Octokit,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) => {
+  let changelog;
   try {
-    let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
-
-    let changelog = await fs.readFile(changelogFileName, "utf8");
-
-    let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
-    if (!changelogEntry) {
-      // we can find a changelog but not the entry for this version
-      // if this is true, something has probably gone wrong
-      throw new Error(
-        `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
-      );
-    }
-
-    await octokit.rest.repos.createRelease({
-      name: tagName,
-      tag_name: tagName,
-      body: changelogEntry.content,
-      prerelease: pkg.packageJson.version.includes("-"),
-      ...github.context.repo,
-    });
+    changelog = await fs.readFile(path.join(pkg.dir, "CHANGELOG.md"), "utf8");
   } catch (err) {
-    // if we can't find a changelog, the user has probably disabled changelogs
-    if (
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      err.code !== "ENOENT"
-    ) {
-      throw err;
+    if (isErrorWithCode(err, "ENOENT")) {
+      // if we can't find a changelog, the user has probably disabled changelogs
+      return;
     }
+    throw err;
   }
+  let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
+  if (!changelogEntry) {
+    // we can find a changelog but not the entry for this version
+    // if this is true, something has probably gone wrong
+    throw new Error(
+      `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+    );
+  }
+
+  await octokit.rest.repos.createRelease({
+    name: tagName,
+    tag_name: tagName,
+    body: changelogEntry.content,
+    prerelease: pkg.packageJson.version.includes("-"),
+    ...github.context.repo,
+  });
 };
 
 type PublishOptions = {
@@ -169,14 +164,10 @@ const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
     return require(resolveFrom(cwd, "@changesets/cli/package.json"));
   } catch (err) {
-    if (
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      err.code === "MODULE_NOT_FOUND"
-    ) {
+    if (isErrorWithCode(err, "MODULE_NOT_FOUND")) {
       throw new Error(
-        `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`
+        `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`,
+        { cause: err }
       );
     }
     throw err;
