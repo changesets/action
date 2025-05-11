@@ -1,5 +1,30 @@
 # @changesets/action
 
+## 1.5.2
+
+### Patch Changes
+
+- [#473](https://github.com/changesets/action/pull/473) [`3c24abe`](https://github.com/changesets/action/commit/3c24abeab26da6335c181222faa2ea485a092cf8) Thanks [@s0](https://github.com/s0)! - Make git add work consistently with subdirectories
+
+  Ensure that when running the action from a subdirectory of a repository,
+  only the files from that directory are added, regardless of `commitMode`.
+
+## 1.5.1
+
+### Patch Changes
+
+- [#471](https://github.com/changesets/action/pull/471) [`15ab130`](https://github.com/changesets/action/commit/15ab1306067a396fa9ba7ad363e8a041d457782a) Thanks [@h3rmanj](https://github.com/h3rmanj)! - Bump `@changesets/ghcommit` to v1.4.0, which fixes an issue running this action in monorepos with `commitMode: github-api`
+
+- [#467](https://github.com/changesets/action/pull/467) [`6e57550`](https://github.com/changesets/action/commit/6e575506e63f9e69e475d3eccfdd61b448efc8ae) Thanks [@Vx-V](https://github.com/Vx-V)! - Avoid searching for an existing pull request early.
+
+## 1.5.0
+
+### Minor Changes
+
+- [#391](https://github.com/changesets/action/pull/391) [`207dc3d`](https://github.com/changesets/action/commit/207dc3da2d1907cae0454ce123935401332be72b) Thanks [@s0](https://github.com/s0)! - Introduce a new input `commitMode` that allows using the GitHub API for pushing tags and commits instead of the Git CLI.
+
+  When used with `"github-api"` value all tags and commits will be attributed to the user whose GITHUB_TOKEN is used, and also signed using GitHub's internal GPG key.
+
 ## 1.4.10
 
 ### Patch Changes

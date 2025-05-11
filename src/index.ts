@@ -1,8 +1,9 @@
 import * as core from "@actions/core";
 import fs from "fs-extra";
-import * as gitUtils from "./gitUtils";
-import { runPublish, runVersion } from "./run";
+import { Git } from "./git";
+import { setupOctokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
+import { runPublish, runVersion } from "./run";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -14,17 +15,29 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  const inputCwd = core.getInput("cwd");
+  const inputCwd = getOptionalInput("cwd");
   if (inputCwd) {
     core.info("changing directory to the one given as the input");
     process.chdir(inputCwd);
   }
+  const cwd = inputCwd || process.cwd();
+
+  const octokit = setupOctokit(githubToken);
+  const commitMode = getOptionalInput("commitMode") ?? "git-cli";
+  if (commitMode !== "git-cli" && commitMode !== "github-api") {
+    core.setFailed(`Invalid commit mode: ${commitMode}`);
+    return;
+  }
+  const git = new Git({
+    octokit: commitMode === "github-api" ? octokit : undefined,
+    cwd
+  });
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
   if (setupGitUser) {
     core.info("setting git user");
-    await gitUtils.setupUser();
+    await git.setupUser();
   }
 
   core.info("setting GitHub credentials");
@@ -48,7 +61,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
-      core.info("No changesets present or were removed by merging release PR. Not publishing because no publish script found.");
+      core.info(
+        "No changesets present or were removed by merging release PR. Not publishing because no publish script found."
+      );
       return;
     case !hasChangesets && hasPublishScript: {
       core.info(
@@ -86,8 +101,10 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       const result = await runPublish({
         script: publishScript,
-        githubToken,
+        git,
+        octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        cwd,
       });
 
       if (result.published) {
@@ -102,10 +119,12 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     case hasChangesets && !hasNonEmptyChangesets:
       core.info("All changesets are empty; not creating PR");
       return;
-    case hasChangesets:
+    case hasChangesets: {
+      const octokit = setupOctokit(githubToken);
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
-        githubToken,
+        git,
+        octokit,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
@@ -115,6 +134,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       core.setOutput("pullRequestNumber", String(pullRequestNumber));
 
       return;
+    }
   }
 })().catch((err) => {
   core.error(err);

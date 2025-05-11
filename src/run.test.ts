@@ -1,10 +1,10 @@
+import { Changeset } from "@changesets/types";
+import writeChangeset from "@changesets/write";
 import fixturez from "fixturez";
-import * as github from "@actions/github";
-import * as githubUtils from "@actions/github/lib/utils";
 import fs from "fs-extra";
 import path from "path";
-import writeChangeset from "@changesets/write";
-import { Changeset } from "@changesets/types";
+import { Git } from "./git";
+import { setupOctokit } from "./octokit";
 import { runVersion } from "./run";
 
 jest.mock("@actions/github", () => ({
@@ -16,21 +16,12 @@ jest.mock("@actions/github", () => ({
     ref: "refs/heads/some-branch",
     sha: "xeac7",
   },
+  getOctokit: () => ({
+    rest: mockedGithubMethods,
+  }),
 }));
-jest.mock("@actions/github/lib/utils", () => ({
-    GitHub: {
-        plugin: () => {
-            // function necessary to be used as constructor
-            return function() {
-                return {
-                    rest: mockedGithubMethods,
-                }
-            }
-        },
-    },
-    getOctokitOptions: jest.fn(),
-}));
-jest.mock("./gitUtils");
+jest.mock("./git");
+jest.mock("@changesets/ghcommit/git");
 
 let mockedGithubMethods = {
   pulls: {
@@ -89,7 +80,8 @@ describe("version", () => {
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      git: new Git({ cwd }),
       cwd,
     });
 
@@ -122,7 +114,8 @@ describe("version", () => {
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      git: new Git({ cwd }),
       cwd,
     });
 
@@ -155,7 +148,8 @@ describe("version", () => {
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      git: new Git({ cwd }),
       cwd,
     });
 
@@ -208,7 +202,8 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 1000,
     });
@@ -265,7 +260,8 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      githubToken: "@@GITHUB_TOKEN",
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 500,
     });
