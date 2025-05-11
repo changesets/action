@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import fs from "fs-extra";
+import fs from "node:fs";
 import { Git } from "./git";
 import { setupOctokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
@@ -30,7 +30,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
   const git = new Git({
     octokit: commitMode === "github-api" ? octokit : undefined,
-    cwd
+    cwd,
   });
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
@@ -41,7 +41,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   core.info("setting GitHub credentials");
-  await fs.writeFile(
+  fs.writeFileSync(
     `${process.env.HOME}/.netrc`,
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
@@ -73,7 +73,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
       if (fs.existsSync(userNpmrcPath)) {
         core.info("Found existing user .npmrc file");
-        const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
+        const userNpmrcContent = fs.readFileSync(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
           // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
           return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);

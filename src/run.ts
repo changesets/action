@@ -3,8 +3,8 @@ import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
 import { PreState } from "@changesets/types";
 import { Package, getPackages } from "@manypkg/get-packages";
-import fs from "fs-extra";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import resolveFrom from "resolve-from";
 import * as semver from "semver";
 import { Git } from "./git";
@@ -30,7 +30,7 @@ const createRelease = async (
 ) => {
   let changelog;
   try {
-    changelog = await fs.readFile(path.join(pkg.dir, "CHANGELOG.md"), "utf8");
+    changelog = fs.readFileSync(path.join(pkg.dir, "CHANGELOG.md"), "utf8");
   } catch (err) {
     if (isErrorWithCode(err, "ENOENT")) {
       // if we can't find a changelog, the user has probably disabled changelogs
@@ -294,7 +294,7 @@ export async function runVersion({
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
   let changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
-      let changelogContents = await fs.readFile(
+      let changelogContents = fs.readFileSync(
         path.join(pkg.dir, "CHANGELOG.md"),
         "utf8"
       );

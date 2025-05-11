@@ -1,8 +1,8 @@
 import { Changeset } from "@changesets/types";
 import writeChangeset from "@changesets/write";
 import fixturez from "fixturez";
-import fs from "fs-extra";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { Git } from "./git";
 import { setupOctokit } from "./octokit";
 import { runVersion } from "./run";
@@ -36,7 +36,7 @@ let mockedGithubMethods = {
 let f = fixturez(__dirname);
 
 const linkNodeModules = async (cwd: string) => {
-  await fs.symlink(
+  fs.symlinkSync(
     path.join(__dirname, "..", "node_modules"),
     path.join(cwd, "node_modules")
   );
