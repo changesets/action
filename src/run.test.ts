@@ -3,11 +3,12 @@ import writeChangeset from "@changesets/write";
 import fixturez from "fixturez";
 import fs from "fs-extra";
 import path from "path";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Git } from "./git";
 import { setupOctokit } from "./octokit";
 import { runVersion } from "./run";
 
-jest.mock("@actions/github", () => ({
+vi.mock("@actions/github", () => ({
   context: {
     repo: {
       owner: "changesets",
@@ -20,16 +21,16 @@ jest.mock("@actions/github", () => ({
     rest: mockedGithubMethods,
   }),
 }));
-jest.mock("./git");
-jest.mock("@changesets/ghcommit/git");
+vi.mock("./git");
+vi.mock("@changesets/ghcommit/git");
 
 let mockedGithubMethods = {
   pulls: {
-    create: jest.fn(),
-    list: jest.fn(),
+    create: vi.fn(),
+    list: vi.fn(),
   },
   repos: {
-    createRelease: jest.fn(),
+    createRelease: vi.fn(),
   },
 };
 
@@ -46,7 +47,7 @@ const writeChangesets = (changesets: Changeset[], cwd: string) => {
 };
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("version", () => {
