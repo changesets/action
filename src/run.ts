@@ -6,7 +6,7 @@ import { Package, getPackages } from "@manypkg/get-packages";
 import fs from "fs-extra";
 import path from "path";
 import resolveFrom from "resolve-from";
-import * as semver from "semver";
+import semverLt from "semver/functions/lt";
 import { Git } from "./git";
 import { Octokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
@@ -283,7 +283,7 @@ export async function runVersion({
     await exec(versionCommand, versionArgs, { cwd });
   } else {
     let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
-    let cmd = semver.lt(changesetsCliPkgJson.version, "2.0.0")
+    let cmd = semverLt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
     await exec("node", [resolveFrom(cwd, "@changesets/cli/bin.js"), cmd], {
