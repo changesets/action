@@ -50,6 +50,7 @@ const createRelease = async (
   await octokit.rest.repos.createRelease({
     name: tagName,
     tag_name: tagName,
+    target_commitish: github.context.sha,
     body: changelogEntry.content,
     prerelease: pkg.packageJson.version.includes("-"),
     ...github.context.repo,
