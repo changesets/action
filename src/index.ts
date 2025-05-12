@@ -4,6 +4,7 @@ import { Git } from "./git";
 import { setupOctokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
 import { runPublish, runVersion } from "./run";
+import { resolve } from "path";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -16,11 +17,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   const inputCwd = getOptionalInput("cwd");
-  if (inputCwd) {
-    core.info("changing directory to the one given as the input");
-    process.chdir(inputCwd);
-  }
-  const cwd = inputCwd || process.cwd();
+  const cwd = inputCwd ? resolve(inputCwd) : process.cwd();
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
