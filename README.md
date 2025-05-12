@@ -252,3 +252,11 @@ This is useful when using this action for [managing applications or non-npm pack
 When using `github-api` for the `commitMode` input, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`.
 
 Due to calling the GitHub API more often, you may experience hitting [the rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28). This is more likely when using changesets in multiple, large, or very active projects.
+
+This mode uses [`@changesets/ghcommit`](https://github.com/changesets/ghcommit) to commit changes, which has some [known limitations](https://github.com/changesets/ghcommit?tab=readme-ov-file#known-limitations):
+
+> Due to using the GitHub API to make changes to repository contents, there are some things it's not possible to commit, and where using the Git CLI is still required.
+>
+> - Executable files
+> - Symbolic Links
+> - Submodule changes
