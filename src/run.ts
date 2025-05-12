@@ -4,9 +4,7 @@ import * as github from "@actions/github";
 import type { PreState } from "@changesets/types";
 import { type Package, getPackages } from "@manypkg/get-packages";
 import fs from "fs-extra";
-import { resolve } from "import-meta-resolve";
 import { createRequire } from "node:module";
-import { pathToFileURL, fileURLToPath } from "node:url";
 import path from "path";
 import semverLt from "semver/functions/lt.js";
 import { Git } from "./git.ts";
@@ -295,12 +293,9 @@ export async function runVersion({
     await exec(
       "node",
       [
-        fileURLToPath(
-          resolve(
-            "@changesets/cli/bin.js",
-            pathToFileURL(path.join(cwd, "x.cjs")).toString()
-          )
-        ),
+        require.resolve("@changesets/cli/bin.js", {
+          paths: [cwd],
+        }),
         cmd,
       ],
       {

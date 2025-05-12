@@ -42,7 +42,6 @@
     "@octokit/plugin-throttling": "^8.0.0",
     "@types/mdast": "^3.0.0",
     "fs-extra": "^8.1.0",
-    "import-meta-resolve": "^4.1.0",
     "mdast-util-to-string": "^1.0.6",
     "remark-parse": "^7.0.1",
     "remark-stringify": "^7.0.3",
