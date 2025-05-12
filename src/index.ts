@@ -30,7 +30,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
   const git = new Git({
     octokit: commitMode === "github-api" ? octokit : undefined,
-    cwd
+    cwd,
   });
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
@@ -104,6 +104,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         git,
         octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        commitMode,
         cwd,
       });
 
