@@ -24,7 +24,8 @@
     "typecheck": "tsc",
     "changeset": "changeset",
     "bump": "node ./scripts/bump.js",
-    "release": "node ./scripts/release.js"
+    "release": "node ./scripts/release.js",
+    "release:pr": "node ./scripts/release-pr.js"
   },
   "engines": {
     "node": ">= 20"
