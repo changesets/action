@@ -1,9 +1,10 @@
 import * as core from "@actions/core";
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import { Git } from "./git";
 import { setupOctokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
 import { runPublish, runVersion } from "./run";
+import { fileExists } from "./utils";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -41,7 +42,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   core.info("setting GitHub credentials");
-  fs.writeFileSync(
+  await fs.writeFile(
     `${process.env.HOME}/.netrc`,
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
@@ -71,9 +72,9 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (fs.existsSync(userNpmrcPath)) {
+      if (await fileExists(userNpmrcPath)) {
         core.info("Found existing user .npmrc file");
-        const userNpmrcContent = fs.readFileSync(userNpmrcPath, "utf8");
+        const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
           // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
           return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
@@ -86,14 +87,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           core.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
-          fs.appendFileSync(
+          await fs.appendFile(
             userNpmrcPath,
             `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
       } else {
         core.info("No user .npmrc file found, creating one");
-        fs.writeFileSync(
+        await fs.writeFile(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
         );

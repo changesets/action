@@ -1,7 +1,7 @@
 import { Changeset } from "@changesets/types";
 import writeChangeset from "@changesets/write";
 import fixturez from "fixturez";
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { Git } from "./git";
 import { setupOctokit } from "./octokit";
@@ -36,7 +36,7 @@ let mockedGithubMethods = {
 let f = fixturez(__dirname);
 
 const linkNodeModules = async (cwd: string) => {
-  fs.symlinkSync(
+  await fs.symlink(
     path.join(__dirname, "..", "node_modules"),
     path.join(cwd, "node_modules")
   );
@@ -52,7 +52,7 @@ beforeEach(() => {
 describe("version", () => {
   it("creates simple PR", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -90,7 +90,7 @@ describe("version", () => {
 
   it("only includes bumped packages in the PR body", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -124,7 +124,7 @@ describe("version", () => {
 
   it("doesn't include ignored package that got a dependency update in the PR body", async () => {
     let cwd = f.copy("ignored-package");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -158,7 +158,7 @@ describe("version", () => {
 
   it("does not include changelog entries if full message exceeds size limit", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -216,7 +216,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
   it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
