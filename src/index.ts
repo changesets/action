@@ -1,9 +1,10 @@
 import * as core from "@actions/core";
-import fs from "fs-extra";
+import fs from "node:fs/promises";
 import { Git } from "./git";
 import { setupOctokit } from "./octokit";
 import readChangesetState from "./readChangesetState";
 import { runPublish, runVersion } from "./run";
+import { fileExists } from "./utils";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -30,7 +31,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
   const git = new Git({
     octokit: commitMode === "github-api" ? octokit : undefined,
-    cwd
+    cwd,
   });
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
@@ -71,7 +72,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (fs.existsSync(userNpmrcPath)) {
+      if (await fileExists(userNpmrcPath)) {
         core.info("Found existing user .npmrc file");
         const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
@@ -86,14 +87,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           core.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
-          fs.appendFileSync(
+          await fs.appendFile(
             userNpmrcPath,
             `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
       } else {
         core.info("No user .npmrc file found, creating one");
-        fs.writeFileSync(
+        await fs.writeFile(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
         );
