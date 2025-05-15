@@ -1,6 +1,7 @@
 import unified from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
+import fs from "node:fs/promises";
 import type { Root } from "mdast";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
@@ -103,5 +104,12 @@ export function isErrorWithCode(err: unknown, code: string) {
     err !== null &&
     "code" in err &&
     err.code === code
+  );
+}
+
+export function fileExists(filePath: string) {
+  return fs.access(filePath, fs.constants.F_OK).then(
+    () => true,
+    () => false
   );
 }

@@ -1,9 +1,10 @@
 import * as core from "@actions/core";
-import fs from "fs-extra";
+import fs from "node:fs/promises";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
+import { fileExists } from "./utils.ts";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -71,7 +72,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (fs.existsSync(userNpmrcPath)) {
+      if (await fileExists(userNpmrcPath)) {
         core.info("Found existing user .npmrc file");
         const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
@@ -86,14 +87,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           core.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
-          fs.appendFileSync(
+          await fs.appendFile(
             userNpmrcPath,
             `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
       } else {
         core.info("No user .npmrc file found, creating one");
-        fs.writeFileSync(
+        await fs.writeFile(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
         );
