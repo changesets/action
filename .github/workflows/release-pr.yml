@@ -69,6 +69,11 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Setup Git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Release snapshot version
         run: yarn run release:pr
 
