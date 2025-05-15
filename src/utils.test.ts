@@ -93,6 +93,11 @@ test("it sorts the things right", () => {
       private: false,
     },
     {
+      name: "d",
+      highestLevel: BumpLevels.major,
+      private: false,
+    },
+    {
       name: "c",
       highestLevel: BumpLevels.major,
       private: false,

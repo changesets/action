@@ -305,6 +305,7 @@ export async function runVersion({
         private: !!pkg.packageJson.private,
         content: entry.content,
         header: `## ${pkg.packageJson.name}@${pkg.packageJson.version}`,
+        name: pkg.packageJson.name,
       };
     })
   );
