@@ -25,7 +25,8 @@
     "typecheck": "tsc",
     "changeset": "changeset",
     "bump": "node --experimental-strip-types ./scripts/bump.ts",
-    "release": "node --experimental-strip-types ./scripts/release.ts"
+    "release": "node --experimental-strip-types ./scripts/release.ts",
+    "release:pr": "node --experimental-strip-types ./scripts/release-pr.ts"
   },
   "engines": {
     "node": ">= 20"
