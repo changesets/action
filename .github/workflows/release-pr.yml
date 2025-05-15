@@ -54,10 +54,10 @@ jobs:
         if: steps.check_version_packages.outputs.version_packages == 'true'
         run: git reset --hard HEAD~1
 
-      - uses: actions/setup-node@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "yarn"
+          node-version: 20.x
 
       - name: Install Dependencies
         run: yarn --frozen-lockfile
@@ -101,3 +101,4 @@ jobs:
       - run: gh pr comment ${{ github.event.issue.number }} --body "The release triggered by [this comment](${{ github.event.comment.url }}) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
