@@ -80,7 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: gh pr comment ${{ github.event.issue.number }} --body 'The [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD)) release triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).'
+      - run: gh pr comment ${{ github.event.issue.number }} --body "The [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD)) release triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -98,6 +98,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: gh pr comment ${{ github.event.issue.number }} --body 'The release triggered by [this comment](${{ github.event.comment.url }}) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).'
+      - run: gh pr comment ${{ github.event.issue.number }} --body "The release triggered by [this comment](${{ github.event.comment.url }}) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
