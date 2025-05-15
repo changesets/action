@@ -3,8 +3,8 @@ import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
 import { PreState } from "@changesets/types";
 import { Package, getPackages } from "@manypkg/get-packages";
-import fs from "fs-extra";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import resolveFrom from "resolve-from";
 import semverLt from "semver/functions/lt";
 import { Git } from "./git";
@@ -314,15 +314,22 @@ export async function runVersion({
     !!preState ? ` (${preState.tag})` : ""
   }`;
 
-  await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
-
-  let existingPullRequests = await octokit.rest.pulls.list({
+  /**
+   * Fetch any existing pull requests that are open against the branch,
+   * before we push any changes that may inadvertently close the existing PRs.
+   * 
+   * (`@changesets/ghcommit` has to reset the branch to the same commit as the base,
+   * which GitHub will then react to by closing the PRs)
+   */
+  const existingPullRequests = await octokit.rest.pulls.list({
     ...github.context.repo,
     state: "open",
     head: `${github.context.repo.owner}:${versionBranch}`,
     base: branch,
   });
-  core.info(JSON.stringify(existingPullRequests.data, null, 2));
+  core.info(`Existing pull requests: ${JSON.stringify(existingPullRequests.data, null, 2)}`);
+
+  await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
 
   const changedPackagesInfo = (await changedPackagesInfoPromises)
     .filter((x) => x)
