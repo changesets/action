@@ -17,8 +17,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  const inputCwd = getOptionalInput("cwd");
-  const cwd = inputCwd ? path.resolve(inputCwd) : process.cwd();
+  const cwd = path.resolve(getOptionalInput("cwd") ?? "");
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
