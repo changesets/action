@@ -117,7 +117,7 @@ export class Git {
         base: {
           commit: github.context.sha,
         },
-        addFromDirectory,
+        cwd: this.cwd,
         force: true,
       });
     }

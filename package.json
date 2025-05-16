@@ -33,7 +33,7 @@
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.1",
-    "@changesets/ghcommit": "1.4.0",
+    "@changesets/ghcommit": "^2.0.0",
     "@changesets/pre": "^1.0.9",
     "@changesets/read": "^0.5.3",
     "@manypkg/get-packages": "^1.1.3",
