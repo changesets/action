@@ -1,5 +1,23 @@
 # @changesets/action
 
+## 1.5.3
+
+### Patch Changes
+
+- [#477](https://github.com/changesets/action/pull/477) [`9d933dc`](https://github.com/changesets/action/commit/9d933dcd11c284ac49a835db884c3c1008b2b96f) Thanks [@Andarist](https://github.com/Andarist)! - Updated `@actions/*` and `@octokit/*` dependencies.
+
+- [#479](https://github.com/changesets/action/pull/479) [`cf373e4`](https://github.com/changesets/action/commit/cf373e45c90a0cc564cd2770de3e9a3a4cdd4603) Thanks [@Andarist](https://github.com/Andarist)! - Switched to `esbuild` for bundling the dist file. This led to 45% file size reduction.
+
+- [#488](https://github.com/changesets/action/pull/488) [`022692b`](https://github.com/changesets/action/commit/022692ba027b33bf46d4d41907a317fbf04461a7) Thanks [@s0](https://github.com/s0)! - Fix PRs sometimes not getting reopened with `commitMode: github-api`
+
+  There was a race-condition that means sometimes existing PRs would not be found,
+  and new PRs would be opened. This has now been fixed by fetching existing PRs
+  before making any changes.
+
+- [#486](https://github.com/changesets/action/pull/486) [`7ed1955`](https://github.com/changesets/action/commit/7ed195554624ebd75c08aa477b53110f61cc78f7) Thanks [@s0](https://github.com/s0)! - Fixed situations in which `cwd` was specified as a relative path and used with (default) `commitMode: git-cli`
+
+- [#461](https://github.com/changesets/action/pull/461) [`e9c36b6`](https://github.com/changesets/action/commit/e9c36b696406360bf04204ad32e3dcf3ad752b77) Thanks [@nayounsang](https://github.com/nayounsang)! - Avoid hitting a deprecation warning when encountering errors from `@octokit/request-error`
+
 ## 1.5.2
 
 ### Patch Changes
