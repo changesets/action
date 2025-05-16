@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import fs from "node:fs/promises";
+import path from "node:path";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
@@ -16,12 +17,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  const inputCwd = getOptionalInput("cwd");
-  if (inputCwd) {
-    core.info("changing directory to the one given as the input");
-    process.chdir(inputCwd);
-  }
-  const cwd = inputCwd || process.cwd();
+  const cwd = path.resolve(getOptionalInput("cwd") ?? "");
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";

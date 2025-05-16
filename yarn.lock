@@ -212,10 +212,10 @@
   resolved "https://registry.yarnpkg.com/@changesets/get-version-range-type/-/get-version-range-type-0.4.0.tgz#429a90410eefef4368502c41c63413e291740bf5"
   integrity sha512-hwawtob9DryoGTpixy1D3ZXbGgJu1Rhr+ySH2PvTLHvkZuQ7sRT4oQwMh0hbqZH1weAooedEjRsbrWcGLCeyVQ==
 
-"@changesets/ghcommit@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@changesets/ghcommit/-/ghcommit-1.4.0.tgz#61a8bcdad1e78140ad69b6c6980e9c82471c8993"
-  integrity sha512-gG4QZsMwply4wFxqjfO7oI70lAb579zRbKB2EgjkVo+olWzXvmcQb52zkLpL3L9+QrAGD0QP8fNER9Wn3CmcHw==
+"@changesets/ghcommit@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@changesets/ghcommit/-/ghcommit-2.0.0.tgz#a3d8f733ad7ec9bb1f17c7dc0b64c3f62636305f"
+  integrity sha512-UFS7mCjh3B8KfiDQi6JbZNDoANdTqLgBKHCwMASZ25A3yfxaFVKURGzwdMdlcYx5k6dHN1igDHzgXuwOyZ9xKg==
   dependencies:
     isomorphic-git "^1.27.1"
 
