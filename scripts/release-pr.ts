@@ -6,7 +6,7 @@ import pkgJson from "../package.json" with { type: "json" };
 const tag = `v${pkgJson.version}`;
 const releaseLine = "pr-release";
 
-process.chdir(path.join(__dirname, ".."));
+process.chdir(path.join(import.meta.dirname, ".."));
 
 await exec("git", ["checkout", "--detach"]);
 await exec("git", ["add", "--force", "dist"]);
