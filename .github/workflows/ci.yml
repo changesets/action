@@ -26,6 +26,9 @@ jobs:
       - run: ls -alh .github/actions
         shell: bash
 
+      - run: file .github/actions/ci-setup
+        shell: bash
+
       - run: ls -alh .github/actions/ci-setup
         shell: bash
 
