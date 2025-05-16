@@ -16,7 +16,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          
+      
+      - run: ls -alh
+        shell: bash
+
+      - run: ls -alh .github
+        shell: bash
+
+      - run: ls -alh .github/actions
+        shell: bash
+
+      - run: ls -alh .github/actions/ci-setup
+        shell: bash
+
       - uses: ./.github/actions/ci-setup
 
       - name: Typecheck
