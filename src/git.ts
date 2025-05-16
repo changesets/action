@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
 import { commitChangesFromRepo } from "@changesets/ghcommit/git";
-import { Octokit } from "./octokit";
+import type { Octokit } from "./octokit.ts";
 
 type GitOptions = {
   cwd: string;

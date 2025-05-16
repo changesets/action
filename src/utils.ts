@@ -5,7 +5,7 @@ import fs from "node:fs/promises";
 import type { Root } from "mdast";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
-import { getPackages, Package } from "@manypkg/get-packages";
+import { getPackages, type Package } from "@manypkg/get-packages";
 
 export const BumpLevels = {
   dep: 0,

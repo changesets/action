@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "node18",
-    "noEmit": true,
-    "isolatedModules": true,
-    "strict": true,
-    "moduleResolution": "node16",
+    "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
-    "skipLibCheck": true
+    "isolatedModules": true,
+    "module": "node18",
+    "moduleResolution": "node16",
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "esnext",
+    "verbatimModuleSyntax": true
   }
 }

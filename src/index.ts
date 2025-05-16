@@ -1,11 +1,11 @@
 import * as core from "@actions/core";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { Git } from "./git";
-import { setupOctokit } from "./octokit";
-import readChangesetState from "./readChangesetState";
-import { runPublish, runVersion } from "./run";
-import { fileExists } from "./utils";
+import { Git } from "./git.ts";
+import { setupOctokit } from "./octokit.ts";
+import readChangesetState from "./readChangesetState.ts";
+import { runPublish, runVersion } from "./run.ts";
+import { fileExists } from "./utils.ts";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
