@@ -12,18 +12,18 @@ exports[`version > creates simple PR 1`] = `
 
 ### Minor Changes
 
--   Awesome feature
+* Awesome feature
 
 ### Patch Changes
 
--   Updated dependencies
-    -   simple-project-pkg-b@1.1.0
+* Updated dependencies
+  * simple-project-pkg-b@1.1.0
 
 ## simple-project-pkg-b@1.1.0
 
 ### Minor Changes
 
--   Awesome feature
+* Awesome feature
 ",
     "head": "changeset-release/some-branch",
     "owner": "changesets",
@@ -85,7 +85,7 @@ exports[`version > doesn't include ignored package that got a dependency update 
 
 ### Minor Changes
 
--   Awesome feature
+* Awesome feature
 ",
     "head": "changeset-release/some-branch",
     "owner": "changesets",
@@ -107,7 +107,7 @@ exports[`version > only includes bumped packages in the PR body 1`] = `
 
 ### Minor Changes
 
--   Awesome feature
+* Awesome feature
 ",
     "head": "changeset-release/some-branch",
     "owner": "changesets",
