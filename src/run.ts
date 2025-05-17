@@ -28,7 +28,11 @@ const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
 const createRelease = async (
   octokit: Octokit,
-  { pkg, tagName }: { pkg: Package; tagName: string }
+  {
+    pkg,
+    tagName,
+    commitMode,
+  }: { pkg: Package; tagName: string; commitMode: "github-api" | "git-cli" }
 ) => {
   let changelog;
   try {
@@ -49,19 +53,28 @@ const createRelease = async (
     );
   }
 
-  await octokit.rest.repos.createRelease({
+  let createReleaseParams: Parameters<
+    typeof octokit.rest.repos.createRelease
+  >[0] = {
     name: tagName,
     tag_name: tagName,
     body: changelogEntry.content,
     prerelease: pkg.packageJson.version.includes("-"),
     ...github.context.repo,
-  });
+  };
+
+  if (commitMode === "github-api") {
+    createReleaseParams.target_commitish = github.context.sha;
+  }
+
+  await octokit.rest.repos.createRelease(createReleaseParams);
 };
 
 type PublishOptions = {
   script: string;
   octokit: Octokit;
   createGithubReleases: boolean;
+  commitMode: "github-api" | "git-cli";
   git: Git;
   cwd: string;
 };
@@ -82,6 +95,7 @@ export async function runPublish({
   git,
   octokit,
   createGithubReleases,
+  commitMode,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
@@ -120,7 +134,7 @@ export async function runPublish({
         releasedPackages.map(async (pkg) => {
           const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
           await git.pushTag(tagName);
-          await createRelease(octokit, { pkg, tagName });
+          await createRelease(octokit, { pkg, tagName, commitMode });
         })
       );
     }
@@ -142,7 +156,7 @@ export async function runPublish({
         if (createGithubReleases) {
           const tagName = `v${pkg.packageJson.version}`;
           await git.pushTag(tagName);
-          await createRelease(octokit, { pkg, tagName });
+          await createRelease(octokit, { pkg, tagName, commitMode });
         }
         break;
       }
