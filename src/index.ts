@@ -40,7 +40,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   core.info("setting GitHub credentials");
   await fs.writeFile(
     `${process.env.HOME}/.netrc`,
-    `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
+    `machine github.com\nlogin github-actions[bot]\npassword \$GITHUB_TOKEN`
   );
 
   let { changesets } = await readChangesetState();
@@ -85,14 +85,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           );
           await fs.appendFile(
             userNpmrcPath,
-            `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+            `\n//registry.npmjs.org/:_authToken=\$\{NPM_TOKEN\}\n`
           );
         }
       } else {
         core.info("No user .npmrc file found, creating one");
         await fs.writeFile(
           userNpmrcPath,
-          `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+          `//registry.npmjs.org/:_authToken=\$\{NPM_TOKEN\}\n`
         );
       }
 
