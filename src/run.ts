@@ -115,15 +115,15 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    if (createGithubReleases) {
-      await Promise.all(
-        releasedPackages.map(async (pkg) => {
-          const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          await git.pushTag(tagName);
+    await Promise.all(
+      releasedPackages.map(async (pkg) => {
+        const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
+        await git.pushTag(tagName);
+        if (createGithubReleases) {
           await createRelease(octokit, { pkg, tagName });
-        })
-      );
-    }
+        }
+      })
+    );
   } else {
     if (packages.length === 0) {
       throw new Error(
@@ -139,9 +139,9 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
+        const tagName = `v${pkg.packageJson.version}`;
+        await git.pushTag(tagName);
         if (createGithubReleases) {
-          const tagName = `v${pkg.packageJson.version}`;
-          await git.pushTag(tagName);
           await createRelease(octokit, { pkg, tagName });
         }
         break;
@@ -330,7 +330,7 @@ export async function runVersion({
   /**
    * Fetch any existing pull requests that are open against the branch,
    * before we push any changes that may inadvertently close the existing PRs.
-   * 
+   *
    * (`@changesets/ghcommit` has to reset the branch to the same commit as the base,
    * which GitHub will then react to by closing the PRs)
    */
@@ -340,7 +340,13 @@ export async function runVersion({
     head: `${github.context.repo.owner}:${versionBranch}`,
     base: branch,
   });
-  core.info(`Existing pull requests: ${JSON.stringify(existingPullRequests.data, null, 2)}`);
+  core.info(
+    `Existing pull requests: ${JSON.stringify(
+      existingPullRequests.data,
+      null,
+      2
+    )}`
+  );
 
   await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
 
