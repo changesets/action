@@ -88,7 +88,10 @@ export class Git {
           core.warning(`Failed to create tag ${tag}: ${err.message}`);
         });
     }
-    await exec("git", ["push", "origin", tag], { cwd: this.cwd });
+    await exec("git", ["push", "origin", tag], {
+      cwd: this.cwd,
+      ignoreReturnCode: true,
+    });
   }
 
   async prepareBranch(branch: string) {
