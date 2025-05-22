@@ -18,6 +18,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   const cwd = path.resolve(getOptionalInput("cwd") ?? "");
+  core.info(`setting working folder to: ${cwd}`);
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
@@ -43,7 +44,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
 
-  let { changesets } = await readChangesetState();
+  let { changesets } = await readChangesetState(cwd);
 
   let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
