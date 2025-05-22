@@ -18,6 +18,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   const cwd = path.resolve(getOptionalInput("cwd") ?? "");
+  core.info(`setting working folder to: ${cwd}`);
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
