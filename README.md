@@ -12,6 +12,8 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 - title - The pull request title. Default to `Version Packages`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- combineReleases - A boolean value to indicate whether to combine all package releases into a single GitHub release or not. Default to `false`
+  - This is meant to be used when you use fixed versioning, where all packages are bumped to the same version number. Using different versioning strategies with this option may lead to unexpected results, for example overlapping Github tags or releases.
 - commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
 
