@@ -1,0 +1,19 @@
+name: 'Dependency Review'
+
+on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  dependency-review:
+    runs-on: self-hosted
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+
+      - name: 'Run Dependency Review'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: 'high' # Optional: block merge if high severity changes are detected
