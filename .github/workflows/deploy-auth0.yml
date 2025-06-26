@@ -1,0 +1,24 @@
+name: 🚀 Deploy Auth0 Configuration
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-auth0:
+    name: 🔐 AuthSync Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Deploy Auth0 Configuration via AuthSync
+        uses: boomchainlabs/authsync-deploy@v4
+        with:
+          client_id: ${{ secrets.AUTH0_CLIENT_ID }}
+          client_secret: ${{ secrets.AUTH0_CLIENT_SECRET }}
+          domain: ${{ secrets.AUTH0_DOMAIN }}
+          config_file: .auth0-deploy.yaml
