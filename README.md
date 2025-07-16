@@ -14,6 +14,8 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
 - commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+- branch - Sets the branch in which the action will run. Default to `github.ref_name`
+- prBranchSuffix - The suffix to include after `changeset-release/` in the PR branch. Defaults to the `branch` variable.
 
 ### Outputs
 
