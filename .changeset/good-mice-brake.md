@@ -1,5 +1,5 @@
 ---
-"@changesets/action": patch
+"@changesets/action": minor
 ---
 
-Allow customize branch name
+Allow a custom PR branch name with prBranchSuffix
