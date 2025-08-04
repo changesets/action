@@ -1,9 +1,24 @@
 import * as core from "@actions/core";
+<<<<<<< HEAD
 import fs from "fs-extra";
 import * as gitUtils from "./gitUtils";
 import { runPublish, runVersion } from "./run";
 // import readChangesetState from "./readChangesetState";
 import getReleasePlan from "@changesets/get-release-plan";
+||||||| 07dc948
+import fs from "fs-extra";
+import * as gitUtils from "./gitUtils";
+import { runPublish, runVersion } from "./run";
+import readChangesetState from "./readChangesetState";
+=======
+import fs from "node:fs/promises";
+import path from "node:path";
+import { Git } from "./git.ts";
+import { setupOctokit } from "./octokit.ts";
+import readChangesetState from "./readChangesetState.ts";
+import { runPublish, runVersion } from "./run.ts";
+import { fileExists } from "./utils.ts";
+>>>>>>> upstream/main
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -15,17 +30,24 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  const inputCwd = core.getInput("cwd");
-  if (inputCwd) {
-    core.info("changing directory to the one given as the input");
-    process.chdir(inputCwd);
+  const cwd = path.resolve(getOptionalInput("cwd") ?? "");
+
+  const octokit = setupOctokit(githubToken);
+  const commitMode = getOptionalInput("commitMode") ?? "git-cli";
+  if (commitMode !== "git-cli" && commitMode !== "github-api") {
+    core.setFailed(`Invalid commit mode: ${commitMode}`);
+    return;
   }
+  const git = new Git({
+    octokit: commitMode === "github-api" ? octokit : undefined,
+    cwd,
+  });
 
   let setupGitUser = core.getBooleanInput("setupGitUser");
 
   if (setupGitUser) {
     core.info("setting git user");
-    await gitUtils.setupUser();
+    await git.setupUser();
   }
 
   core.info("setting GitHub credentials");
@@ -51,7 +73,21 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   core.setOutput("hasReleases", String(hasReleases));
 
   switch (true) {
+<<<<<<< HEAD
     case !hasReleases && !hasPublishScript:
+||||||| 07dc948
+    case !hasChangesets && !hasPublishScript:
+      core.info("No changesets present or were removed by merging release PR. Not publishing because no publish script found.");
+      return;
+    case !hasChangesets && hasPublishScript: {
+=======
+    case !hasChangesets && !hasPublishScript:
+      core.info(
+        "No changesets present or were removed by merging release PR. Not publishing because no publish script found."
+      );
+      return;
+    case !hasChangesets && hasPublishScript: {
+>>>>>>> upstream/main
       core.info(
         "No releases present or were removed by merging release PR. Not publishing because no publish script found."
       );
@@ -62,7 +98,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (fs.existsSync(userNpmrcPath)) {
+      if (await fileExists(userNpmrcPath)) {
         core.info("Found existing user .npmrc file");
         const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
@@ -77,14 +113,14 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           core.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
-          fs.appendFileSync(
+          await fs.appendFile(
             userNpmrcPath,
             `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
       } else {
         core.info("No user .npmrc file found, creating one");
-        fs.writeFileSync(
+        await fs.writeFile(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
         );
@@ -92,8 +128,10 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       const result = await runPublish({
         script: publishScript,
-        githubToken,
+        git,
+        octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        cwd,
       });
 
       if (result.published) {
@@ -105,10 +143,24 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       }
       return;
     }
+<<<<<<< HEAD
     case hasReleases:
+||||||| 07dc948
+    case hasChangesets && !hasNonEmptyChangesets:
+      core.info("All changesets are empty; not creating PR");
+      return;
+    case hasChangesets:
+=======
+    case hasChangesets && !hasNonEmptyChangesets:
+      core.info("All changesets are empty; not creating PR");
+      return;
+    case hasChangesets: {
+      const octokit = setupOctokit(githubToken);
+>>>>>>> upstream/main
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
-        githubToken,
+        git,
+        octokit,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
@@ -118,6 +170,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       core.setOutput("pullRequestNumber", String(pullRequestNumber));
 
       return;
+    }
   }
 })().catch((err) => {
   core.error(err);

@@ -1,5 +1,54 @@
 # @changesets/action
 
+## 1.5.3
+
+### Patch Changes
+
+- [#477](https://github.com/changesets/action/pull/477) [`9d933dc`](https://github.com/changesets/action/commit/9d933dcd11c284ac49a835db884c3c1008b2b96f) Thanks [@Andarist](https://github.com/Andarist)! - Updated `@actions/*` and `@octokit/*` dependencies.
+
+- [#479](https://github.com/changesets/action/pull/479) [`cf373e4`](https://github.com/changesets/action/commit/cf373e45c90a0cc564cd2770de3e9a3a4cdd4603) Thanks [@Andarist](https://github.com/Andarist)! - Switched to `esbuild` for bundling the dist file. This led to 45% file size reduction.
+
+- [#488](https://github.com/changesets/action/pull/488) [`022692b`](https://github.com/changesets/action/commit/022692ba027b33bf46d4d41907a317fbf04461a7) Thanks [@s0](https://github.com/s0)! - Fix PRs sometimes not getting reopened with `commitMode: github-api`
+
+  There was a race-condition that means sometimes existing PRs would not be found,
+  and new PRs would be opened. This has now been fixed by fetching existing PRs
+  before making any changes.
+
+- [#486](https://github.com/changesets/action/pull/486) [`7ed1955`](https://github.com/changesets/action/commit/7ed195554624ebd75c08aa477b53110f61cc78f7) Thanks [@s0](https://github.com/s0)! - Fixed situations in which `cwd` was specified as a relative path and used with (default) `commitMode: git-cli`
+
+- [#461](https://github.com/changesets/action/pull/461) [`e9c36b6`](https://github.com/changesets/action/commit/e9c36b696406360bf04204ad32e3dcf3ad752b77) Thanks [@nayounsang](https://github.com/nayounsang)! - Avoid hitting a deprecation warning when encountering errors from `@octokit/request-error`
+
+## 1.5.2
+
+### Patch Changes
+
+- [#473](https://github.com/changesets/action/pull/473) [`3c24abe`](https://github.com/changesets/action/commit/3c24abeab26da6335c181222faa2ea485a092cf8) Thanks [@s0](https://github.com/s0)! - Make git add work consistently with subdirectories
+
+  Ensure that when running the action from a subdirectory of a repository,
+  only the files from that directory are added, regardless of `commitMode`.
+
+## 1.5.1
+
+### Patch Changes
+
+- [#471](https://github.com/changesets/action/pull/471) [`15ab130`](https://github.com/changesets/action/commit/15ab1306067a396fa9ba7ad363e8a041d457782a) Thanks [@h3rmanj](https://github.com/h3rmanj)! - Bump `@changesets/ghcommit` to v1.4.0, which fixes an issue running this action in monorepos with `commitMode: github-api`
+
+- [#467](https://github.com/changesets/action/pull/467) [`6e57550`](https://github.com/changesets/action/commit/6e575506e63f9e69e475d3eccfdd61b448efc8ae) Thanks [@Vx-V](https://github.com/Vx-V)! - Avoid searching for an existing pull request early.
+
+## 1.5.0
+
+### Minor Changes
+
+- [#391](https://github.com/changesets/action/pull/391) [`207dc3d`](https://github.com/changesets/action/commit/207dc3da2d1907cae0454ce123935401332be72b) Thanks [@s0](https://github.com/s0)! - Introduce a new input `commitMode` that allows using the GitHub API for pushing tags and commits instead of the Git CLI.
+
+  When used with `"github-api"` value all tags and commits will be attributed to the user whose GITHUB_TOKEN is used, and also signed using GitHub's internal GPG key.
+
+## 1.4.10
+
+### Patch Changes
+
+- [#448](https://github.com/changesets/action/pull/448) [`8b16070`](https://github.com/changesets/action/commit/8b16070fe386eed3456c83eeed9460160432cf26) Thanks [@bluwy](https://github.com/bluwy)! - Use full git email (`41898282+github-actions[bot]@users.noreply.github.com`) for github-actions bot when making commits
+
 ## 1.4.9
 
 ### Patch Changes
