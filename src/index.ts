@@ -68,28 +68,34 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (await fileExists(userNpmrcPath)) {
-        core.info("Found existing user .npmrc file");
-        const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
+      let npmrcPath = await ["./.npmrc", userNpmrcPath].reduce<
+        Promise<string | undefined>
+      >(async (acc, path) => {
+        if (await acc) return acc;
+        return (await fileExists(path)) ? path : undefined;
+      }, Promise.resolve(undefined));
+      if (npmrcPath) {
+        core.info(`Found existing .npmrc file at "${npmrcPath}"`);
+        const userNpmrcContent = await fs.readFile(npmrcPath, "utf8");
         const authLine = userNpmrcContent.split("\n").find((line) => {
           // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
           return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
         });
         if (authLine) {
           core.info(
-            "Found existing auth token for the npm registry in the user .npmrc file"
+            "Found existing auth token for the npm registry in the .npmrc file"
           );
         } else {
           core.info(
-            "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
+            "Didn't find existing auth token for the npm registry in the .npmrc file, creating one"
           );
           await fs.appendFile(
-            userNpmrcPath,
+            npmrcPath,
             `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
       } else {
-        core.info("No user .npmrc file found, creating one");
+        core.info("No .npmrc file found, creating one");
         await fs.writeFile(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
