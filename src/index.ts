@@ -43,7 +43,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
 
-  let { changesets } = await readChangesetState();
+  let { changesets } = await readChangesetState(cwd);
 
   let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
@@ -122,6 +122,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         script: getOptionalInput("version"),
         git,
         octokit,
+        cwd,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
