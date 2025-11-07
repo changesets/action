@@ -51,7 +51,7 @@
   },
   "prettier": {},
   "resolutions": {
-    "**/@octokit/core": "4.2.0",
+    "**/@octokit/core": "5.0.0",
     "trim": "^0.0.3",
     "y18n": "^4.0.1"
   }
