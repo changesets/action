@@ -68,6 +68,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       );
 
       let userNpmrcPath = `${process.env.HOME}/.npmrc`;
+      const npmToken = process.env.NPM_TOKEN;
+
       if (await fileExists(userNpmrcPath)) {
         core.info("Found existing user .npmrc file");
         const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
@@ -79,20 +81,28 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           core.info(
             "Found existing auth token for the npm registry in the user .npmrc file"
           );
-        } else {
+        } else if (npmToken !== undefined) {
           core.info(
             "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
           );
           await fs.appendFile(
             userNpmrcPath,
-            `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+            `\n//registry.npmjs.org/:_authToken=${npmToken}\n`
+          );
+        } else {
+          core.info(
+            "No NPM_TOKEN found and no existing auth token - assuming trusted publishing or npm is already authenticated"
           );
         }
-      } else {
-        core.info("No user .npmrc file found, creating one");
+      } else if (npmToken !== undefined) {
+        core.info("No user .npmrc file found, creating one with NPM_TOKEN");
         await fs.writeFile(
           userNpmrcPath,
-          `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+          `//registry.npmjs.org/:_authToken=${npmToken}\n`
+        );
+      } else {
+        core.info(
+          "No user .npmrc file found and no NPM_TOKEN provided - assuming trusted publishing or npm is already authenticated"
         );
       }
 
