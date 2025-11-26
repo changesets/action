@@ -95,7 +95,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
           );
         }
       } else if (npmToken !== undefined) {
-        core.info("No user .npmrc file found, creating one with NPM_TOKEN");
+        core.info("No user .npmrc file found, creating one with NPM_TOKEN used as auth token");
         await fs.writeFile(
           userNpmrcPath,
           `//registry.npmjs.org/:_authToken=${npmToken}\n`
