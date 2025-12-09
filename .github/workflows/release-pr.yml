@@ -6,7 +6,7 @@ on:
 
 jobs:
   release_check:
-    if: github.repository == 'changesets/action' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/release-pr')
+    if: github.repository == 'Sovereign-Labs/changesets-action' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/release-pr')
     runs-on: ubuntu-latest
     steps:
       - id: report_in_progress
@@ -31,7 +31,7 @@ jobs:
       in_progress_reaction_id: ${{ steps.report_in_progress.outputs.in_progress_reaction_id }}
 
   release:
-    if: github.repository == 'changesets/action'
+    if: github.repository == 'Sovereign-Labs/changesets-action'
     timeout-minutes: 20
     runs-on: ubuntu-latest
     needs: release_check
@@ -86,7 +86,7 @@ jobs:
     needs: [release_check, release]
     timeout-minutes: 2
     runs-on: ubuntu-latest
-    if: failure() && github.repository == 'changesets/action' && (needs.release_check.result == 'failure' || needs.release.result == 'failure')
+    if: failure() && github.repository == 'Sovereign-Labs/changesets-action' && (needs.release_check.result == 'failure' || needs.release.result == 'failure')
     steps:
       - run: gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='-1'
         env:
