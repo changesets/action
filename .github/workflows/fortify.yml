@@ -112,7 +112,7 @@ jobs:
           # SETUP_ACTION: <URL or file>                    # Customize setup action
           # SETUP_EXTRA_OPTS: --on-unsigned=ignore         # Pass extra options to setup action
           # PACKAGE_EXTRA_OPTS: -bt mvn                    # Extra 'scancentral package' options
-          # EXTRA_SC_SAST_SCAN_OPTS:                       # Extra 'fcli sc-sast scan start' options
+          # SC_SAST_SCAN_EXTRA_OPTS:                       # Extra 'fcli sc-sast scan start' options
           # DO_WAIT: true                                  # Wait for successful scan completion (implied if post-scan actions enabled)
           # DO_POLICY_CHECK: true                          # Fail pipeline if security policy outcome is FAIL
           # POLICY_CHECK_ACTION: <URL or file>             # Customize security policy checks
