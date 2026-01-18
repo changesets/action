@@ -61,7 +61,7 @@ jobs:
 
 #### With Publishing
 
-Before you can setup this action with publishing, make sure you read and understand the [Trusted publishing for npm packages](https://docs.npmjs.com/trusted-publishers) and the [npm classic tokens revoked, session-based auth and CLI token management now available](https://github.blog/changelog/2025-12-09-npm-classic-tokens-revoked-session-based-auth-and-cli-token-management-now-available/) from the npm and the Github sites. The first step is to [**configuring trusted publishing**](https://docs.npmjs.com/trusted-publishers#configuring-trusted-publishing) on [Github actions](https://github.com/features/actions) or [GitLab CI/CD Pipelines](https://docs.gitlab.com/ci/pipelines/). Follow the [**instructions**](https://docs.npmjs.com/trusted-publishers#step-1-add-a-trusted-publisher-on-npmjscom) by configuring the below fields:
+Before you can set up this action with publishing, make sure you read and understand the [Trusted publishing for npm packages](https://docs.npmjs.com/trusted-publishers) and the [npm classic tokens revoked, session-based auth and CLI token management now available](https://github.blog/changelog/2025-12-09-npm-classic-tokens-revoked-session-based-auth-and-cli-token-management-now-available/) documentation from the NPM and GitHub sites. The first step is to [**configure trusted publishing**](https://docs.npmjs.com/trusted-publishers#configuring-trusted-publishing) on [Github actions](https://github.com/features/actions) or [GitLab CI/CD Pipelines](https://docs.gitlab.com/ci/pipelines/). Follow the [**instructions**](https://docs.npmjs.com/trusted-publishers#step-1-add-a-trusted-publisher-on-npmjscom) by configuring the fields below:
 
 **[GitHub Actions](https://docs.npmjs.com/trusted-publishers#for-github-actions)**:
 
@@ -81,7 +81,7 @@ Before you can setup this action with publishing, make sure you read and underst
    - Must include the .yml extension
 4. Environment name (optional): If using GitLab environments
 
-Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
+Once this configuration is complete, you can create a file at `.github/workflows/release.yml` with the following content.
 
 ```yml
 name: Release
