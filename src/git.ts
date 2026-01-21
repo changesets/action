@@ -77,16 +77,8 @@ export class Git {
 
   async pushTag(tag: string) {
     if (this.octokit) {
-      return this.octokit.rest.git
-        .createRef({
-          ...github.context.repo,
-          ref: `refs/tags/${tag}`,
-          sha: github.context.sha,
-        })
-        .catch((err) => {
-          // Assuming tag was manually pushed in custom publish script
-          core.warning(`Failed to create tag ${tag}: ${err.message}`);
-        });
+      // a tag will be created automatically when creating a release
+      return;
     }
     await exec("git", ["push", "origin", tag], { cwd: this.cwd });
   }
