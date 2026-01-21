@@ -104,13 +104,13 @@ jobs:
         run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
 ```
 
-By default the GitHub Action creates a `.npmrc` file with the following content:
+By default the GitHub Action creates a `.npmrc` file with the following content to the user `$HOME` `.npmrc`:
 
 ```
 //registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
 ```
 
-However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
+However, if either a project or user `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
 For example, you can add a step before running the Changesets GitHub Action:
 
 ```yml
