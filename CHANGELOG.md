@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 1.6.0
+
+### Minor Changes
+
+- [#558](https://github.com/changesets/action/pull/558) [`342005d`](https://github.com/changesets/action/commit/342005d41242bccd9dd9ae8d3679efce96af48ae) Thanks [@harsha-venugopal-ledn](https://github.com/harsha-venugopal-ledn)! - Upgrade from Node.js 20 to Node.js 24 LTS
+
 ## 1.5.3
 
 ### Patch Changes
