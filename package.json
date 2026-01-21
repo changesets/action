@@ -15,7 +15,7 @@
     "@types/node": "^22.15.17",
     "@types/semver": "^7.5.0",
     "builtin-modules": "^5.0.0",
-    "esbuild": "^0.25.4",
+    "esbuild": "^0.27.0",
     "fixturez": "^1.1.0",
     "husky": "^3.0.3",
     "prettier": "^2.0.5",
