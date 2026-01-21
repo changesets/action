@@ -34,7 +34,7 @@
     "release:pr": "node --experimental-strip-types ./scripts/release-pr.ts"
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">= 24"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
