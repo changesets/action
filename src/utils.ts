@@ -148,3 +148,52 @@ export async function validateOidcEnvironment(): Promise<void> {
     );
   }
 }
+
+/**
+ * Sets up npm authentication by either validating OIDC environment or validating NPM_TOKEN.
+ * This function should be called early in the workflow, before reading changesets.
+ */
+export async function setupNpmAuth(oidcAuth: boolean): Promise<void> {
+  if (oidcAuth) {
+    await validateOidcEnvironment();
+  } else {
+    // Legacy NPM_TOKEN authentication
+    if (!process.env.NPM_TOKEN) {
+      throw new Error(
+        "NPM_TOKEN environment variable is required when not using OIDC authentication. " +
+          "Either set the NPM_TOKEN secret or enable OIDC by setting oidcAuth: true"
+      );
+    }
+  }
+}
+
+/**
+ * Creates or updates .npmrc file with NPM_TOKEN authentication.
+ * This should only be called in legacy mode (when oidcAuth is false).
+ */
+export async function createNpmrcFile(): Promise<void> {
+  if (!process.env.NPM_TOKEN) {
+    throw new Error("NPM_TOKEN is required to create .npmrc file");
+  }
+
+  const userNpmrcPath = `${process.env.HOME}/.npmrc`;
+  
+  if (await fileExists(userNpmrcPath)) {
+    const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
+    const authLine = userNpmrcContent.split("\n").find((line) => {
+      // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
+      return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
+    });
+    if (!authLine) {
+      await fs.appendFile(
+        userNpmrcPath,
+        `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+      );
+    }
+  } else {
+    await fs.writeFile(
+      userNpmrcPath,
+      `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+    );
+  }
+}
