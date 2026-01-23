@@ -6,6 +6,8 @@ import type { Root } from "mdast";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
 import { getPackages, type Package } from "@manypkg/get-packages";
+import { getExecOutput } from "@actions/exec";
+import semverGte from "semver/functions/gte.js";
 
 export const BumpLevels = {
   dep: 0,
@@ -112,4 +114,37 @@ export function fileExists(filePath: string) {
     () => true,
     () => false
   );
+}
+
+export async function validateOidcEnvironment(): Promise<void> {
+  // Check npm version
+  const { stdout } = await getExecOutput("npm", ["--version"]);
+  const npmVersion = stdout.trim();
+
+  if (!semverGte(npmVersion, "11.5.1")) {
+    throw new Error(
+      `npm version ${npmVersion} detected. npm 11.5.1+ required for OIDC.\n` +
+        `Add step to your workflow:\n` +
+        `  - run: npm install -g npm@latest`
+    );
+  }
+
+  // Check for id-token permission
+  if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL) {
+    throw new Error(
+      `id-token: write permission not detected.\n` +
+        `Add to your workflow:\n` +
+        `permissions:\n` +
+        `  contents: write\n` +
+        `  id-token: write`
+    );
+  }
+
+  // Check that NPM_TOKEN is not set (conflicting auth methods)
+  if (process.env.NPM_TOKEN) {
+    throw new Error(
+      `NPM_TOKEN is set but oidcAuth: true.\n` +
+        `Remove NPM_TOKEN secret or set oidcAuth: false`
+    );
+  }
 }

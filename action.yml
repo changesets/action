@@ -36,6 +36,10 @@ inputs:
       or app who owns the GITHUB_TOKEN.
     required: false
     default: "git-cli"
+  oidcAuth:
+    description: Use npm OIDC trusted publishing instead of NPM_TOKEN
+    required: false
+    default: false
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false

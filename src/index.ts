@@ -5,7 +5,7 @@ import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
-import { fileExists } from "./utils.ts";
+import { fileExists, validateOidcEnvironment } from "./utils.ts";
 
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
@@ -67,33 +67,50 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         "No changesets found. Attempting to publish any unpublished packages to npm"
       );
 
-      let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (await fileExists(userNpmrcPath)) {
-        core.info("Found existing user .npmrc file");
-        const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
-        const authLine = userNpmrcContent.split("\n").find((line) => {
-          // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
-          return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
-        });
-        if (authLine) {
-          core.info(
-            "Found existing auth token for the npm registry in the user .npmrc file"
+      const oidcAuth = core.getBooleanInput("oidcAuth");
+
+      if (oidcAuth) {
+        core.info("Using npm OIDC trusted publishing");
+        await validateOidcEnvironment();
+        core.info("OIDC environment validated successfully");
+      } else {
+        // Legacy NPM_TOKEN authentication
+        if (!process.env.NPM_TOKEN) {
+          core.setFailed(
+            "NPM_TOKEN environment variable is required when not using OIDC authentication. " +
+              "Either set the NPM_TOKEN secret or enable OIDC by setting oidcAuth: true"
           );
+          return;
+        }
+
+        let userNpmrcPath = `${process.env.HOME}/.npmrc`;
+        if (await fileExists(userNpmrcPath)) {
+          core.info("Found existing user .npmrc file");
+          const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
+          const authLine = userNpmrcContent.split("\n").find((line) => {
+            // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
+            return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
+          });
+          if (authLine) {
+            core.info(
+              "Found existing auth token for the npm registry in the user .npmrc file"
+            );
+          } else {
+            core.info(
+              "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
+            );
+            await fs.appendFile(
+              userNpmrcPath,
+              `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+            );
+          }
         } else {
-          core.info(
-            "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
-          );
-          await fs.appendFile(
+          core.info("No user .npmrc file found, creating one");
+          await fs.writeFile(
             userNpmrcPath,
-            `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+            `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
-      } else {
-        core.info("No user .npmrc file found, creating one");
-        await fs.writeFile(
-          userNpmrcPath,
-          `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
-        );
       }
 
       const result = await runPublish({
