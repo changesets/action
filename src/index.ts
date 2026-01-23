@@ -43,14 +43,36 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
   );
 
+  // Validate authentication early if publish script exists
+  let publishScript = core.getInput("publish");
+  let hasPublishScript = !!publishScript;
+
+  if (hasPublishScript) {
+    const oidcAuth = core.getBooleanInput("oidcAuth");
+
+    if (oidcAuth) {
+      core.info("Using npm OIDC trusted publishing");
+      await validateOidcEnvironment();
+      core.info("OIDC environment validated successfully");
+    } else {
+      // Legacy NPM_TOKEN authentication
+      if (!process.env.NPM_TOKEN) {
+        core.setFailed(
+          "NPM_TOKEN environment variable is required when not using OIDC authentication. " +
+            "Either set the NPM_TOKEN secret or enable OIDC by setting oidcAuth: true"
+        );
+        return;
+      }
+      core.info("Using legacy NPM_TOKEN authentication");
+    }
+  }
+
   let { changesets } = await readChangesetState();
 
-  let publishScript = core.getInput("publish");
   let hasChangesets = changesets.length !== 0;
   const hasNonEmptyChangesets = changesets.some(
     (changeset) => changeset.releases.length > 0
   );
-  let hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
   core.setOutput("publishedPackages", "[]");
@@ -69,20 +91,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       const oidcAuth = core.getBooleanInput("oidcAuth");
 
-      if (oidcAuth) {
-        core.info("Using npm OIDC trusted publishing");
-        await validateOidcEnvironment();
-        core.info("OIDC environment validated successfully");
-      } else {
-        // Legacy NPM_TOKEN authentication
-        if (!process.env.NPM_TOKEN) {
-          core.setFailed(
-            "NPM_TOKEN environment variable is required when not using OIDC authentication. " +
-              "Either set the NPM_TOKEN secret or enable OIDC by setting oidcAuth: true"
-          );
-          return;
-        }
-
+      // Setup .npmrc for legacy mode (OIDC was already validated earlier)
+      if (!oidcAuth) {
         let userNpmrcPath = `${process.env.HOME}/.npmrc`;
         if (await fileExists(userNpmrcPath)) {
           core.info("Found existing user .npmrc file");

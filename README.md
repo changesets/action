@@ -195,6 +195,12 @@ jobs:
 - ✅ More secure authentication flow
 - ✅ Eliminates risk of token leakage
 
+**Provenance Attestation:**
+
+When publishing with OIDC, npm automatically generates cryptographic provenance attestation. This provides verifiable proof that your package was published from the specified GitHub repository and workflow. The attestation appears on your package page on npmjs.com as a verified badge, giving users confidence in the package's origin and integrity.
+
+Learn more: https://docs.npmjs.com/trusted-publishers#provenance-attestation
+
 **Migration from NPM_TOKEN to OIDC:**
 
 1. Update your workflow to use npm 11.5.1+
