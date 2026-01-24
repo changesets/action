@@ -1,0 +1,128 @@
+name: Test OIDC Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_scenario:
+        description: 'Test scenario'
+        required: true
+        type: choice
+        options:
+          - 'oidc-success'
+          - 'oidc-missing-permission'
+          - 'oidc-old-npm'
+          - 'legacy-success'
+
+permissions:
+  contents: write
+  pull-requests: write
+  # id-token: write  # Intentionally commented for testing
+
+jobs:
+  test-oidc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write  # This enables OIDC
+    if: github.event.inputs.test_scenario == 'oidc-success'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Update npm
+        run: npm install -g npm@latest
+      
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Test OIDC validation
+        uses: ./
+        with:
+          oidcAuth: true
+          # No publish script - will just validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-missing-permission:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # No id-token permission
+    if: github.event.inputs.test_scenario == 'oidc-missing-permission'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Update npm
+        run: npm install -g npm@latest
+      
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Test missing permission (should fail)
+        uses: ./
+        with:
+          publish: echo "test"
+          oidcAuth: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  test-old-npm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    if: github.event.inputs.test_scenario == 'oidc-old-npm'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      # Don't update npm - use older version
+      
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Test old npm version (should fail)
+        uses: ./
+        with:
+          publish: echo "test"
+          oidcAuth: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  test-legacy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_scenario == 'legacy-success'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Test legacy mode (no publish)
+        uses: ./
+        with:
+          oidcAuth: false
+          # No publish script - will just validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: dummy-token-for-testing
