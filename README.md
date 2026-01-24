@@ -12,6 +12,7 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 - title - The pull request title. Default to `Version Packages`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- oidcAuth - Use npm OIDC trusted publishing instead of NPM_TOKEN. Default to `false`
 - commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
 
@@ -122,6 +123,101 @@ For example, you can add a step before running the Changesets GitHub Action:
   env:
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
+
+#### With OIDC Trusted Publishing
+
+npm supports [Trusted Publishing with OIDC](https://docs.npmjs.com/trusted-publishers), which eliminates the need for long-lived NPM tokens. This is the recommended approach for publishing to npm from GitHub Actions.
+
+**Prerequisites:**
+
+1. npm CLI version 11.5.1 or higher
+2. [Configure a trusted publisher](https://docs.npmjs.com/trusted-publishers) on npmjs.com for your packages:
+   - Go to your organization/package settings on npmjs.com
+   - Add a trusted publisher with your GitHub repository details (organization, repository, workflow file name)
+3. Add `id-token: write` permission to your workflow
+
+**Example workflow:**
+
+```yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write  # Required for npm OIDC
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      # Ensure npm 11.5.1+ is available
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: yarn release
+          oidcAuth: true  # Enable OIDC authentication
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No NPM_TOKEN needed with OIDC!
+
+      - name: Send a Slack notification if a publish happens
+        if: steps.changesets.outputs.published == 'true'
+        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
+```
+
+**Benefits of OIDC:**
+
+- ✅ No long-lived tokens to manage or rotate
+- ✅ Cryptographic provenance attestation automatically generated
+- ✅ More secure authentication flow
+- ✅ Eliminates risk of token leakage
+
+**Provenance Attestation:**
+
+When publishing with OIDC, npm automatically generates cryptographic provenance attestation. This provides verifiable proof that your package was published from the specified GitHub repository and workflow. The attestation appears on your package page on npmjs.com as a verified badge, giving users confidence in the package's origin and integrity.
+
+Learn more: https://docs.npmjs.com/trusted-publishers#provenance-attestation
+
+**Migration from NPM_TOKEN to OIDC:**
+
+1. Update your workflow to use npm 11.5.1+
+2. Configure trusted publisher on npmjs.com
+3. Add `id-token: write` permission to your workflow
+4. Set `oidcAuth: true` in the changesets action
+5. Remove `NPM_TOKEN` from the workflow and GitHub secrets
+
+**Validation:**
+
+The action automatically validates:
+
+- npm version is 11.5.1 or higher
+- `id-token: write` permission is granted
+- `NPM_TOKEN` is not set (to avoid conflicting authentication)
+
+If validation fails, you'll receive clear error messages with instructions on how to fix the issue.
 
 #### Custom Publishing
 

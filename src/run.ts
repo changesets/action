@@ -64,6 +64,7 @@ type PublishOptions = {
   createGithubReleases: boolean;
   git: Git;
   cwd: string;
+  oidcAuth?: boolean;
 };
 
 type PublishedPackage = { name: string; version: string };
@@ -83,13 +84,31 @@ export async function runPublish({
   octokit,
   createGithubReleases,
   cwd,
+  oidcAuth = false,
 }: PublishOptions): Promise<PublishResult> {
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
+
+  // Build exec options with explicit OIDC environment variables if using OIDC
+  // This is necessary because some toolchains (proto shims, moon, etc.) may start
+  // fresh shell environments that don't inherit all environment variables.
+  // Explicitly passing them ensures OIDC works correctly even through these wrappers.
+  const execOptions: Parameters<typeof getExecOutput>[2] = { cwd };
+  
+  if (oidcAuth) {
+    core.info("Passing OIDC environment variables to publish command");
+    execOptions.env = {
+      ...process.env,
+      // Explicitly pass OIDC variables - these are required for npm OIDC authentication
+      ACTIONS_ID_TOKEN_REQUEST_URL: process.env.ACTIONS_ID_TOKEN_REQUEST_URL || "",
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN || "",
+      CI: process.env.CI || "true",
+    };
+  }
 
   let changesetPublishOutput = await getExecOutput(
     publishCommand,
     publishArgs,
-    { cwd }
+    execOptions
   );
 
   let { packages, tool } = await getPackages(cwd);
