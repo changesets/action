@@ -1,6 +1,6 @@
 {
   "name": "@changesets/action",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "main": "dist/index.js",
   "type": "module",
   "license": "MIT",
@@ -34,7 +34,7 @@
     "release:pr": "node --experimental-strip-types ./scripts/release-pr.ts"
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">= 24"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
