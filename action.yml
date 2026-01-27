@@ -4,6 +4,10 @@ runs:
   using: "node24"
   main: "dist/index.js"
 inputs:
+  github-token:
+    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    required: false
+    default: ${{ github.token }}
   publish:
     description: "The command to use to build and publish packages"
     required: false
