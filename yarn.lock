@@ -212,7 +212,7 @@
   resolved "https://registry.yarnpkg.com/@changesets/get-version-range-type/-/get-version-range-type-0.4.0.tgz#429a90410eefef4368502c41c63413e291740bf5"
   integrity sha512-hwawtob9DryoGTpixy1D3ZXbGgJu1Rhr+ySH2PvTLHvkZuQ7sRT4oQwMh0hbqZH1weAooedEjRsbrWcGLCeyVQ==
 
-"@changesets/ghcommit@2.0.1":
+"@changesets/ghcommit@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@changesets/ghcommit/-/ghcommit-2.0.1.tgz#5d80697ae27fb060cab699df4d324d06b6c03ee8"
   integrity sha512-37r7XmeL/V1WZfhTVXM7ILwuewbRdZkBBzHwdeMUIoi738Ujcmqlj00JbI5zrDZ0uZW/skrYqz7RG3+B7kH49Q==
