@@ -42,12 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install Dependencies
         run: yarn
@@ -60,7 +61,27 @@ jobs:
 
 #### With Publishing
 
-Before you can setup this action with publishing, you'll need to have an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) that can publish the packages in the repo you're setting up the action for and doesn't have 2FA on publish enabled ([2FA on auth can be enabled](https://docs.npmjs.com/about-two-factor-authentication)). You'll also need to [add it as a secret on your GitHub repo](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) with the name `NPM_TOKEN`. Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
+Before you can set up this action with publishing, make sure you read and understand the [Trusted publishing for npm packages](https://docs.npmjs.com/trusted-publishers) and the [npm classic tokens revoked, session-based auth and CLI token management now available](https://github.blog/changelog/2025-12-09-npm-classic-tokens-revoked-session-based-auth-and-cli-token-management-now-available/) documentation from the NPM and GitHub sites. The first step is to [**configure trusted publishing**](https://docs.npmjs.com/trusted-publishers#configuring-trusted-publishing) on [Github actions](https://github.com/features/actions) or [GitLab CI/CD Pipelines](https://docs.gitlab.com/ci/pipelines/). Follow the [**instructions**](https://docs.npmjs.com/trusted-publishers#step-1-add-a-trusted-publisher-on-npmjscom) by configuring the fields below:
+
+**[GitHub Actions](https://docs.npmjs.com/trusted-publishers#for-github-actions)**:
+
+1. Organization or user (required): Your GitHub username or organization name
+2. Repository (required): Your repository name
+3. Workflow filename (required): The filename of your workflow (e.g., publish.yml)
+   - Enter only the filename, not the full path
+   - Must include the .yml or .yaml extension
+   - The workflow file must exist in .github/workflows/ in your repository
+4. Environment name (optional): If using GitHub environments for deployment protection
+
+**[GitLab CI/CD](https://docs.npmjs.com/trusted-publishers#for-gitlab-cicd)**:
+
+1. Namespace (required): Your GitLab username or group name
+2. Project name (required): Your project name
+3. Top-level CI file path (required): The path to your CI file (e.g., .gitlab-ci.yml)
+   - Must include the .yml extension
+4. Environment name (optional): If using GitLab environments
+
+Once this configuration is complete, you can create a file at `.github/workflows/release.yml` with the following content.
 
 ```yml
 name: Release
@@ -72,18 +93,24 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install Dependencies
         run: yarn
@@ -96,31 +123,13 @@ jobs:
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: "" # https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
+          NPM_CONFIG_PROVENANCE: true
 
       - name: Send a Slack notification if a publish happens
         if: steps.changesets.outputs.published == 'true'
         # You can do something when a publish happens.
         run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
-```
-
-By default the GitHub Action creates a `.npmrc` file with the following content:
-
-```
-//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
-```
-
-However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
-For example, you can add a step before running the Changesets GitHub Action:
-
-```yml
-- name: Creating .npmrc
-  run: |
-    cat << EOF > "$HOME/.npmrc"
-      //registry.npmjs.org/:_authToken=$NPM_TOKEN
-    EOF
-  env:
-    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 #### Custom Publishing
@@ -143,12 +152,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install Dependencies
         run: yarn
@@ -187,12 +197,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install Dependencies
         run: yarn
