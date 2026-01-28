@@ -188,6 +188,7 @@ type GetMessageOptions = {
     header: string;
   }[];
   prBodyMaxCharacters: number;
+  prBody?: string;
   preState?: PreState;
 };
 
@@ -196,6 +197,7 @@ export async function getVersionPrBody({
   preState,
   changedPackagesInfo,
   prBodyMaxCharacters,
+  prBody,
   branch,
 }: GetMessageOptions) {
   let messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
@@ -214,34 +216,42 @@ export async function getVersionPrBody({
     : "";
   let messageReleasesHeading = `# Releases`;
 
-  let fullMessage = [
-    messageHeader,
-    messagePrestate,
-    messageReleasesHeading,
+  function useOrBuildTemplate(lines: string[]) {
+    if (!prBody) {
+      return [
+        messageHeader,
+        messagePrestate,
+        messageReleasesHeading,
+        ...lines,
+      ].join('\n');
+    }
+
+    return prBody
+      .replace('<!-- header -->', messageHeader)
+      .replace('<!-- prestate -->', messagePrestate)
+      .replace('<!-- releasesHeading -->', messageReleasesHeading)
+      .replace('<!-- body -->', lines.join('\n'));
+  }
+
+  let fullMessage = useOrBuildTemplate([
     ...changedPackagesInfo.map((info) => `${info.header}\n\n${info.content}`),
-  ].join("\n");
+  ]);
 
   // Check that the message does not exceed the size limit.
   // If not, omit the changelog entries of each package.
   if (fullMessage.length > prBodyMaxCharacters) {
-    fullMessage = [
-      messageHeader,
-      messagePrestate,
-      messageReleasesHeading,
+    fullMessage = useOrBuildTemplate([
       `\n> The changelog information of each package has been omitted from this message, as the content exceeds the size limit.\n`,
       ...changedPackagesInfo.map((info) => `${info.header}\n\n`),
-    ].join("\n");
+    ]);
   }
 
   // Check (again) that the message is within the size limit.
   // If not, omit all release content this time.
   if (fullMessage.length > prBodyMaxCharacters) {
-    fullMessage = [
-      messageHeader,
-      messagePrestate,
-      messageReleasesHeading,
+    fullMessage = useOrBuildTemplate([
       `\n> All release information have been omitted from this message, as the content exceeds the size limit.`,
-    ].join("\n");
+    ]);
   }
 
   return fullMessage;
@@ -253,6 +263,7 @@ type VersionOptions = {
   octokit: Octokit;
   cwd?: string;
   prTitle?: string;
+  prBody?: string;
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
@@ -269,6 +280,7 @@ export async function runVersion({
   octokit,
   cwd = process.cwd(),
   prTitle = "Version Packages",
+  prBody,
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
@@ -348,12 +360,13 @@ export async function runVersion({
     .filter((x) => x)
     .sort(sortTheThings);
 
-  let prBody = await getVersionPrBody({
+  prBody = await getVersionPrBody({
     hasPublishScript,
     preState,
     branch,
     changedPackagesInfo,
     prBodyMaxCharacters,
+    prBody,
   });
 
   if (existingPullRequests.data.length === 0) {

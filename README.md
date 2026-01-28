@@ -10,6 +10,7 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 - version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
 - commit - The commit message to use. Default to `Version Packages`
 - title - The pull request title. Default to `Version Packages`
+- body - The pull request body. Default to the current implementation. Available placeholders: `<!-- header -->`, `<!-- prestate -->`, `<!-- releasesHeading -->`, `<!-- body -->`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
 - commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
