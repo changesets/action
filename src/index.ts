@@ -99,9 +99,16 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
             `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
+      } else if (
+        process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN &&
+        process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+      ) {
+        core.info(
+          "No NPM_TOKEN found, but OIDC is available - using npm trusted publishing"
+        );
       } else {
         core.info(
-          "No NPM_TOKEN found - assuming trusted publishing or npm is already authenticated"
+          "No NPM_TOKEN or OIDC available - assuming npm is already authenticated"
         );
       }
 
