@@ -96,13 +96,15 @@ jobs:
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Expected env variable by changeset publish
 
       - name: Send a Slack notification if a publish happens
         if: steps.changesets.outputs.published == 'true'
         # You can do something when a publish happens.
         run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
 ```
+
+**Note**: Consider when you are using the `changesets/action` in combination with `changeset publish`, you are required to use `NODE_AUTH_TOKEN` instead of `NPM_TOKEN` environment variable.
 
 By default the GitHub Action creates a `.npmrc` file with the following content:
 
