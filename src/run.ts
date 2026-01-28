@@ -72,9 +72,11 @@ type PublishResult =
   | {
       published: true;
       publishedPackages: PublishedPackage[];
+      exitCode: number;
     }
   | {
       published: false;
+      exitCode: number;
     };
 
 export async function runPublish({
@@ -89,7 +91,7 @@ export async function runPublish({
   let changesetPublishOutput = await getExecOutput(
     publishCommand,
     publishArgs,
-    { cwd }
+    { cwd, ignoreReturnCode: true }
   );
 
   let { packages, tool } = await getPackages(cwd);
@@ -156,10 +158,11 @@ export async function runPublish({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version,
       })),
+      exitCode: changesetPublishOutput.exitCode,
     };
   }
 
-  return { published: false };
+  return { published: false, exitCode: changesetPublishOutput.exitCode };
 }
 
 const requireChangesetsCliPkgJson = (cwd: string) => {
