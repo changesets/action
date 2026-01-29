@@ -10,7 +10,9 @@ import { fileExists } from "./utils.ts";
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
 (async () => {
-  let githubToken = process.env.GITHUB_TOKEN;
+  // to maintain compatibility with workflows created before github-token input was introduced
+  // it's important to prefer the explicitly set GITHUB_TOKEN over the default token coming from github.token
+  let githubToken = process.env.GITHUB_TOKEN || core.getInput("github-token");
 
   if (!githubToken) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
@@ -114,6 +116,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
       const result = await runPublish({
         script: publishScript,
+        githubToken,
         git,
         octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
@@ -136,6 +139,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       const octokit = setupOctokit(githubToken);
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
+        githubToken,
         git,
         octokit,
         prTitle: getOptionalInput("title"),
