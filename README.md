@@ -19,6 +19,8 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 
 - published - A boolean value to indicate whether a publishing has happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- hasChangesets - A boolean about whether there were changesets. Useful if you want to create your own publishing functionality
+- pullRequestNumber - The pull request number that was created or updated
 
 ### Example workflow:
 
