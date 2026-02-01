@@ -39,11 +39,17 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     await git.setupUser();
   }
 
-  core.info("setting GitHub credentials");
-  await fs.writeFile(
-    `${process.env.HOME}/.netrc`,
-    `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
-  );
+  let netrcFilepath = `${process.env.HOME}/.netrc`;
+
+  if (!fs.existsSync(netrcFilepath)) {
+    core.info("setting GitHub credentials");
+    await fs.writeFile(
+      netrcFilepath,
+      `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`
+    );
+  } else {
+    core.info("GitHub credentials file exists, skipping.Wrap t")
+  }
 
   let { changesets } = await readChangesetState();
 
