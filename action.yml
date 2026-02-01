@@ -24,6 +24,9 @@ inputs:
   title:
     description: The pull request title. Default to `Version Packages`
     required: false
+  body:
+    description: The pull request body. Default to the current implementation. Available placeholders: `<!-- header -->`, `<!-- prestate -->`, `<!-- releasesHeading -->`, `<!-- body -->`
+    required: false
   setupGitUser:
     description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
     required: false
