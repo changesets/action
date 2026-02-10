@@ -160,6 +160,79 @@ describe("version", () => {
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
   });
 
+  it("creates a draft PR when draftPullRequest is true", async () => {
+    let cwd = f.copy("simple-project");
+    await linkNodeModules(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
+      cwd,
+      draftPullRequest: true,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0][0].draft).toBe(true);
+  });
+
+  it("creates a non-draft PR by default", async () => {
+    let cwd = f.copy("simple-project");
+    await linkNodeModules(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
+      cwd,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0][0].draft).toBe(
+      false
+    );
+  });
+
   it("does not include changelog entries if full message exceeds size limit", async () => {
     let cwd = f.copy("simple-project");
     await linkNodeModules(cwd);
