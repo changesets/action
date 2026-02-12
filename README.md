@@ -20,7 +20,19 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 - published - A boolean value to indicate whether a publishing has happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
-### Example workflow:
+### Example workflows
+
+> [!WARNING]
+>
+> Before run one of the following workflows be sure that the `GITHUB_TOKEN` has the permission to access the repository contents and create a PR
+>
+> Use [`permissions`](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions) key in the workflow file on job level
+>
+> ```yml
+> permissions:
+>   contents: write
+>   pull-requests: write
+> ```
 
 #### Without Publishing
 
@@ -40,14 +52,19 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Dependencies
         run: yarn
@@ -74,14 +91,19 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -103,7 +125,7 @@ jobs:
 
 By default the GitHub Action creates a `.npmrc` file with the following content:
 
-```
+```text
 //registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
 ```
 
@@ -138,14 +160,19 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -180,14 +207,19 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
