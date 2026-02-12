@@ -260,6 +260,7 @@ type VersionOptions = {
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
   branch?: string;
+  draftPullRequest?: boolean;
 };
 
 type RunVersionResult = {
@@ -277,6 +278,7 @@ export async function runVersion({
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
   branch = github.context.ref.replace("refs/heads/", ""),
+  draftPullRequest = false,
 }: VersionOptions): Promise<RunVersionResult> {
   let versionBranch = `changeset-release/${branch}`;
 
@@ -376,6 +378,7 @@ export async function runVersion({
       head: versionBranch,
       title: finalPrTitle,
       body: prBody,
+      draft: draftPullRequest,
       ...github.context.repo,
     });
 

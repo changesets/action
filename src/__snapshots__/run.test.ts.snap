@@ -25,6 +25,7 @@ exports[`version > creates simple PR 1`] = `
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -43,6 +44,7 @@ exports[`version > does not include any release information if a message with si
 # Releases
 
 > All release information have been omitted from this message, as the content exceeds the size limit.",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -65,6 +67,7 @@ exports[`version > does not include changelog entries if full message exceeds si
 ## simple-project-pkg-a@1.1.0
 
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -87,6 +90,7 @@ exports[`version > doesn't include ignored package that got a dependency update 
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -109,6 +113,7 @@ exports[`version > only includes bumped packages in the PR body 1`] = `
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
