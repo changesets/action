@@ -2,6 +2,11 @@
 
 This action for [Changesets](https://github.com/changesets/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
 
+
+## New contributor notes
+
+- Vietnamese beginner guide: [`BEGINNER_GUIDE.vi.md`](./BEGINNER_GUIDE.vi.md)
+
 ## Usage
 
 ### Inputs
