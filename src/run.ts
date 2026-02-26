@@ -60,6 +60,7 @@ const createRelease = async (
 
 type PublishOptions = {
   script: string;
+  githubToken: string;
   octokit: Octokit;
   createGithubReleases: boolean;
   git: Git;
@@ -79,6 +80,7 @@ type PublishResult =
 
 export async function runPublish({
   script,
+  githubToken,
   git,
   octokit,
   createGithubReleases,
@@ -89,7 +91,7 @@ export async function runPublish({
   let changesetPublishOutput = await getExecOutput(
     publishCommand,
     publishArgs,
-    { cwd }
+    { cwd, env: { ...process.env, GITHUB_TOKEN: githubToken } }
   );
 
   let { packages, tool } = await getPackages(cwd);
@@ -249,6 +251,7 @@ export async function getVersionPrBody({
 
 type VersionOptions = {
   script?: string;
+  githubToken: string;
   git: Git;
   octokit: Octokit;
   cwd?: string;
@@ -265,6 +268,7 @@ type RunVersionResult = {
 
 export async function runVersion({
   script,
+  githubToken,
   git,
   octokit,
   cwd = process.cwd(),
@@ -282,9 +286,11 @@ export async function runVersion({
 
   let versionsByDirectory = await getVersionsByDirectory(cwd);
 
+  const env = { ...process.env, GITHUB_TOKEN: githubToken };
+
   if (script) {
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
-    await exec(versionCommand, versionArgs, { cwd });
+    await exec(versionCommand, versionArgs, { cwd, env });
   } else {
     let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
     let cmd = semverLt(changesetsCliPkgJson.version, "2.0.0")
@@ -300,6 +306,7 @@ export async function runVersion({
       ],
       {
         cwd,
+        env,
       }
     );
   }
@@ -330,7 +337,7 @@ export async function runVersion({
   /**
    * Fetch any existing pull requests that are open against the branch,
    * before we push any changes that may inadvertently close the existing PRs.
-   * 
+   *
    * (`@changesets/ghcommit` has to reset the branch to the same commit as the base,
    * which GitHub will then react to by closing the PRs)
    */
@@ -340,7 +347,13 @@ export async function runVersion({
     head: `${github.context.repo.owner}:${versionBranch}`,
     base: branch,
   });
-  core.info(`Existing pull requests: ${JSON.stringify(existingPullRequests.data, null, 2)}`);
+  core.info(
+    `Existing pull requests: ${JSON.stringify(
+      existingPullRequests.data,
+      null,
+      2
+    )}`
+  );
 
   await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
 

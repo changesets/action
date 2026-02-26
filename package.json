@@ -1,6 +1,6 @@
 {
   "name": "@changesets/action",
-  "version": "1.5.3",
+  "version": "1.7.0",
   "main": "dist/index.js",
   "type": "module",
   "license": "MIT",
@@ -34,13 +34,13 @@
     "release:pr": "node --experimental-strip-types ./scripts/release-pr.ts"
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">= 24"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.1",
-    "@changesets/ghcommit": "^2.0.0",
+    "@changesets/ghcommit": "^2.0.1",
     "@changesets/pre": "^2.0.2",
     "@changesets/read": "^0.6.5",
     "@manypkg/get-packages": "^1.1.3",
