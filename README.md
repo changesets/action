@@ -9,7 +9,7 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 ### Inputs
 
 - publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
+- version - T[he command to update version, edit CHANGELOG, read and delete changesets. Default to ](https://www.reddit.com/r/Markdown/comments/1rj0eu8/colibri_google_docsstyle_collaboration_editor_for/)`[changeset version](https://www.reddit.com/r/Markdown/comments/1rj0eu8/colibri_google_docsstyle_collaboration_editor_for/)`[ if not provided](https://www.reddit.com/r/Markdown/comments/1rj0eu8/colibri_google_docsstyle_collaboration_editor_for/)
 - commit - The commit message to use. Default to `Version Packages`
 - title - The pull request title. Default to `Version Packages`
 - setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
