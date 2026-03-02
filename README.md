@@ -1,6 +1,8 @@
 # Changesets Release Action
 
-This action for [Changesets](https://github.com/changesets/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
+This action for [Changesets](https://github.com/changesets/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured ](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name)`baseBranch`, the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
+
+&#8203;
 
 ## Usage
 
@@ -14,17 +16,16 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 - createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
 - commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
-
 ### Outputs
 
 - published - A boolean value to indicate whether a publishing has happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
-
 ### Example workflow:
 
 #### Without Publishing
 
 Create a file at `.github/workflows/release.yml` with the following content.
+
 
 ```yml
 name: Release
@@ -59,6 +60,7 @@ jobs:
 #### With Publishing
 
 Before you can setup this action with publishing, you'll need to have an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) that can publish the packages in the repo you're setting up the action for and doesn't have 2FA on publish enabled ([2FA on auth can be enabled](https://docs.npmjs.com/about-two-factor-authentication)). You'll also need to [add it as a secret on your GitHub repo](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) with the name `NPM_TOKEN`. Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
+
 
 ```yml
 name: Release
@@ -103,12 +105,14 @@ jobs:
 
 By default the GitHub Action creates a `.npmrc` file with the following content:
 
+
 ```
 //registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
 ```
 
 However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
 For example, you can add a step before running the Changesets GitHub Action:
+
 
 ```yml
 - name: Creating .npmrc
@@ -125,6 +129,7 @@ For example, you can add a step before running the Changesets GitHub Action:
 If you want to hook into when publishing should occur but have your own publishing functionality, you can utilize the `hasChangesets` output.
 
 Note that you might need to account for things already being published in your script because a commit without any new changesets can always land on your base branch after a successful publish. In such a case you need to figure out on your own how to skip over the actual publishing logic or handle errors gracefully as most package registries won't allow you to publish over already published version.
+
 
 ```yml
 name: Release
@@ -166,6 +171,7 @@ If you need to add additional logic to the version command, you can do so by usi
 
 If the version script is present, this action will run that script instead of `changeset version`, so please make sure that your script calls `changeset version` at some point. All the changes made by the script will be included in the PR.
 
+
 ```yml
 name: Release
 
@@ -202,6 +208,7 @@ jobs:
 #### With Yarn 2 / Plug'n'Play
 
 If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you should use a custom `version` command so that the action can resolve the `changeset` CLI:
+
 
 ```yaml
 - uses: changesets/action@v1
