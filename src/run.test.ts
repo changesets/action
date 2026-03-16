@@ -1,13 +1,14 @@
-import fixturez from "fixturez";
-import * as github from "@actions/github";
-import * as githubUtils from "@actions/github/lib/utils";
-import fs from "fs-extra";
-import path from "path";
+import type { Changeset } from "@changesets/types";
 import writeChangeset from "@changesets/write";
-import { Changeset } from "@changesets/types";
-import { runVersion } from "./run";
+import fixturez from "fixturez";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Git } from "./git.ts";
+import { setupOctokit } from "./octokit.ts";
+import { runVersion } from "./run.ts";
 
-jest.mock("@actions/github", () => ({
+vi.mock("@actions/github", () => ({
   context: {
     repo: {
       owner: "changesets",
@@ -16,39 +17,28 @@ jest.mock("@actions/github", () => ({
     ref: "refs/heads/some-branch",
     sha: "xeac7",
   },
+  getOctokit: () => ({
+    rest: mockedGithubMethods,
+  }),
 }));
-jest.mock("@actions/github/lib/utils", () => ({
-    GitHub: {
-        plugin: () => {
-            // function necessary to be used as constructor
-            return function() {
-                return {
-                    rest: mockedGithubMethods,
-                }
-            }
-        },
-    },
-    getOctokitOptions: jest.fn(),
-}));
-jest.mock("./gitUtils");
+vi.mock("./git.ts");
+vi.mock("@changesets/ghcommit/git");
 
 let mockedGithubMethods = {
-  search: {
-    issuesAndPullRequests: jest.fn(),
-  },
   pulls: {
-    create: jest.fn(),
+    create: vi.fn(),
+    list: vi.fn(),
   },
   repos: {
-    createRelease: jest.fn(),
+    createRelease: vi.fn(),
   },
 };
 
-let f = fixturez(__dirname);
+let f = fixturez(import.meta.dirname);
 
 const linkNodeModules = async (cwd: string) => {
   await fs.symlink(
-    path.join(__dirname, "..", "node_modules"),
+    path.join(import.meta.dirname, "..", "node_modules"),
     path.join(cwd, "node_modules")
   );
 };
@@ -57,17 +47,15 @@ const writeChangesets = (changesets: Changeset[], cwd: string) => {
 };
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("version", () => {
   it("creates simple PR", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -93,7 +81,9 @@ describe("version", () => {
     );
 
     await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
       githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
       cwd,
     });
 
@@ -102,11 +92,9 @@ describe("version", () => {
 
   it("only includes bumped packages in the PR body", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -128,7 +116,9 @@ describe("version", () => {
     );
 
     await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
       githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
       cwd,
     });
 
@@ -137,11 +127,9 @@ describe("version", () => {
 
   it("doesn't include ignored package that got a dependency update in the PR body", async () => {
     let cwd = f.copy("ignored-package");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -163,7 +151,9 @@ describe("version", () => {
     );
 
     await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
       githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
       cwd,
     });
 
@@ -172,11 +162,9 @@ describe("version", () => {
 
   it("does not include changelog entries if full message exceeds size limit", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -218,7 +206,9 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
       githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 1000,
     });
@@ -231,11 +221,9 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
   it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
     let cwd = f.copy("simple-project");
-    linkNodeModules(cwd);
+    await linkNodeModules(cwd);
 
-    mockedGithubMethods.search.issuesAndPullRequests.mockImplementationOnce(
-      () => ({ data: { items: [] } })
-    );
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
     mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
       data: { number: 123 },
@@ -277,7 +265,9 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
       githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 500,
     });

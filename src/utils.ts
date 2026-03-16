@@ -1,9 +1,11 @@
 import unified from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
+import fs from "node:fs/promises";
+import type { Root } from "mdast";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
-import { getPackages, Package } from "@manypkg/get-packages";
+import { getPackages, type Package } from "@manypkg/get-packages";
 
 export const BumpLevels = {
   dep: 0,
@@ -35,11 +37,11 @@ export async function getChangedPackages(
 }
 
 export function getChangelogEntry(changelog: string, version: string) {
-  let ast = unified().use(remarkParse).parse(changelog);
+  let ast = unified().use(remarkParse).parse(changelog) as Root;
 
   let highestLevel: number = BumpLevels.dep;
 
-  let nodes = ast.children as Array<any>;
+  let nodes = ast.children;
   let headingStartInfo:
     | {
         index: number;
@@ -75,10 +77,7 @@ export function getChangelogEntry(changelog: string, version: string) {
     }
   }
   if (headingStartInfo) {
-    ast.children = (ast.children as any).slice(
-      headingStartInfo.index + 1,
-      endIndex
-    );
+    ast.children = ast.children.slice(headingStartInfo.index + 1, endIndex);
   }
   return {
     content: unified().use(remarkStringify).stringify(ast),
@@ -97,4 +96,20 @@ export function sortTheThings(
     return 1;
   }
   return -1;
+}
+
+export function isErrorWithCode(err: unknown, code: string) {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    err.code === code
+  );
+}
+
+export function fileExists(filePath: string) {
+  return fs.access(filePath, fs.constants.F_OK).then(
+    () => true,
+    () => false
+  );
 }

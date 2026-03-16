@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`version creates simple PR 1`] = `
+exports[`version > creates simple PR 1`] = `
 [
   {
     "base": "some-branch",
@@ -33,7 +33,7 @@ exports[`version creates simple PR 1`] = `
 ]
 `;
 
-exports[`version does not include any release information if a message with simplified release info exceeds size limit 1`] = `
+exports[`version > does not include any release information if a message with simplified release info exceeds size limit 1`] = `
 [
   {
     "base": "some-branch",
@@ -51,7 +51,7 @@ exports[`version does not include any release information if a message with simp
 ]
 `;
 
-exports[`version does not include changelog entries if full message exceeds size limit 1`] = `
+exports[`version > does not include changelog entries if full message exceeds size limit 1`] = `
 [
   {
     "base": "some-branch",
@@ -73,7 +73,7 @@ exports[`version does not include changelog entries if full message exceeds size
 ]
 `;
 
-exports[`version doesn't include ignored package that got a dependency update in the PR body 1`] = `
+exports[`version > doesn't include ignored package that got a dependency update in the PR body 1`] = `
 [
   {
     "base": "some-branch",
@@ -95,7 +95,7 @@ exports[`version doesn't include ignored package that got a dependency update in
 ]
 `;
 
-exports[`version only includes bumped packages in the PR body 1`] = `
+exports[`version > only includes bumped packages in the PR body 1`] = `
 [
   {
     "base": "some-branch",

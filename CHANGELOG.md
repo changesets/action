@@ -1,5 +1,92 @@
 # @changesets/action
 
+## 1.7.0
+
+### Minor Changes
+
+- [#564](https://github.com/changesets/action/pull/564) [`935fe87`](https://github.com/changesets/action/commit/935fe876b0054dfc962ac86bcddf028460040d46) Thanks [@Andarist](https://github.com/Andarist)! - Automatically use the GitHub-provided token to allow most users to avoid explicit `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` configuration.
+
+### Patch Changes
+
+- [#545](https://github.com/changesets/action/pull/545) [`54220dd`](https://github.com/changesets/action/commit/54220dd92c06e7da112b139f95d8beb933e4cdde) Thanks [@ryanbas21](https://github.com/ryanbas21)! - The `.npmrc` generation now intelligently handles both traditional NPM token authentication and trusted publishing scenarios by only appending the auth token when `NPM_TOKEN` is defined. This prevents 'undefined' from being written to the registry configuration when using OIDC tokens from GitHub Actions trusted publishing.
+
+- [#563](https://github.com/changesets/action/pull/563) [`6af4a7e`](https://github.com/changesets/action/commit/6af4a7ec080d23ac6b304f69b67fd0aa92e089e7) Thanks [@Andarist](https://github.com/Andarist)! - Don't error on already committed symlinks and executables that stay untouched
+
+## 1.6.0
+
+### Minor Changes
+
+- [#558](https://github.com/changesets/action/pull/558) [`342005d`](https://github.com/changesets/action/commit/342005d41242bccd9dd9ae8d3679efce96af48ae) Thanks [@harsha-venugopal-ledn](https://github.com/harsha-venugopal-ledn)! - Upgrade from Node.js 20 to Node.js 24 LTS
+
+## 1.5.3
+
+### Patch Changes
+
+- [#477](https://github.com/changesets/action/pull/477) [`9d933dc`](https://github.com/changesets/action/commit/9d933dcd11c284ac49a835db884c3c1008b2b96f) Thanks [@Andarist](https://github.com/Andarist)! - Updated `@actions/*` and `@octokit/*` dependencies.
+
+- [#479](https://github.com/changesets/action/pull/479) [`cf373e4`](https://github.com/changesets/action/commit/cf373e45c90a0cc564cd2770de3e9a3a4cdd4603) Thanks [@Andarist](https://github.com/Andarist)! - Switched to `esbuild` for bundling the dist file. This led to 45% file size reduction.
+
+- [#488](https://github.com/changesets/action/pull/488) [`022692b`](https://github.com/changesets/action/commit/022692ba027b33bf46d4d41907a317fbf04461a7) Thanks [@s0](https://github.com/s0)! - Fix PRs sometimes not getting reopened with `commitMode: github-api`
+
+  There was a race-condition that means sometimes existing PRs would not be found,
+  and new PRs would be opened. This has now been fixed by fetching existing PRs
+  before making any changes.
+
+- [#486](https://github.com/changesets/action/pull/486) [`7ed1955`](https://github.com/changesets/action/commit/7ed195554624ebd75c08aa477b53110f61cc78f7) Thanks [@s0](https://github.com/s0)! - Fixed situations in which `cwd` was specified as a relative path and used with (default) `commitMode: git-cli`
+
+- [#461](https://github.com/changesets/action/pull/461) [`e9c36b6`](https://github.com/changesets/action/commit/e9c36b696406360bf04204ad32e3dcf3ad752b77) Thanks [@nayounsang](https://github.com/nayounsang)! - Avoid hitting a deprecation warning when encountering errors from `@octokit/request-error`
+
+## 1.5.2
+
+### Patch Changes
+
+- [#473](https://github.com/changesets/action/pull/473) [`3c24abe`](https://github.com/changesets/action/commit/3c24abeab26da6335c181222faa2ea485a092cf8) Thanks [@s0](https://github.com/s0)! - Make git add work consistently with subdirectories
+
+  Ensure that when running the action from a subdirectory of a repository,
+  only the files from that directory are added, regardless of `commitMode`.
+
+## 1.5.1
+
+### Patch Changes
+
+- [#471](https://github.com/changesets/action/pull/471) [`15ab130`](https://github.com/changesets/action/commit/15ab1306067a396fa9ba7ad363e8a041d457782a) Thanks [@h3rmanj](https://github.com/h3rmanj)! - Bump `@changesets/ghcommit` to v1.4.0, which fixes an issue running this action in monorepos with `commitMode: github-api`
+
+- [#467](https://github.com/changesets/action/pull/467) [`6e57550`](https://github.com/changesets/action/commit/6e575506e63f9e69e475d3eccfdd61b448efc8ae) Thanks [@Vx-V](https://github.com/Vx-V)! - Avoid searching for an existing pull request early.
+
+## 1.5.0
+
+### Minor Changes
+
+- [#391](https://github.com/changesets/action/pull/391) [`207dc3d`](https://github.com/changesets/action/commit/207dc3da2d1907cae0454ce123935401332be72b) Thanks [@s0](https://github.com/s0)! - Introduce a new input `commitMode` that allows using the GitHub API for pushing tags and commits instead of the Git CLI.
+
+  When used with `"github-api"` value all tags and commits will be attributed to the user whose GITHUB_TOKEN is used, and also signed using GitHub's internal GPG key.
+
+## 1.4.10
+
+### Patch Changes
+
+- [#448](https://github.com/changesets/action/pull/448) [`8b16070`](https://github.com/changesets/action/commit/8b16070fe386eed3456c83eeed9460160432cf26) Thanks [@bluwy](https://github.com/bluwy)! - Use full git email (`41898282+github-actions[bot]@users.noreply.github.com`) for github-actions bot when making commits
+
+## 1.4.9
+
+### Patch Changes
+
+- [#415](https://github.com/changesets/action/pull/415) [`57ab80c`](https://github.com/changesets/action/commit/57ab80c61104c270bebc125910ae32da3a5aca46) Thanks [@benmccann](https://github.com/benmccann)! - Improve error message when attempting to publish without publish script defined
+
+## 1.4.8
+
+### Patch Changes
+
+- [#393](https://github.com/changesets/action/pull/393) [`48ab0d2`](https://github.com/changesets/action/commit/48ab0d2f2e77ae169182d022591ef5c18c931ff2) Thanks [@s0](https://github.com/s0)! - Ensure the PR remains open when updated
+
+- [#393](https://github.com/changesets/action/pull/393) [`48ab0d2`](https://github.com/changesets/action/commit/48ab0d2f2e77ae169182d022591ef5c18c931ff2) Thanks [@s0](https://github.com/s0)! - Switch to cheaper API for querying existing PRs
+
+## 1.4.7
+
+### Patch Changes
+
+- [#255](https://github.com/changesets/action/pull/255) [`f2660aa`](https://github.com/changesets/action/commit/f2660aa7e78365f53dbeb4cfa774c1499ec6483a) Thanks [@ernestognw](https://github.com/ernestognw)! - Allow customize PR `branch` field
+
 ## 1.4.6
 
 ### Patch Changes
