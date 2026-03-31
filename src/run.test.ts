@@ -82,6 +82,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
     });
@@ -116,6 +117,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
     });
@@ -150,6 +152,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
     });
@@ -204,6 +207,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 1000,
@@ -262,6 +266,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 500,

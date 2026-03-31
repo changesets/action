@@ -10,7 +10,9 @@ import { fileExists } from "./utils.ts";
 const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
 (async () => {
-  let githubToken = process.env.GITHUB_TOKEN;
+  // to maintain compatibility with workflows created before github-token input was introduced
+  // it's important to prefer the explicitly set GITHUB_TOKEN over the default token coming from github.token
+  let githubToken = process.env.GITHUB_TOKEN || core.getInput("github-token");
 
   if (!githubToken) {
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
@@ -18,6 +20,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
   }
 
   const cwd = path.resolve(getOptionalInput("cwd") ?? "");
+  core.info(`using resolved cwd: ${cwd}`);
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
@@ -67,37 +70,54 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         "No changesets found. Attempting to publish any unpublished packages to npm"
       );
 
-      let userNpmrcPath = `${process.env.HOME}/.npmrc`;
-      if (await fileExists(userNpmrcPath)) {
-        core.info("Found existing user .npmrc file");
-        const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
-        const authLine = userNpmrcContent.split("\n").find((line) => {
-          // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
-          return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
-        });
-        if (authLine) {
-          core.info(
-            "Found existing auth token for the npm registry in the user .npmrc file"
-          );
+      if (process.env.NPM_TOKEN) {
+        const userNpmrcPath = `${process.env.HOME}/.npmrc`;
+
+        if (await fileExists(userNpmrcPath)) {
+          core.info("Found existing user .npmrc file");
+          const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
+          const authLine = userNpmrcContent.split("\n").find((line) => {
+            // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
+            return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
+          });
+          if (authLine) {
+            core.info(
+              "Found existing auth token for the npm registry in the user .npmrc file"
+            );
+          } else {
+            core.info(
+              "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
+            );
+            await fs.appendFile(
+              userNpmrcPath,
+              `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+            );
+          }
         } else {
           core.info(
-            "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
+            "No user .npmrc file found, creating one with NPM_TOKEN used as auth token"
           );
-          await fs.appendFile(
+          await fs.writeFile(
             userNpmrcPath,
-            `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+            `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
           );
         }
+      } else if (
+        process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN &&
+        process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+      ) {
+        core.info(
+          "No NPM_TOKEN found, but OIDC is available - using npm trusted publishing"
+        );
       } else {
-        core.info("No user .npmrc file found, creating one");
-        await fs.writeFile(
-          userNpmrcPath,
-          `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`
+        core.info(
+          "No NPM_TOKEN or OIDC available - assuming npm is already authenticated"
         );
       }
 
       const result = await runPublish({
         script: publishScript,
+        githubToken,
         git,
         octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
@@ -120,6 +140,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
       const octokit = setupOctokit(githubToken);
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
+        githubToken,
         git,
         octokit,
         cwd,
