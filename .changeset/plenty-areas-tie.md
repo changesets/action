@@ -2,4 +2,4 @@
 "@changesets/action": patch
 ---
 
-Making sure that `.changeset` information is picked up, when `cwd` parameter is provided
+Fixed initial `.changeset` state being picked up, when `cwd` parameter is provided
