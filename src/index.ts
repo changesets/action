@@ -143,6 +143,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         githubToken,
         git,
         octokit,
+        cwd,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
