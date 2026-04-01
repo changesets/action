@@ -24,8 +24,13 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
+  const prDraft = getOptionalInput("prDraft");
   if (commitMode !== "git-cli" && commitMode !== "github-api") {
     core.setFailed(`Invalid commit mode: ${commitMode}`);
+    return;
+  }
+  if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
+    core.setFailed(`Invalid prDraft: ${prDraft}`);
     return;
   }
   const git = new Git({
@@ -147,7 +152,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
-        createPrAsDraft: core.getBooleanInput("createPrAsDraft"),
+        prDraft,
         branch: getOptionalInput("branch"),
       });
 

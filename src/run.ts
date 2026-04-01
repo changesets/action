@@ -259,7 +259,7 @@ type VersionOptions = {
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
-  createPrAsDraft?: boolean;
+  prDraft?: "always" | "create";
   branch?: string;
 };
 
@@ -278,7 +278,7 @@ export async function runVersion({
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
   branch = github.context.ref.replace("refs/heads/", ""),
-  createPrAsDraft = false,
+  prDraft,
 }: VersionOptions): Promise<RunVersionResult> {
   let versionBranch = `changeset-release/${branch}`;
 
@@ -378,7 +378,7 @@ export async function runVersion({
       head: versionBranch,
       title: finalPrTitle,
       body: prBody,
-      draft: createPrAsDraft,
+      draft: prDraft !== undefined,
       ...github.context.repo,
     });
 
@@ -389,12 +389,46 @@ export async function runVersion({
     const [pullRequest] = existingPullRequests.data;
 
     core.info(`updating found pull request #${pullRequest.number}`);
-    await octokit.rest.pulls.update({
-      pull_number: pullRequest.number,
+    const convertPullRequestToDraftMutation =
+      prDraft === "always"
+        ? `
+        convertPullRequestToDraft(
+          input: {
+            pullRequestId: $pullRequestId
+          }
+        ) {
+          pullRequest {
+            id
+          }
+        }`
+        : "";
+    const updatePullRequestMutation = `
+      mutation UpdatePullRequest(
+        $pullRequestId: ID!
+        $title: String!
+        $body: String!
+      ) {
+        ${convertPullRequestToDraftMutation}
+
+        updatePullRequest(
+          input: {
+            pullRequestId: $pullRequestId
+            title: $title
+            body: $body
+            state: OPEN
+          }
+        ) {
+          pullRequest {
+            id
+          }
+        }
+      }
+    `;
+
+    await octokit.graphql(updatePullRequestMutation, {
+      pullRequestId: pullRequest.node_id,
       title: finalPrTitle,
       body: prBody,
-      ...github.context.repo,
-      state: "open",
     });
 
     return {

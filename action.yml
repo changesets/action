@@ -43,10 +43,9 @@ inputs:
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false
-  createPrAsDraft:
-    description: "A boolean value to indicate whether to create the PR as draft or not"
+  prDraft:
+    description: 'Controls draft PR behavior. Use "create" to create new version PRs as draft, or "always" to also convert existing version PRs back to draft when updating them.'
     required: false
-    default: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
