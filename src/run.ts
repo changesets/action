@@ -277,7 +277,7 @@ export async function runVersion({
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
-  branch,
+  branch = github.context.ref.replace("refs/heads/", ""),
   createPrAsDraft = false,
 }: VersionOptions): Promise<RunVersionResult> {
   let versionBranch = `changeset-release/${branch}`;
