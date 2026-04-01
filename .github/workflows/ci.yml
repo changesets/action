@@ -1,26 +1,46 @@
-name: Node CI
+name: CI
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
+  push:
+    branches: [main]
+  merge_group:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  test:
+    name: Test
     timeout-minutes: 20
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/ci-setup
 
+      - name: Test
+        run: yarn test
+
+  typecheck:
+    name: Typecheck
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/ci-setup
 
       - name: Typecheck
         run: yarn typecheck
 
-      - name: Test
-        run: yarn test
+  ci-ok:
+    name: CI OK
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [test, typecheck]
+    steps:
+      - name: Exit with error if some jobs are not successful
+        run: exit 1
+        if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')) }}
