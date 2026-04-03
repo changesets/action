@@ -59,7 +59,7 @@ export function getChangelogEntry(changelog: string, version: string) {
         let level = BumpLevels[match[0] as "major" | "minor" | "patch"];
         highestLevel = Math.max(level, highestLevel);
       }
-      if (headingStartInfo === undefined && stringified === version) {
+      if (headingStartInfo === undefined && stringified.startsWith(version)) {
         headingStartInfo = {
           index: i,
           depth: node.depth,
