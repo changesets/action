@@ -277,4 +277,46 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
       /All release information have been omitted from this message, as the content exceeds the size limit/
     );
   });
+
+  it("creates PR with assignees", async () => {
+    let cwd = f.copy("simple-project");
+    await linkNodeModules(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "simple-project-pkg-a",
+              type: "minor",
+            },
+            {
+              name: "simple-project-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
+      cwd,
+      assignees: "user1,user2",
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0][0].assignees).toEqual(
+      ["user1", "user2"]
+    );
+  });
 });
