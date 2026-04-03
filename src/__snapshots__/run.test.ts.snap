@@ -1,5 +1,28 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`version > creates a draft PR when prDraft is "create" 1`] = `
+[
+  {
+    "base": "some-branch",
+    "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
+
+
+# Releases
+## simple-project-pkg-a@1.1.0
+
+### Minor Changes
+
+-   Awesome feature
+",
+    "draft": true,
+    "head": "changeset-release/some-branch",
+    "owner": "changesets",
+    "repo": "action",
+    "title": "Version Packages",
+  },
+]
+`;
+
 exports[`version > creates simple PR 1`] = `
 [
   {
@@ -25,6 +48,7 @@ exports[`version > creates simple PR 1`] = `
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -43,6 +67,7 @@ exports[`version > does not include any release information if a message with si
 # Releases
 
 > All release information have been omitted from this message, as the content exceeds the size limit.",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -65,6 +90,7 @@ exports[`version > does not include changelog entries if full message exceeds si
 ## simple-project-pkg-a@1.1.0
 
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -87,6 +113,7 @@ exports[`version > doesn't include ignored package that got a dependency update 
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
@@ -109,9 +136,101 @@ exports[`version > only includes bumped packages in the PR body 1`] = `
 
 -   Awesome feature
 ",
+    "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
     "repo": "action",
+    "title": "Version Packages",
+  },
+]
+`;
+
+exports[`version > updates an existing PR via GraphQL and converts it to draft when prDraft is "always" 1`] = `
+[
+  "
+      mutation UpdatePullRequest(
+        $pullRequestId: ID!
+        $title: String!
+        $body: String!
+      ) {
+        
+        convertPullRequestToDraft(
+          input: {
+            pullRequestId: $pullRequestId
+          }
+        ) {
+          pullRequest {
+            id
+          }
+        }
+
+        updatePullRequest(
+          input: {
+            pullRequestId: $pullRequestId
+            title: $title
+            body: $body
+            state: OPEN
+          }
+        ) {
+          pullRequest {
+            id
+          }
+        }
+      }
+    ",
+  {
+    "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
+
+
+# Releases
+## simple-project-pkg-a@1.1.0
+
+### Minor Changes
+
+-   Awesome feature
+",
+    "pullRequestId": "PR_kwDOA",
+    "title": "Version Packages",
+  },
+]
+`;
+
+exports[`version > updates an existing PR via GraphQL without converting it to draft when prDraft is "create" 1`] = `
+[
+  "
+      mutation UpdatePullRequest(
+        $pullRequestId: ID!
+        $title: String!
+        $body: String!
+      ) {
+        
+
+        updatePullRequest(
+          input: {
+            pullRequestId: $pullRequestId
+            title: $title
+            body: $body
+            state: OPEN
+          }
+        ) {
+          pullRequest {
+            id
+          }
+        }
+      }
+    ",
+  {
+    "body": "This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing). If you're not ready to do a release yet, that's fine, whenever you add more changesets to some-branch, this PR will be updated.
+
+
+# Releases
+## simple-project-pkg-a@1.1.0
+
+### Minor Changes
+
+-   Awesome feature
+",
+    "pullRequestId": "PR_kwDOA",
     "title": "Version Packages",
   },
 ]
