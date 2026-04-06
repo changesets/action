@@ -6,19 +6,37 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 
 ### Inputs
 
-- publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
-- commit - The commit message to use. Default to `Version Packages`
-- title - The pull request title. Default to `Version Packages`
-- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
-- commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
-- cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
+| Input                  | Default Value       | Description                                                                                                                                   |
+| :--------------------- | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `publish`              |                     | The command to use to build and publish packages                                                                                              |
+| `version`              | `changeset version` | The command to update version, edit CHANGELOG, read and delete changesets                                                                     |
+| `commit`               | `Version Packages`  | The commit message to use                                                                                                                     |
+| `title`                | `Version Packages`  | The pull request title                                                                                                                        |
+| `setupGitUser`         | `true`              | Sets up the git user for commits as `"github-actions[bot]"`. No effect when using `commitMode: github-api`                                    |
+| `createGithubReleases` | `true`              | A boolean value to indicate whether to create Github releases after `publish` or not                                                          |
+| `commitMode`           | `git-cli`           | Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. [More info](#github-api-commit-mode) |
+| `cwd`                  | `process.cwd()`     | Changes node's `process.cwd()` if the project is not located on the root                                                                      |
 
 ### Outputs
 
-- published - A boolean value to indicate whether a publishing has happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+| Output              | Description                                                                                                                                      |
+| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `published`         | A boolean value to indicate whether a publishing has happened or not                                                                             |
+| `publishedPackages` | A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]` |
+
+### Permissions
+
+If your repository has [restrictive default permissions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token), you need to set the following permissions:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+  # uncomment this if you're publishing with provenance https://docs.npmjs.com/generating-provenance-statements
+  # id-token: write
+```
+
+You also need to check `Allow GitHub Actions to create and approve pull requests` in your repositories Actions settings.
 
 ### Example workflow:
 
@@ -42,12 +60,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -76,12 +94,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -140,12 +158,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -182,12 +200,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
 
       - name: Install Dependencies
         run: yarn
@@ -209,3 +227,29 @@ If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you shoul
     version: yarn changeset version
     ...
 ```
+
+## Advanced
+
+### Triggering other workflows
+
+When using the built-in `GITHUB_TOKEN`, tags, releases and pull requests created by this action won't trigger other workflows. From the [GitHub Docs docs](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow):
+
+> When you use the repository's `GITHUB_TOKEN` to perform tasks, events triggered by the `GITHUB_TOKEN`, will not create a new workflow run. This prevents you from accidentally creating recursive workflow runs.
+
+To fix this, you should use a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) or a [GitHub App token](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow) for this action. You also need to set the `commitMode` input to `github-api`.
+
+This is useful when using this action for [managing applications or non-npm packages](https://github.com/changesets/changesets/blob/main/docs/versioning-apps.md), and using tag or release triggers for custom release workflows.
+
+### GitHub API commit mode
+
+When using `github-api` for the `commitMode` input, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`.
+
+Due to calling the GitHub API more often, you may experience hitting [the rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28). This is more likely when using changesets in multiple, large, or very active projects.
+
+This mode uses [`@changesets/ghcommit`](https://github.com/changesets/ghcommit) to commit changes, which has some [known limitations](https://github.com/changesets/ghcommit?tab=readme-ov-file#known-limitations):
+
+> Due to using the GitHub API to make changes to repository contents, there are some things it's not possible to commit, and where using the Git CLI is still required.
+>
+> - Executable files
+> - Symbolic Links
+> - Submodule changes
