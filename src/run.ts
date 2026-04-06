@@ -117,15 +117,15 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    if (createGithubReleases) {
-      await Promise.all(
-        releasedPackages.map(async (pkg) => {
-          const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          await git.pushTag(tagName);
+    await Promise.all(
+      releasedPackages.map(async (pkg) => {
+        const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
+        await git.pushTag(tagName);
+        if (createGithubReleases) {
           await createRelease(octokit, { pkg, tagName });
-        })
-      );
-    }
+        }
+      })
+    );
   } else {
     if (packages.length === 0) {
       throw new Error(
@@ -141,9 +141,9 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
+        const tagName = `v${pkg.packageJson.version}`;
+        await git.pushTag(tagName);
         if (createGithubReleases) {
-          const tagName = `v${pkg.packageJson.version}`;
-          await git.pushTag(tagName);
           await createRelease(octokit, { pkg, tagName });
         }
         break;
