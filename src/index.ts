@@ -145,6 +145,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         octokit,
         cwd,
         prTitle: getOptionalInput("title"),
+        prBody: getOptionalInput("body"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
         branch: getOptionalInput("branch"),
