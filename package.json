@@ -5,7 +5,7 @@
   "type": "module",
   "license": "MIT",
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.29.3",
     "@changesets/write": "^0.4.0",
     "@rollup/plugin-commonjs": "^28.0.3",
