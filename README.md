@@ -120,6 +120,53 @@ For example, you can add a step before running the Changesets GitHub Action:
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
+#### With trusted publishing
+
+Before you can setup this action with publishing, you'll need to setup [trusted publishing](https://docs.npmjs.com/trusted-publishers) for your npm package at [npmjs.com](npmjs.com).
+
+```yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write # Required for OIDC
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          # This expects you to have a script called release which does a build for your packages and calls changeset publish
+          publish: yarn release
+
+      - name: Send a Slack notification if a publish happens
+        if: steps.changesets.outputs.published == 'true'
+        # You can do something when a publish happens.
+        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
+```
+
 #### Custom Publishing
 
 If you want to hook into when publishing should occur but have your own publishing functionality, you can utilize the `hasChangesets` output.
