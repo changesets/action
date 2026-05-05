@@ -1,2 +1,5 @@
 allowBuilds:
   esbuild: true
+
+dedupePeers: true
+dedupePeerDependents: true
