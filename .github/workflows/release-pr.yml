@@ -130,7 +130,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ steps.resolve_requested_sha.outputs.resolved_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}). Published commit: [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD))."
+      - run: |
+          gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ steps.resolve_requested_sha.outputs.resolved_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}). Published commit: [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD))."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -151,7 +152,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ needs.release_check.outputs.requested_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+      - run: |
+          gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ needs.release_check.outputs.requested_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
