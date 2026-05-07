@@ -9,11 +9,14 @@ permissions: {}
 jobs:
   release_check:
     if: github.repository == 'changesets/action' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/release-pr')
+    timeout-minutes: 5
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       issues: write
       pull-requests: read
+
     steps:
       - id: report_in_progress
         run: |
@@ -99,13 +102,18 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     needs: release_check
+
     permissions:
       contents: write
       issues: write
       pull-requests: write
+
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: ./.github/actions/ci-setup
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup dependencies
+        uses: ./.github/actions/ci-setup
 
       - name: Fetch validated commit from pull request head repository
         run: |
@@ -120,8 +128,7 @@ jobs:
         env:
           RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
-      - name: Check if Version Packages PR
-        id: check_version_packages
+      - id: check_version_packages
         run: |
           echo "version_packages=$(gh pr view ${{ github.event.issue.number }} --json headRefName --jq '.headRefName|startswith("changeset-release/")')" >> "$GITHUB_OUTPUT"
         env:
@@ -131,12 +138,13 @@ jobs:
         if: steps.check_version_packages.outputs.version_packages == 'true'
         run: git reset --hard HEAD~1
 
-      - run: yarn changeset version --snapshot pr${{ github.event.issue.number }}
+      - name: Create snapshot version
+        run: pnpm changeset version --snapshot pr${{ github.event.issue.number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Setup Git user
         run: |
@@ -144,17 +152,20 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Release snapshot version
-        run: yarn run release:pr
+        run: pnpm release:pr
 
-      - run: gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='rocket'
+      - name: Add success reaction
+        run: gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='rocket'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: gh api -X DELETE /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions/${{ needs.release_check.outputs.in_progress_reaction_id }}
+      - name: Remove in-progress reaction
+        run: gh api -X DELETE /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions/${{ needs.release_check.outputs.in_progress_reaction_id }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: |
+      - name: Comment success
+        run: |
           gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ needs.release_check.outputs.resolved_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}). Published commit: [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD))."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -164,19 +175,24 @@ jobs:
     timeout-minutes: 2
     runs-on: ubuntu-latest
     if: failure() && github.repository == 'changesets/action' && (needs.release_check.result == 'failure' || needs.release.result == 'failure')
+
     permissions:
       issues: write
       pull-requests: write
+
     steps:
-      - run: gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='-1'
+      - name: Add failure reaction
+        run: gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='-1'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: gh api -X DELETE /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions/${{ needs.release_check.outputs.in_progress_reaction_id }}
+      - name: Remove in-progress reaction
+        run: gh api -X DELETE /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions/${{ needs.release_check.outputs.in_progress_reaction_id }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: |
+      - name: Comment failure
+        run: |
           gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ needs.release_check.outputs.requested_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

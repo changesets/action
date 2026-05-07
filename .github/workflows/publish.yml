@@ -25,13 +25,13 @@ jobs:
       - uses: ./.github/actions/ci-setup
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Create or update release pull request
         id: changesets
         uses: ./
         with:
-          version: yarn bump
+          version: pnpm bump
 
   publish:
     name: Publish
@@ -57,9 +57,9 @@ jobs:
       - uses: ./.github/actions/ci-setup
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Publish to marketplace
         uses: ./
         with:
-          publish: yarn release
+          publish: pnpm release
