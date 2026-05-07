@@ -37,6 +37,8 @@ jobs:
           commit_sha=$(git rev-parse HEAD)
 
           {
+            echo "See the diff for this built version: https://github.com/changesets/action/compare/main...${GITHUB_REPOSITORY}:${commit_sha}"
+            echo ""
             echo "Use this preview build in a GitHub Actions workflow:"
             echo ""
             echo '```yaml'
