@@ -8,7 +8,7 @@ exports[`version > creates a draft PR when prDraft is "create" 1`] = `
 
 
 # Releases
-## simple-project-pkg-a@1.1.0
+## @simple-project/pkg-a@1.1.0
 
 ### Minor Changes
 
@@ -183,7 +183,7 @@ exports[`version > updates an existing PR via GraphQL and converts it to draft w
 
 
 # Releases
-## simple-project-pkg-a@1.1.0
+## @simple-project/pkg-a@1.1.0
 
 ### Minor Changes
 
@@ -224,7 +224,7 @@ exports[`version > updates an existing PR via GraphQL without converting it to d
 
 
 # Releases
-## simple-project-pkg-a@1.1.0
+## @simple-project/pkg-a@1.1.0
 
 ### Minor Changes
 

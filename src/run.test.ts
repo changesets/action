@@ -107,7 +107,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@simple-project/pkg-a",
               type: "minor",
             },
           ],
@@ -329,7 +329,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@simple-project/pkg-a",
               type: "minor",
             },
           ],
@@ -363,7 +363,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "@simple-project/pkg-a",
               type: "minor",
             },
           ],
