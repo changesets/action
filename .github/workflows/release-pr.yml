@@ -45,16 +45,54 @@ jobs:
         env:
           AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
 
-      - id: get_pr_head_sha
+      - id: resolve_requested_sha
         run: |
-          echo "pr_head_sha=$(gh pr view ${{ github.event.issue.number }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          requested_sha=$(echo "$REQUESTED_SHA" | tr '[:upper:]' '[:lower:]')
+
+          mapfile -t matches < <(
+            gh api /repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}/commits --paginate --jq '.[].sha' |
+              awk -v sha="$requested_sha" 'index(tolower($0), sha) == 1 { print $0 }'
+          )
+
+          if [[ ${#matches[@]} -eq 0 ]]
+          then
+            echo "Requested SHA $REQUESTED_SHA is not part of this pull request."
+            exit 1
+          fi
+
+          if [[ ${#matches[@]} -gt 1 ]]
+          then
+            echo "Requested SHA $REQUESTED_SHA is ambiguous for this pull request."
+            exit 1
+          fi
+
+          resolved_sha="${matches[0]}"
+          pr_head_sha=$(gh pr view ${{ github.event.issue.number }} --json headRefOid --jq '.headRefOid')
+
+          if [[ "$resolved_sha" != "$pr_head_sha" ]]
+          then
+            echo "Requested SHA $resolved_sha is not the current PR head $pr_head_sha."
+            exit 1
+          fi
+
+          echo "resolved_sha=$resolved_sha" >> "$GITHUB_OUTPUT"
+          echo "pr_head_sha=$pr_head_sha" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUESTED_SHA: ${{ steps.parse_command.outputs.requested_sha }}
+
+      - id: get_pr_head_repository
+        run: |
+          echo "head_repository=$(gh pr view ${{ github.event.issue.number }} --json headRepositoryOwner,headRepository --jq '.headRepositoryOwner.login + "/" + .headRepository.name')" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     outputs:
       in_progress_reaction_id: ${{ steps.report_in_progress.outputs.in_progress_reaction_id }}
       requested_sha: ${{ steps.parse_command.outputs.requested_sha }}
-      pr_head_sha: ${{ steps.get_pr_head_sha.outputs.pr_head_sha }}
+      resolved_sha: ${{ steps.resolve_requested_sha.outputs.resolved_sha }}
+      pr_head_sha: ${{ steps.resolve_requested_sha.outputs.pr_head_sha }}
+      head_repository: ${{ steps.get_pr_head_repository.outputs.head_repository }}
 
   release:
     if: github.repository == 'changesets/action'
@@ -69,32 +107,18 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/ci-setup
 
-      - name: Fetch pull request head commit
-        run: git fetch --no-tags origin ${{ needs.release_check.outputs.pr_head_sha }}
-
-      - name: Resolve requested SHA
-        id: resolve_requested_sha
+      - name: Fetch validated commit from pull request head repository
         run: |
-          resolved_sha=$(git rev-parse --verify "${REQUESTED_SHA}^{commit}")
-          echo "resolved_sha=$resolved_sha" >> "$GITHUB_OUTPUT"
+          git remote add pr-head https://github.com/$HEAD_REPOSITORY.git
+          git fetch --no-tags pr-head $RESOLVED_SHA
         env:
-          REQUESTED_SHA: ${{ needs.release_check.outputs.requested_sha }}
-
-      - name: Verify requested SHA matches current PR head
-        run: |
-          if [[ "$RESOLVED_SHA" != "$PR_HEAD_SHA" ]]
-          then
-            echo "Requested SHA $RESOLVED_SHA is not the current PR head $PR_HEAD_SHA."
-            exit 1
-          fi
-        env:
-          RESOLVED_SHA: ${{ steps.resolve_requested_sha.outputs.resolved_sha }}
-          PR_HEAD_SHA: ${{ needs.release_check.outputs.pr_head_sha }}
+          HEAD_REPOSITORY: ${{ needs.release_check.outputs.head_repository }}
+          RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
       - name: Checkout validated commit
         run: git checkout --detach $RESOLVED_SHA
         env:
-          RESOLVED_SHA: ${{ steps.resolve_requested_sha.outputs.resolved_sha }}
+          RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
       - name: Check if Version Packages PR
         id: check_version_packages
@@ -131,7 +155,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - run: |
-          gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ steps.resolve_requested_sha.outputs.resolved_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}). Published commit: [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD))."
+          gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ needs.release_check.outputs.resolved_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}). Published commit: [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD))."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
