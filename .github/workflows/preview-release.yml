@@ -1,0 +1,49 @@
+name: Release Branch
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  release:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/ci-setup
+
+      - run: yarn changeset version --snapshot branch-${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        run: yarn build
+
+      - name: Setup Git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Release snapshot version
+        run: yarn run release:pr
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Summarize preview release
+        run: |
+          commit_sha=$(git rev-parse HEAD)
+          repository_owner="${{ github.repository_owner }}"
+          repository_name="${{ github.event.repository.name }}"
+
+          {
+            echo "See the diff for this built version: https://github.com/changesets/action/compare/main...${repository_owner}:${repository_name}:${commit_sha}"
+            echo ""
+            echo "Use this preview build in a GitHub Actions workflow:"
+            echo ""
+            echo '```yaml'
+            echo "      - uses: ${GITHUB_REPOSITORY}@${commit_sha}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

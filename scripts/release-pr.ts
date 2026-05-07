@@ -4,7 +4,7 @@ import path from "node:path";
 import pkgJson from "../package.json" with { type: "json" };
 
 const tag = `v${pkgJson.version}`;
-const releaseLine = "pr-release";
+const releaseLine = `built-${process.env.GITHUB_REF_NAME}`;
 
 process.chdir(path.join(import.meta.dirname, ".."));
 
