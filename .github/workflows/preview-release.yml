@@ -31,3 +31,15 @@ jobs:
         run: yarn run release:pr
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Summarize preview release
+        run: |
+          commit_sha=$(git rev-parse HEAD)
+
+          {
+            echo "Use this preview build in a GitHub Actions workflow:"
+            echo ""
+            echo '```yaml'
+            echo "      - uses: ${GITHUB_REPOSITORY}@${commit_sha}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
