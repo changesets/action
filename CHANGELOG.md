@@ -1,5 +1,17 @@
 # @changesets/action
 
+## 1.8.0
+
+### Minor Changes
+
+- [#258](https://github.com/changesets/action/pull/258) [`f5dbf72`](https://github.com/changesets/action/commit/f5dbf72f96949cb0daf45152f0f63062df70e97d) Thanks [@tom-sherman](https://github.com/tom-sherman)! - Support draft version PR modes with a new `prDraft` input. Use `create` to create new version PRs as drafts, or `always` to also convert existing version PRs back to draft when updating them.
+
+### Patch Changes
+
+- [#502](https://github.com/changesets/action/pull/502) [`6002dbd`](https://github.com/changesets/action/commit/6002dbd987f49a3c0a134910d9c7bca975b79977) Thanks [@oshytiko](https://github.com/oshytiko)! - Fixed initial `.changeset` state being picked up, when `cwd` parameter is provided
+
+- [`81b3f61`](https://github.com/changesets/action/commit/81b3f61ebffcb868f73e4c0b2682517149c834a2) Thanks [@radnan](https://github.com/radnan)! - Fixed `.changeset` state being picked for the version command when `cwd` parameter is provided
+
 ## 1.7.0
 
 ### Minor Changes
