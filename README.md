@@ -48,10 +48,10 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 26
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -85,10 +85,10 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 26
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -152,10 +152,10 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 26
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -197,10 +197,10 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 26
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -220,5 +220,5 @@ If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you shoul
 - uses: changesets/action@v1
   with:
     version: yarn changeset version
-    ...
+    # ...
 ```
