@@ -8,6 +8,11 @@ exports[`it sorts the things right 1`] = `
     "private": false,
   },
   {
+    "highestLevel": 3,
+    "name": "d",
+    "private": false,
+  },
+  {
     "highestLevel": 1,
     "name": "b",
     "private": false,
