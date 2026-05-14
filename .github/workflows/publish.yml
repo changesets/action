@@ -5,7 +5,10 @@ on:
     branches:
       - main
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
 
 permissions: {} # each job should define its own permission explicitly
 
@@ -27,6 +30,8 @@ jobs:
           persist-credentials: false
 
       - uses: ./.github/actions/ci-setup
+        with:
+          skip-cache: true # avoid cache poisoning attacks
 
       - name: Build
         run: pnpm build
@@ -61,6 +66,8 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - uses: ./.github/actions/ci-setup
+        with:
+          skip-cache: true # avoid cache poisoning attacks
 
       - name: Build
         run: pnpm build
