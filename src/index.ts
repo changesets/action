@@ -126,6 +126,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
         git,
         octokit,
         createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        commitMode,
         cwd,
       });
 
