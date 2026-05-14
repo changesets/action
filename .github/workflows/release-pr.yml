@@ -109,11 +109,12 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout
+      - name: Check out repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
-      - name: Setup dependencies
-        uses: ./.github/actions/ci-setup
+      - uses: ./.github/actions/ci-setup
 
       - name: Fetch validated commit from pull request head repository
         run: |
@@ -128,7 +129,8 @@ jobs:
         env:
           RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
-      - id: check_version_packages
+      - name: Check if Version Packages PR
+        id: check_version_packages
         run: |
           echo "version_packages=$(gh pr view ${{ github.event.issue.number }} --json headRefName --jq '.headRefName|startswith("changeset-release/")')" >> "$GITHUB_OUTPUT"
         env:

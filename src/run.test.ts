@@ -68,11 +68,11 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@simple-project/pkg-a",
+              name: "simple-project-pkg-a",
               type: "minor",
             },
             {
-              name: "@simple-project/pkg-b",
+              name: "simple-project-pkg-b",
               type: "minor",
             },
           ],
@@ -107,7 +107,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@simple-project/pkg-a",
+              name: "simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -143,7 +143,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@simple-project/pkg-a",
+              name: "simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -213,7 +213,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@simple-project/pkg-a",
+              name: "simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -272,7 +272,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "@simple-project/pkg-a",
+              name: "simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -329,7 +329,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "@simple-project/pkg-a",
+              name: "simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -363,7 +363,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "@simple-project/pkg-a",
+              name: "simple-project-pkg-a",
               type: "minor",
             },
           ],
