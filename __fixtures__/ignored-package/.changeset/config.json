@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@1.3.0/schema.json",
   "ignore": [
-    "@changesets/ignored-package-pkg-a"
+    "changesets-dev-ignored-package-pkg-a"
   ]
 }

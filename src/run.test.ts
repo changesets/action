@@ -68,11 +68,11 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@changesets/simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
             {
-              name: "@changesets/simple-project-pkg-b",
+              name: "changesets-dev-simple-project-pkg-b",
               type: "minor",
             },
           ],
@@ -107,7 +107,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@changesets/simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -143,7 +143,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@changesets/simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -178,7 +178,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@changesets/ignored-package-pkg-b",
+              name: "changesets-dev-ignored-package-pkg-b",
               type: "minor",
             },
           ],
@@ -213,7 +213,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "@changesets/simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -272,7 +272,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "@changesets/simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -329,7 +329,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "@changesets/simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -363,7 +363,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "@changesets/simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
