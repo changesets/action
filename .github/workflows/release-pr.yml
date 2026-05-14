@@ -12,6 +12,7 @@ permissions: {}
 
 jobs:
   release_check:
+    name: Validate release request
     if: github.repository == 'changesets/action' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/release-pr')
     timeout-minutes: 5
     runs-on: ubuntu-latest
@@ -109,6 +110,7 @@ jobs:
       head_repository: ${{ steps.get_pr_head_repository.outputs.head_repository }}
 
   release:
+    name: Release snapshot
     if: github.repository == 'changesets/action'
     timeout-minutes: 20
     runs-on: ubuntu-latest
@@ -201,6 +203,7 @@ jobs:
           RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
   report-failure-if-needed:
+    name: Report failure
     needs: [release_check, release]
     timeout-minutes: 2
     runs-on: ubuntu-latest
