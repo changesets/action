@@ -17,9 +17,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
-      issues: write
-      pull-requests: read
+      contents: read # to inspect the pull request commit state (changesets/action)
+      issues: write # to add and remove reactions on the triggering comment (changesets/action)
+      pull-requests: read # to inspect the pull request head state (changesets/action)
 
     steps:
       - id: report_in_progress
@@ -115,9 +115,9 @@ jobs:
     needs: release_check
 
     permissions:
-      contents: write
-      issues: write
-      pull-requests: write
+      contents: write # to create the release commit and publish snapshot artifacts (changesets/action)
+      issues: write # to add and remove reactions on the triggering comment (changesets/action)
+      pull-requests: write # to comment on the pull request with the release result (changesets/action)
 
     steps:
       - name: Check out repo
@@ -207,8 +207,8 @@ jobs:
     if: failure() && github.repository == 'changesets/action' && (needs.release_check.result == 'failure' || needs.release.result == 'failure')
 
     permissions:
-      issues: write
-      pull-requests: write
+      issues: write # to add and remove reactions on the triggering comment (changesets/action)
+      pull-requests: write # to comment on the pull request with the failure result (changesets/action)
 
     steps:
       - name: Add failure reaction
