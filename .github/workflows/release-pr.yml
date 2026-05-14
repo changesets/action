@@ -20,9 +20,12 @@ jobs:
     steps:
       - id: report_in_progress
         run: |
-          echo "in_progress_reaction_id=$(gh api /repos/${{github.repository}}/issues/comments/${{github.event.comment.id}}/reactions -f content='eyes' --jq '.id')" >> "$GITHUB_OUTPUT"
+          in_progress_reaction_id=$(gh api "/repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions" -f content='eyes' --jq '.id')
+          echo "in_progress_reaction_id=$in_progress_reaction_id" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
 
       - id: parse_command
         run: |
@@ -38,7 +41,7 @@ jobs:
 
       - id: check_authorization
         run: |
-          if [[ $AUTHOR_ASSOCIATION == 'MEMBER' || $AUTHOR_ASSOCIATION == 'OWNER' || $AUTHOR_ASSOCIATION == 'COLLABORATOR' ]]
+          if [[ "$AUTHOR_ASSOCIATION" == 'MEMBER' || "$AUTHOR_ASSOCIATION" == 'OWNER' || "$AUTHOR_ASSOCIATION" == 'COLLABORATOR' ]]
           then
             echo "User is authorized to release"
           else
@@ -53,7 +56,7 @@ jobs:
           requested_sha=$(echo "$REQUESTED_SHA" | tr '[:upper:]' '[:lower:]')
 
           mapfile -t matches < <(
-            gh api /repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}/commits --paginate --jq '.[].sha' |
+            gh api "/repos/$GH_REPO/pulls/$ISSUE_NUMBER/commits" --paginate --jq '.[].sha' |
               awk -v sha="$requested_sha" 'index(tolower($0), sha) == 1 { print $0 }'
           )
 
@@ -70,7 +73,7 @@ jobs:
           fi
 
           resolved_sha="${matches[0]}"
-          pr_head_sha=$(gh pr view ${{ github.event.issue.number }} --json headRefOid --jq '.headRefOid')
+          pr_head_sha=$(gh pr view "$ISSUE_NUMBER" --json headRefOid --jq '.headRefOid')
 
           if [[ "$resolved_sha" != "$pr_head_sha" ]]
           then
@@ -82,13 +85,17 @@ jobs:
           echo "pr_head_sha=$pr_head_sha" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
           REQUESTED_SHA: ${{ steps.parse_command.outputs.requested_sha }}
 
       - id: get_pr_head_repository
         run: |
-          echo "head_repository=$(gh pr view ${{ github.event.issue.number }} --json headRepositoryOwner,headRepository --jq '.headRepositoryOwner.login + "/" + .headRepository.name')" >> "$GITHUB_OUTPUT"
+          head_repository=$(gh pr view "$ISSUE_NUMBER" --json headRepositoryOwner,headRepository --jq '.headRepositoryOwner.login + "/" + .headRepository.name')
+          echo "head_repository=$head_repository" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
 
     outputs:
       in_progress_reaction_id: ${{ steps.report_in_progress.outputs.in_progress_reaction_id }}
@@ -120,32 +127,35 @@ jobs:
 
       - name: Fetch validated commit from pull request head repository
         run: |
-          git remote add pr-head https://github.com/$HEAD_REPOSITORY.git
-          git fetch --no-tags pr-head $RESOLVED_SHA
+          git remote add pr-head "https://github.com/$HEAD_REPOSITORY.git"
+          git fetch --no-tags pr-head "$RESOLVED_SHA"
         env:
           HEAD_REPOSITORY: ${{ needs.release_check.outputs.head_repository }}
           RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
       - name: Checkout validated commit
-        run: git checkout --detach $RESOLVED_SHA
+        run: git checkout --detach "$RESOLVED_SHA"
         env:
           RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
       - name: Check if Version Packages PR
         id: check_version_packages
         run: |
-          echo "version_packages=$(gh pr view ${{ github.event.issue.number }} --json headRefName --jq '.headRefName|startswith("changeset-release/")')" >> "$GITHUB_OUTPUT"
+          version_packages=$(gh pr view "$ISSUE_NUMBER" --json headRefName --jq '.headRefName|startswith("changeset-release/")')
+          echo "version_packages=$version_packages" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reset Version Packages PR
         if: steps.check_version_packages.outputs.version_packages == 'true'
         run: git reset --hard HEAD~1
 
       - name: Create snapshot version
-        run: pnpm changeset version --snapshot pr${{ github.event.issue.number }}
+        run: pnpm changeset version --snapshot "pr$ISSUE_NUMBER"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Build
         run: pnpm build
@@ -159,20 +169,32 @@ jobs:
         run: pnpm release:pr
 
       - name: Add success reaction
-        run: gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='rocket'
+        run: gh api "/repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions" -f content='rocket'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
 
       - name: Remove in-progress reaction
-        run: gh api -X DELETE /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions/${{ needs.release_check.outputs.in_progress_reaction_id }}
+        run: gh api -X DELETE "/repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions/$IN_PROGRESS_REACTION_ID"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          IN_PROGRESS_REACTION_ID: ${{ needs.release_check.outputs.in_progress_reaction_id }}
 
       - name: Comment success
         run: |
-          gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ needs.release_check.outputs.resolved_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [succeeded](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}). Published commit: [${{ github.repository }}@$(git rev-parse HEAD)](https://github.com/${{ github.repository }}/commit/$(git rev-parse HEAD))."
+          published_commit="$(git rev-parse HEAD)"
+          body="The release for \`$RESOLVED_SHA\` triggered by [this comment]($COMMENT_URL) has [succeeded]($RUN_URL). Published commit: [$GH_REPO@$published_commit](https://github.com/$GH_REPO/commit/$published_commit)."
+          gh pr comment "$ISSUE_NUMBER" --body "$body"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_URL: ${{ github.event.comment.url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RESOLVED_SHA: ${{ needs.release_check.outputs.resolved_sha }}
 
   report-failure-if-needed:
     needs: [release_check, release]
@@ -186,18 +208,28 @@ jobs:
 
     steps:
       - name: Add failure reaction
-        run: gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='-1'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Remove in-progress reaction
-        run: gh api -X DELETE /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions/${{ needs.release_check.outputs.in_progress_reaction_id }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Comment failure
-        run: |
-          gh pr comment ${{ github.event.issue.number }} --body "The release for \`${{ needs.release_check.outputs.requested_sha }}\` triggered by [this comment](${{ github.event.comment.url }}) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+        run: gh api "/repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions" -f content='-1'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+
+      - name: Remove in-progress reaction
+        run: gh api -X DELETE "/repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions/$IN_PROGRESS_REACTION_ID"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          IN_PROGRESS_REACTION_ID: ${{ needs.release_check.outputs.in_progress_reaction_id }}
+
+      - name: Comment failure
+        run: |
+          body="The release for \`$REQUESTED_SHA\` triggered by [this comment]($COMMENT_URL) has [failed]($RUN_URL)."
+          gh pr comment "$ISSUE_NUMBER" --body "$body"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_URL: ${{ github.event.comment.url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REQUESTED_SHA: ${{ needs.release_check.outputs.requested_sha }}
