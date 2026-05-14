@@ -3,9 +3,11 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
   merge_group:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -17,11 +19,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
       - uses: ./.github/actions/ci-setup
 
       - name: Test
-        run: yarn test
+        run: pnpm test
 
   typecheck:
     name: Typecheck
@@ -29,11 +35,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
       - uses: ./.github/actions/ci-setup
 
       - name: Typecheck
-        run: yarn typecheck
+        run: pnpm typecheck
 
   ci-ok:
     name: CI OK
