@@ -58,11 +58,84 @@ const createRelease = async (
   });
 };
 
+/**
+ * Creates a combined release for all packages that have been released
+ * in the current run.
+ * @param octokit The octokit instance to use for creating the release.
+ * @param options The options for creating the release.
+ * @returns A promise that resolves when the release has been created.
+ */
+const createCombinedRelease = async (
+  octokit: Octokit,
+  { packages, tagName }: { packages: Package[], tagName: string }
+) => {
+  let finalChangelog: string | undefined;
+  const isPrerelease = packages.some(
+    (pkg) => pkg.packageJson.version.includes("-")
+  );
+  const isStable = packages.some(
+    (pkg) => !pkg.packageJson.version.includes("-")
+  );
+
+  // If we have a mix of stable and prerelease versions, we throw an error
+  // otherwise there's not reason to create a combined release
+  if (isPrerelease && isStable) {
+    throw new Error('Cannot create a combined release with both stable and prerelease versions.');
+  }
+
+  try {
+    // we collect the changelog of all packages
+     finalChangelog = await Promise.all(
+      packages.map((pkg) => {
+        const changelog = fs.readFile(path.join(pkg.dir, "CHANGELOG.md"), "utf8")
+        const changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
+        const content = changelogEntry.content;
+
+        // First we'll replace all ## versions with level 3 headings
+        content.replace(/^(## )/gm, "### ");
+
+        // Second we'll replace all ### change heaadings with level 4 headings
+        content.replace(/^(### )/gm, "#### ");
+
+        // now we'll replace the changelog heading with the package name
+        content.replace(/^# (.*)$/gm, `## ${pkg.packageJson.name}`);
+
+        if (!changelogEntry) {
+          // we can find a changelog but not the entry for this version
+          // if this is true, something has probably gone wrong
+          throw new Error(
+            `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+          );
+        }
+        return changelogEntry.content;
+      })
+    ).then((changelogs) => changelogs.join("\n\n"));
+
+    // Now lets add back the main heading via prepending it
+    finalChangelog = `# ${tagName}\n\n${finalChangelog}`;
+
+    await octokit.rest.repos.createRelease({
+      name: tagName,
+      tag_name: tagName,
+      body: finalChangelog,
+      prerelease: isPrerelease,
+      ...github.context.repo,
+    })
+  } catch (err) {
+    if (isErrorWithCode(err, "ENOENT")) {
+      // if we can't find a changelog, the user has probably disabled changelogs
+      return;
+    }
+    throw err;
+  }
+}
+
 type PublishOptions = {
   script: string;
   githubToken: string;
   octokit: Octokit;
   createGithubReleases: boolean;
+  combineReleases?: boolean;
   git: Git;
   cwd: string;
 };
@@ -84,6 +157,7 @@ export async function runPublish({
   git,
   octokit,
   createGithubReleases,
+  combineReleases = false,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
   let [publishCommand, ...publishArgs] = script.split(/\s+/);
@@ -94,7 +168,7 @@ export async function runPublish({
     { cwd, env: { ...process.env, GITHUB_TOKEN: githubToken } }
   );
 
-  let { packages, tool } = await getPackages(cwd);
+  let { packages, tool } = await getPackages(cwd) as { packages: Package[]; tool: string };
   let releasedPackages: Package[] = [];
 
   if (tool !== "root") {
@@ -118,13 +192,54 @@ export async function runPublish({
     }
 
     if (createGithubReleases) {
-      await Promise.all(
-        releasedPackages.map(async (pkg) => {
-          const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          await git.pushTag(tagName);
-          await createRelease(octokit, { pkg, tagName });
-        })
-      );
+      if (combineReleases && releasedPackages.length > 1) {
+        // we'll collect all packages with the same release version
+        const packagesByVersion = packages.reduce((acc: Record<string, Package[]>, pkg: Package) => {
+          const version = pkg.packageJson.version;
+          if (!acc[version]) {
+            acc[version] = [];
+          }
+          acc[version].push(pkg);
+          return acc;
+        }, {})
+
+        if (Object.keys(packagesByVersion).length === 0) {
+          throw new Error(
+            `No packages found with a version to release.` +
+              "This is probably a bug in the action, please open an issue"
+          );
+        }
+
+        // in the case the user is combining releases but has different package versions
+        // in the mono repo, we will warn them about it
+        if (Object.keys(packagesByVersion).length > 1) {
+          console.warn(
+            `Multiple package versions found: ${Object.keys(packagesByVersion).join(", ")}. ` +
+              "Creating combined releases for each version.\n" +
+              "This is a workaround to avoid issues when multiple package versions are released from the same changeset.\n" + 
+              "This can lead to issues should different versions start overlapping in the future."
+          );
+        }
+
+        // for each version we'll create a combined release
+        // this is a bandaid to avoid issues when for whatever reason multiple package versions are released
+        // from the same changeset
+        await Promise.all(
+          Object.entries(packagesByVersion).map(async ([version, versionPackages]) => {
+            const tagName = `v${version}`;
+            await git.pushTag(tagName);
+            await createCombinedRelease(octokit, { packages: versionPackages, tagName });
+          })
+        );
+      } else {
+        await Promise.all(
+          releasedPackages.map(async (pkg) => {
+            const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
+            await git.pushTag(tagName);
+            await createRelease(octokit, { pkg, tagName });
+          })
+        );
+      }
     }
   } else {
     if (packages.length === 0) {
