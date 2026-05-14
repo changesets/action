@@ -431,6 +431,35 @@ export async function runVersion({
       body: prBody,
     });
 
+    // When using commitMode: "github-api", the force push closes the PR asynchronously.
+    // The state: OPEN in the mutation above may be a no-op if close propagation has not
+    // completed yet, so verify and reopen via REST until the PR is confirmed open.
+    if (git.octokit) {
+      const maxAttempts = 5;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const { data: currentPr } = await octokit.rest.pulls.get({
+          pull_number: pullRequest.number,
+          ...github.context.repo,
+        });
+        if (currentPr.state === "open") break;
+        if (attempt === maxAttempts) {
+          core.warning(
+            `PR #${pullRequest.number} could not be reopened after ${maxAttempts} attempts`
+          );
+          break;
+        }
+        core.info(
+          `PR #${pullRequest.number} is still closed, reopening (attempt ${attempt}/${maxAttempts - 1})...`
+        );
+        await octokit.rest.pulls.update({
+          pull_number: pullRequest.number,
+          state: "open",
+          ...github.context.repo,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    }
+
     return {
       pullRequestNumber: pullRequest.number,
     };
