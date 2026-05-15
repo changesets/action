@@ -1,6 +1,5 @@
-import { exec, getExecOutput } from "@actions/exec";
 import path from "node:path";
-
+import { exec, getExecOutput } from "@actions/exec";
 import pkgJson from "../package.json" with { type: "json" };
 
 const tag = `v${pkgJson.version}`;

@@ -1,11 +1,11 @@
-import unified from "unified";
-import remarkParse from "remark-parse";
-import remarkStringify from "remark-stringify";
 import fs from "node:fs/promises";
+import { getPackages, type Package } from "@manypkg/get-packages";
 import type { Root } from "mdast";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
-import { getPackages, type Package } from "@manypkg/get-packages";
+import remarkParse from "remark-parse";
+import remarkStringify from "remark-stringify";
+import unified from "unified";
 
 export const BumpLevels = {
   dep: 0,

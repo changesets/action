@@ -1,8 +1,8 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import type { Changeset } from "@changesets/types";
 import writeChangeset from "@changesets/write";
 import fixturez from "fixturez";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";

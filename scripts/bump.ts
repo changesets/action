@@ -1,6 +1,6 @@
-import { exec } from "@actions/exec";
 import fs from "node:fs";
 import path from "node:path";
+import { exec } from "@actions/exec";
 import pkgJson from "../package.json" with { type: "json" };
 
 process.chdir(path.join(import.meta.dirname, ".."));

@@ -1,6 +1,6 @@
-import * as core from "@actions/core";
 import fs from "node:fs/promises";
 import path from "node:path";
+import * as core from "@actions/core";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
