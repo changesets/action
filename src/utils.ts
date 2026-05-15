@@ -1,11 +1,11 @@
-import unified from "unified";
-import remarkParse from "remark-parse";
-import remarkStringify from "remark-stringify";
 import fs from "node:fs/promises";
+import { getPackages, type Package } from "@manypkg/get-packages";
 import type { Root } from "mdast";
 // @ts-ignore
 import mdastToString from "mdast-util-to-string";
-import { getPackages, type Package } from "@manypkg/get-packages";
+import remarkParse from "remark-parse";
+import remarkStringify from "remark-stringify";
+import unified from "unified";
 
 export const BumpLevels = {
   dep: 0,
@@ -21,7 +21,7 @@ export async function getVersionsByDirectory(cwd: string) {
 
 export async function getChangedPackages(
   cwd: string,
-  previousVersions: Map<string, string>
+  previousVersions: Map<string, string>,
 ) {
   let { packages } = await getPackages(cwd);
   let changedPackages = new Set<Package>();
@@ -87,7 +87,7 @@ export function getChangelogEntry(changelog: string, version: string) {
 
 export function sortTheThings(
   a: { private: boolean; highestLevel: number },
-  b: { private: boolean; highestLevel: number }
+  b: { private: boolean; highestLevel: number },
 ) {
   if (a.private === b.private) {
     return b.highestLevel - a.highestLevel;
@@ -110,6 +110,6 @@ export function isErrorWithCode(err: unknown, code: string) {
 export function fileExists(filePath: string) {
   return fs.access(filePath, fs.constants.F_OK).then(
     () => true,
-    () => false
+    () => false,
   );
 }

@@ -1,6 +1,5 @@
-import { exec, getExecOutput } from "@actions/exec";
 import path from "node:path";
-
+import { exec, getExecOutput } from "@actions/exec";
 import pkgJson from "../package.json" with { type: "json" };
 
 const tag = `v${pkgJson.version}`;
@@ -14,11 +13,11 @@ process.chdir(path.join(import.meta.dirname, ".."));
     ["ls-remote", "--exit-code", "origin", "--tags", `refs/tags/${tag}`],
     {
       ignoreReturnCode: true,
-    }
+    },
   );
   if (exitCode === 0) {
     console.log(
-      `Action is not being published because version ${tag} is already published`
+      `Action is not being published because version ${tag} is already published`,
     );
     return;
   }
