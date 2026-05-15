@@ -46,7 +46,7 @@
     "@types/semver": "^7.5.0",
     "builtin-modules": "^5.0.0",
     "esbuild": "^0.25.4",
-    "fixturez": "^1.1.0",
+    "fs-fixture": "^2.13.0",
     "oxfmt": "^0.48.0",
     "rollup": "^4.40.2",
     "typescript": "^5.8.3",
