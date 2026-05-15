@@ -166,9 +166,11 @@ export async function runPublish({
 
 const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
-    return require(require.resolve("@changesets/cli/package.json", {
-      paths: [cwd],
-    }));
+    return require(
+      require.resolve("@changesets/cli/package.json", {
+        paths: [cwd],
+      })
+    );
   } catch (err) {
     if (isErrorWithCode(err, "MODULE_NOT_FOUND")) {
       throw new Error(
