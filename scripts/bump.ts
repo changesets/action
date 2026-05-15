@@ -13,6 +13,6 @@ const readmePath = path.join(import.meta.dirname, "..", "README.md");
 const content = fs.readFileSync(readmePath, "utf8");
 const updatedContent = content.replace(
   /changesets\/action@[^\s]+/g,
-  `changesets/action@${releaseLine}`
+  `changesets/action@${releaseLine}`,
 );
 fs.writeFileSync(readmePath, updatedContent);
