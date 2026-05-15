@@ -60,6 +60,7 @@ const createRelease = async (
 
 type PublishOptions = {
   script: string;
+  githubToken: string;
   octokit: Octokit;
   createGithubReleases: boolean;
   git: Git;
@@ -79,6 +80,7 @@ type PublishResult =
 
 export async function runPublish({
   script,
+  githubToken,
   git,
   octokit,
   createGithubReleases,
@@ -89,7 +91,7 @@ export async function runPublish({
   let changesetPublishOutput = await getExecOutput(
     publishCommand,
     publishArgs,
-    { cwd }
+    { cwd, env: { ...process.env, GITHUB_TOKEN: githubToken } }
   );
 
   let { packages, tool } = await getPackages(cwd);
@@ -249,6 +251,7 @@ export async function getVersionPrBody({
 
 type VersionOptions = {
   script?: string;
+  githubToken: string;
   git: Git;
   octokit: Octokit;
   cwd?: string;
@@ -256,6 +259,7 @@ type VersionOptions = {
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
+  prDraft?: "always" | "create";
   branch?: string;
 };
 
@@ -265,6 +269,7 @@ type RunVersionResult = {
 
 export async function runVersion({
   script,
+  githubToken,
   git,
   octokit,
   cwd = process.cwd(),
@@ -273,6 +278,7 @@ export async function runVersion({
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
   branch = github.context.ref.replace("refs/heads/", ""),
+  prDraft,
 }: VersionOptions): Promise<RunVersionResult> {
   let versionBranch = `changeset-release/${branch}`;
 
@@ -282,9 +288,11 @@ export async function runVersion({
 
   let versionsByDirectory = await getVersionsByDirectory(cwd);
 
+  const env = { ...process.env, GITHUB_TOKEN: githubToken };
+
   if (script) {
     let [versionCommand, ...versionArgs] = script.split(/\s+/);
-    await exec(versionCommand, versionArgs, { cwd });
+    await exec(versionCommand, versionArgs, { cwd, env });
   } else {
     let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
     let cmd = semverLt(changesetsCliPkgJson.version, "2.0.0")
@@ -300,6 +308,7 @@ export async function runVersion({
       ],
       {
         cwd,
+        env,
       }
     );
   }
@@ -330,7 +339,7 @@ export async function runVersion({
   /**
    * Fetch any existing pull requests that are open against the branch,
    * before we push any changes that may inadvertently close the existing PRs.
-   * 
+   *
    * (`@changesets/ghcommit` has to reset the branch to the same commit as the base,
    * which GitHub will then react to by closing the PRs)
    */
@@ -340,7 +349,13 @@ export async function runVersion({
     head: `${github.context.repo.owner}:${versionBranch}`,
     base: branch,
   });
-  core.info(`Existing pull requests: ${JSON.stringify(existingPullRequests.data, null, 2)}`);
+  core.info(
+    `Existing pull requests: ${JSON.stringify(
+      existingPullRequests.data,
+      null,
+      2
+    )}`
+  );
 
   await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
 
@@ -363,6 +378,7 @@ export async function runVersion({
       head: versionBranch,
       title: finalPrTitle,
       body: prBody,
+      draft: prDraft !== undefined,
       ...github.context.repo,
     });
 
@@ -373,12 +389,46 @@ export async function runVersion({
     const [pullRequest] = existingPullRequests.data;
 
     core.info(`updating found pull request #${pullRequest.number}`);
-    await octokit.rest.pulls.update({
-      pull_number: pullRequest.number,
+    const convertPullRequestToDraftMutation =
+      prDraft === "always"
+        ? `
+        convertPullRequestToDraft(
+          input: {
+            pullRequestId: $pullRequestId
+          }
+        ) {
+          pullRequest {
+            id
+          }
+        }`
+        : "";
+    const updatePullRequestMutation = `
+      mutation UpdatePullRequest(
+        $pullRequestId: ID!
+        $title: String!
+        $body: String!
+      ) {
+        ${convertPullRequestToDraftMutation}
+
+        updatePullRequest(
+          input: {
+            pullRequestId: $pullRequestId
+            title: $title
+            body: $body
+            state: OPEN
+          }
+        ) {
+          pullRequest {
+            id
+          }
+        }
+      }
+    `;
+
+    await octokit.graphql(updatePullRequestMutation, {
+      pullRequestId: pullRequest.node_id,
       title: finalPrTitle,
       body: prBody,
-      ...github.context.repo,
-      state: "open",
     });
 
     return {

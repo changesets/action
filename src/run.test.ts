@@ -19,6 +19,7 @@ vi.mock("@actions/github", () => ({
   },
   getOctokit: () => ({
     rest: mockedGithubMethods,
+    graphql: mockedGraphql,
   }),
 }));
 vi.mock("./git.ts");
@@ -33,6 +34,7 @@ let mockedGithubMethods = {
     createRelease: vi.fn(),
   },
 };
+let mockedGraphql = vi.fn();
 
 let f = fixturez(import.meta.dirname);
 
@@ -66,11 +68,11 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
             {
-              name: "simple-project-pkg-b",
+              name: "changesets-dev-simple-project-pkg-b",
               type: "minor",
             },
           ],
@@ -82,8 +84,45 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it('creates a draft PR when prDraft is "create"', async () => {
+    let cwd = f.copy("simple-project");
+    await linkNodeModules(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "changesets-dev-simple-project-pkg-a",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
+      cwd,
+      prDraft: "create",
     });
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
@@ -104,7 +143,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -116,6 +155,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
     });
@@ -138,7 +178,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "ignored-package-pkg-b",
+              name: "changesets-dev-ignored-package-pkg-b",
               type: "minor",
             },
           ],
@@ -150,6 +190,7 @@ describe("version", () => {
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
     });
@@ -172,7 +213,7 @@ describe("version", () => {
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -204,6 +245,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 1000,
@@ -230,7 +272,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
         {
           releases: [
             {
-              name: "simple-project-pkg-a",
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
@@ -262,6 +304,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     await runVersion({
       octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
       git: new Git({ cwd }),
       cwd,
       prBodyMaxCharacters: 500,
@@ -271,5 +314,73 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
       /All release information have been omitted from this message, as the content exceeds the size limit/
     );
+  });
+
+  it('updates an existing PR via GraphQL without converting it to draft when prDraft is "create"', async () => {
+    let cwd = f.copy("simple-project");
+    await linkNodeModules(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({
+      data: [{ number: 123, node_id: "PR_kwDOA" }],
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "changesets-dev-simple-project-pkg-a",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
+      cwd,
+      prDraft: "create",
+    });
+
+    expect(mockedGraphql.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it('updates an existing PR via GraphQL and converts it to draft when prDraft is "always"', async () => {
+    let cwd = f.copy("simple-project");
+    await linkNodeModules(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({
+      data: [{ number: 123, node_id: "PR_kwDOA" }],
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "changesets-dev-simple-project-pkg-a",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd
+    );
+
+    await runVersion({
+      octokit: setupOctokit("@@GITHUB_TOKEN"),
+      githubToken: "@@GITHUB_TOKEN",
+      git: new Git({ cwd }),
+      cwd,
+      prDraft: "always",
+    });
+
+    expect(mockedGraphql.mock.calls[0]).toMatchSnapshot();
   });
 });

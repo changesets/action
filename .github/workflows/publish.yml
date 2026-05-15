@@ -1,0 +1,71 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions: {} # each job should define its own permission explicitly
+
+jobs:
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
+    permissions:
+      contents: write # to create release (changesets/action)
+      issues: write # to post issue comments (changesets/action)
+      pull-requests: write # to create pull request (changesets/action)
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/ci-setup
+
+      - name: Build
+        run: pnpm build
+
+      - name: Create or update release pull request
+        id: changesets
+        uses: ./
+        with:
+          version: pnpm bump
+
+  publish:
+    name: Publish
+    if: needs.version.outputs.hasChangesets == 'false'
+    needs: version
+    runs-on: ubuntu-latest
+    environment: marketplace
+    timeout-minutes: 20
+    permissions:
+      contents: write # to create release and have it authored by github-actions (changesets/action)
+    steps:
+      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: app-token
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Check out repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+          # we need this token to bypass the branch and tag protection rules
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: ./.github/actions/ci-setup
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to marketplace
+        uses: ./
+        with:
+          publish: pnpm release

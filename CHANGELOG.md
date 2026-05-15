@@ -1,5 +1,35 @@
 # @changesets/action
 
+## 1.8.0
+
+### Minor Changes
+
+- [#258](https://github.com/changesets/action/pull/258) [`f5dbf72`](https://github.com/changesets/action/commit/f5dbf72f96949cb0daf45152f0f63062df70e97d) Thanks [@tom-sherman](https://github.com/tom-sherman)! - Support draft version PR modes with a new `prDraft` input. Use `create` to create new version PRs as drafts, or `always` to also convert existing version PRs back to draft when updating them.
+
+### Patch Changes
+
+- [#502](https://github.com/changesets/action/pull/502) [`6002dbd`](https://github.com/changesets/action/commit/6002dbd987f49a3c0a134910d9c7bca975b79977) Thanks [@oshytiko](https://github.com/oshytiko)! - Fixed initial `.changeset` state being picked up, when `cwd` parameter is provided
+
+- [#536](https://github.com/changesets/action/pull/536) [`81b3f61`](https://github.com/changesets/action/commit/81b3f61ebffcb868f73e4c0b2682517149c834a2) Thanks [@radnan](https://github.com/radnan)! - Fixed `.changeset` state being picked for the version command when `cwd` parameter is provided
+
+## 1.7.0
+
+### Minor Changes
+
+- [#564](https://github.com/changesets/action/pull/564) [`935fe87`](https://github.com/changesets/action/commit/935fe876b0054dfc962ac86bcddf028460040d46) Thanks [@Andarist](https://github.com/Andarist)! - Automatically use the GitHub-provided token to allow most users to avoid explicit `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` configuration.
+
+### Patch Changes
+
+- [#545](https://github.com/changesets/action/pull/545) [`54220dd`](https://github.com/changesets/action/commit/54220dd92c06e7da112b139f95d8beb933e4cdde) Thanks [@ryanbas21](https://github.com/ryanbas21)! - The `.npmrc` generation now intelligently handles both traditional NPM token authentication and trusted publishing scenarios by only appending the auth token when `NPM_TOKEN` is defined. This prevents 'undefined' from being written to the registry configuration when using OIDC tokens from GitHub Actions trusted publishing.
+
+- [#563](https://github.com/changesets/action/pull/563) [`6af4a7e`](https://github.com/changesets/action/commit/6af4a7ec080d23ac6b304f69b67fd0aa92e089e7) Thanks [@Andarist](https://github.com/Andarist)! - Don't error on already committed symlinks and executables that stay untouched
+
+## 1.6.0
+
+### Minor Changes
+
+- [#558](https://github.com/changesets/action/pull/558) [`342005d`](https://github.com/changesets/action/commit/342005d41242bccd9dd9ae8d3679efce96af48ae) Thanks [@harsha-venugopal-ledn](https://github.com/harsha-venugopal-ledn)! - Upgrade from Node.js 20 to Node.js 24 LTS
+
 ## 1.5.3
 
 ### Patch Changes
