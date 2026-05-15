@@ -2,10 +2,15 @@ blockExoticSubdeps: true
 dedupePeers: true
 dedupePeerDependents: true
 minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - '@oxc-project/*'
+  - '@rolldown/*'
+  - rolldown@1.0.1
+  - vite@8.0.13
+  - vitest@4.1.6
 
 overrides:
   lightningcss: '-' # we do not bundle any css
   postcss: '-' # we do not bundle any css
-  rolldown: $rolldown # use same version for vitest's rolldown
 
 trustPolicy: no-downgrade
