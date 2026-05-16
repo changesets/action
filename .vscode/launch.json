@@ -1,5 +1,4 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
@@ -7,6 +6,7 @@
       "request": "launch",
       "name": "Debug Current Test File",
       "autoAttachChildProcesses": true,
+      "skipFiles": [],
       "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
       "args": ["run", "${relativeFile}"],
       "smartStep": true,
