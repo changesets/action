@@ -1,7 +1,0 @@
-{
-  "name": "changesets-dev-simple-project-pkg-a",
-  "version": "1.0.0",
-  "dependencies": {
-    "changesets-dev-simple-project-pkg-b": "1.0.0"
-  }
-}

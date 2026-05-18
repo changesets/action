@@ -40,7 +40,7 @@
     "@changesets/write": "^0.4.0",
     "@types/node": "^24.12.2",
     "@types/semver": "^7.5.0",
-    "fixturez": "^1.1.0",
+    "fs-fixture": "^2.13.0",
     "oxfmt": "^0.48.0",
     "rolldown": "^1.0.1",
     "typescript": "^5.8.3",
