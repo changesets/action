@@ -23,7 +23,7 @@ export async function getCommentMessage(context: PullRequestContext) {
   const templateContent = await getNewChangesetTemplateContent(
     cwd,
     context.base.ref,
-    context.head.title,
+    context.title,
   );
 
   const addChangesetUrl = getNewChangesetTemplateUrl(
