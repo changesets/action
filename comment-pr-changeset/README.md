@@ -11,7 +11,7 @@ name: Comment PR Changeset Status
 
 on:
   pull_request_target:
-    type: [opened, edited, synchronize]
+    types: [opened, edited, synchronize]
 
 jobs:
   comment-pr-changeset:
