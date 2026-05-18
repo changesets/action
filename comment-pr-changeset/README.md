@@ -11,28 +11,31 @@ name: Comment PR Changeset Status
 
 on:
   pull_request_target:
-    types: [opened, edited, synchronize]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   comment-pr-changeset:
     runs-on: ubuntu-slim
     permissions:
-      issues: write # to create comments on PRs
+      contents: read # to check out files in the repo
+      pull-requests: write # to create and update comments on PRs
     steps:
       - name: Check out base ref
         uses: actions/checkout@v6
-        with:
-          persist-credentials: false
 
       - name: Check out head ref
         run: |
-          git remote add head $REPO
-          git fetch head $REF
-          git checkout FETCH_HEAD
+          git fetch "$REPO" "$REF"
+          git switch -c pr "$SHA"
         env:
           REPO: ${{ github.event.pull_request.head.repo.clone_url }}
           REF: ${{ github.event.pull_request.head.ref }}
+          SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Comment changeset status
-        uses: changesets/action/comment-pr-changeset@v2
+        uses: changesets/action/comment-pr-changeset@comment-pr-changeset-dist
 ```

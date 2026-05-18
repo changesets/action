@@ -19,11 +19,11 @@ type UpdateCommentParams = NonNullable<
     return;
   }
 
-  // Construct the comment message first
+  core.info("Creating comment message...");
   const commentBody = await getCommentMessage(context);
   const commentParam: CreateCommentParams | UpdateCommentParams = {
     repo: context.base.repo.name,
-    owner: context.base.repo.owner,
+    owner: context.base.repo.owner.login,
     issue_number: context.number,
     body: commentBody,
   };
@@ -32,10 +32,11 @@ type UpdateCommentParams = NonNullable<
   const githubToken = core.getInput("github-token", { required: true });
   const octokit = setupOctokit(githubToken);
 
+  core.info("Checking for existing comment...");
   const existingCommentId = await octokit.rest.issues
     .listComments({
       repo: context.base.repo.name,
-      owner: context.base.repo.owner,
+      owner: context.base.repo.owner.login,
       issue_number: context.number,
     })
     .then((res) => {
@@ -44,15 +45,19 @@ type UpdateCommentParams = NonNullable<
     });
 
   if (existingCommentId) {
+    core.info(`Updating existing comment (id: ${existingCommentId})...`);
     core.setOutput("commentId", existingCommentId.toString());
     await octokit.rest.issues.updateComment({
       ...commentParam,
       comment_id: existingCommentId,
     });
   } else {
+    core.info("Creating new comment...");
     const result = await octokit.rest.issues.createComment(commentParam);
     core.setOutput("commentId", result.data.id.toString());
   }
+
+  core.info("Done!");
 })().catch((err) => {
   core.error(err);
   core.setFailed(err.message);
