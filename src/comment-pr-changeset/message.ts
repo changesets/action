@@ -9,7 +9,7 @@ import { markdownTable } from "markdown-table";
 import { commentMarker } from "./constants.ts";
 import {
   getNewChangesetTemplateContent,
-  getNewChangesetTemplateUrl,
+  getNewChangesetUrl,
 } from "./template.ts";
 
 type PullRequestContext = NonNullable<
@@ -26,22 +26,22 @@ export async function getCommentMessage(context: PullRequestContext) {
     context.title,
   );
 
-  const addChangesetUrl = getNewChangesetTemplateUrl(
+  const newChangesetUrl = getNewChangesetUrl(
     context.head.repo.html_url,
     context.head.ref,
     templateContent,
   );
 
   if (releasePlan.changesets.length > 0) {
-    return getApproveMessage(context.head.sha, addChangesetUrl, releasePlan);
+    return getApproveMessage(context.head.sha, newChangesetUrl, releasePlan);
   } else {
-    return getAbsentMessage(context.head.sha, addChangesetUrl, releasePlan);
+    return getAbsentMessage(context.head.sha, newChangesetUrl, releasePlan);
   }
 }
 
 function getApproveMessage(
   commitSha: string,
-  addChangesetUrl: string,
+  newChangesetUrl: string,
   releasePlan: ReleasePlan,
 ) {
   return `\
@@ -57,12 +57,12 @@ ${getReleasePlanMessage(releasePlan)}
 
 Not sure what this means? [Click here to learn what changesets are](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md).
 
-[Click here if you're a maintainer who wants to add another changeset to this PR](${addChangesetUrl})`;
+[Click here if you're a maintainer who wants to add another changeset to this PR](${newChangesetUrl})`;
 }
 
 function getAbsentMessage(
   commitSha: string,
-  addChangesetUrl: string,
+  newChangesetUrl: string,
   releasePlan: ReleasePlan,
 ) {
   return `\
@@ -78,7 +78,7 @@ ${getReleasePlanMessage(releasePlan)}
 
 [Click here to learn what changesets are, and how to add one](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md).
 
-[Click here if you're a maintainer who wants to add a changeset to this PR](${addChangesetUrl})`;
+[Click here if you're a maintainer who wants to add a changeset to this PR](${newChangesetUrl})`;
 }
 
 function getReleasePlanMessage(releasePlan: ReleasePlan) {

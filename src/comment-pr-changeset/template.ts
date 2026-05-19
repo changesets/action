@@ -1,7 +1,7 @@
 import { getChangedPackagesSinceRef } from "@changesets/git";
 import { humanId } from "human-id";
 
-export function getNewChangesetTemplateUrl(
+export function getNewChangesetUrl(
   headRepoUrl: string,
   headRef: string,
   templateContent: string,
