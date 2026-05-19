@@ -27,7 +27,6 @@ type UpdateCommentParams = NonNullable<
     issue_number: context.number,
     body: commentBody,
   };
-  core.setOutput("commentBody", commentBody);
 
   const githubToken = core.getInput("github-token", { required: true });
   const octokit = setupOctokit(githubToken);
@@ -46,7 +45,6 @@ type UpdateCommentParams = NonNullable<
 
   if (existingCommentId) {
     core.info(`Updating existing comment (id: ${existingCommentId})...`);
-    core.setOutput("commentId", existingCommentId.toString());
     await octokit.rest.issues.updateComment({
       ...commentParam,
       comment_id: existingCommentId,
@@ -54,7 +52,6 @@ type UpdateCommentParams = NonNullable<
   } else {
     core.info("Creating new comment...");
     const result = await octokit.rest.issues.createComment(commentParam);
-    core.setOutput("commentId", result.data.id.toString());
   }
 
   core.info("Done!");

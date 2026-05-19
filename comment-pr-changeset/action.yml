@@ -8,11 +8,7 @@ inputs:
     description: The GitHub token to use for authentication. Defaults to the GitHub-provided token.
     required: false
     default: ${{ github.token }}
-outputs:
-  commentId:
-    description: The comment id created or updated by this action.
-  commentBody:
-    description: The comment body created or updated by this action.
+outputs: {}
 branding:
   icon: package
   color: blue
