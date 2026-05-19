@@ -1,4 +1,4 @@
-name: Changesets - Comment PR Changeset
+name: Changesets - PR Status Comment
 description: Comment the changeset status in PRs
 runs:
   using: node24
