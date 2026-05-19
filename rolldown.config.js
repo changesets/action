@@ -3,7 +3,7 @@ import { defineConfig } from "rolldown";
 export default defineConfig({
   input: {
     index: "src/index.ts",
-    ["comment-pr-changeset"]: "src/comment-pr-changeset/index.ts",
+    ["pr-status-comment"]: "src/pr-status-comment/index.ts",
   },
   output: {
     dir: "dist",

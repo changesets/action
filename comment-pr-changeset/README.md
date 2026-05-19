@@ -1,4 +1,4 @@
-# changesets/action/comment-pr-changeset
+# changesets/action/pr-status-comment
 
 This action comments on PRs of its changeset status, e.g. whether it has changeset files and which packages will be released if the PR is merged.
 
@@ -12,8 +12,8 @@ See the [action metadata](action.yml) for details on the inputs and outputs.
 ## Example setup
 
 ```yaml
-# .github/workflows/comment-pr-changeset.yml
-name: Comment PR Changeset Status
+# .github/workflows/pr-status-comment.yml
+name: Comment changeset status in PRs
 
 on:
   pull_request_target:
@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  comment-pr-changeset:
+  pr-status-comment:
     runs-on: ubuntu-slim
     permissions:
       contents: read # to check out files in the repo
@@ -43,5 +43,5 @@ jobs:
           SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Comment changeset status
-        uses: changesets/action/comment-pr-changeset@v2
+        uses: changesets/action/pr-status-comment@v1
 ```

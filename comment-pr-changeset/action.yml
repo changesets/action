@@ -2,7 +2,7 @@ name: Changesets - Comment PR Changeset
 description: Comment the changeset status in PRs
 runs:
   using: node24
-  main: ../dist/comment-pr-changeset.js
+  main: ../dist/pr-status-comment.js
 inputs:
   github-token:
     description: The GitHub token to use for authentication. Defaults to the GitHub-provided token.
