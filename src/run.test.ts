@@ -1,8 +1,7 @@
+import path from "node:path";
 import type { Changeset } from "@changesets/types";
 import writeChangeset from "@changesets/write";
-import fixturez from "fixturez";
-import fs from "node:fs/promises";
-import path from "node:path";
+import { createFixture } from "fs-fixture";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
@@ -36,14 +35,58 @@ let mockedGithubMethods = {
 };
 let mockedGraphql = vi.fn();
 
-let f = fixturez(import.meta.dirname);
+const nodeModulesDir = path.join(import.meta.dirname, "..", "node_modules");
 
-const linkNodeModules = async (cwd: string) => {
-  await fs.symlink(
-    path.join(import.meta.dirname, "..", "node_modules"),
-    path.join(cwd, "node_modules")
-  );
-};
+function createSimpleProjectFixture() {
+  return createFixture({
+    node_modules: (api) => api.symlink(nodeModulesDir),
+    ".changeset/config.json": JSON.stringify({}),
+    "packages/pkg-a/package.json": JSON.stringify({
+      name: "changesets-dev-simple-project-pkg-a",
+      version: "1.0.0",
+      dependencies: {
+        "changesets-dev-simple-project-pkg-b": "1.0.0",
+      },
+    }),
+    "packages/pkg-b/package.json": JSON.stringify({
+      name: "changesets-dev-simple-project-pkg-b",
+      version: "1.0.0",
+    }),
+    "package.json": JSON.stringify({
+      name: "simple-project",
+      version: "1.0.0",
+      private: true,
+      workspaces: ["packages/*"],
+    }),
+  });
+}
+
+function createIgnoredPackageFixture() {
+  return createFixture({
+    node_modules: (api) => api.symlink(nodeModulesDir),
+    ".changeset/config.json": JSON.stringify({
+      ignore: ["changesets-dev-ignored-package-pkg-a"],
+    }),
+    "packages/pkg-a/package.json": JSON.stringify({
+      name: "changesets-dev-ignored-package-pkg-a",
+      version: "1.0.0",
+      dependencies: {
+        "changesets-dev-ignored-package-pkg-b": "1.0.0",
+      },
+    }),
+    "packages/pkg-b/package.json": JSON.stringify({
+      name: "changesets-dev-ignored-package-pkg-b",
+      version: "1.0.0",
+    }),
+    "package.json": JSON.stringify({
+      name: "ignored-package",
+      version: "1.0.0",
+      private: true,
+      workspaces: ["packages/*"],
+    }),
+  });
+}
+
 const writeChangesets = (changesets: Changeset[], cwd: string) => {
   return Promise.all(changesets.map((commit) => writeChangeset(commit, cwd)));
 };
@@ -54,8 +97,8 @@ beforeEach(() => {
 
 describe("version", () => {
   it("creates simple PR", async () => {
-    let cwd = f.copy("simple-project");
-    await linkNodeModules(cwd);
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -79,7 +122,7 @@ describe("version", () => {
           summary: "Awesome feature",
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({
@@ -93,8 +136,8 @@ describe("version", () => {
   });
 
   it('creates a draft PR when prDraft is "create"', async () => {
-    let cwd = f.copy("simple-project");
-    await linkNodeModules(cwd);
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -114,7 +157,7 @@ describe("version", () => {
           summary: "Awesome feature",
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({
@@ -129,8 +172,8 @@ describe("version", () => {
   });
 
   it("only includes bumped packages in the PR body", async () => {
-    let cwd = f.copy("simple-project");
-    await linkNodeModules(cwd);
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -150,7 +193,7 @@ describe("version", () => {
           summary: "Awesome feature",
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({
@@ -164,8 +207,8 @@ describe("version", () => {
   });
 
   it("doesn't include ignored package that got a dependency update in the PR body", async () => {
-    let cwd = f.copy("ignored-package");
-    await linkNodeModules(cwd);
+    await using fixture = await createIgnoredPackageFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -185,7 +228,7 @@ describe("version", () => {
           summary: "Awesome feature",
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({
@@ -199,8 +242,8 @@ describe("version", () => {
   });
 
   it("does not include changelog entries if full message exceeds size limit", async () => {
-    let cwd = f.copy("simple-project");
-    await linkNodeModules(cwd);
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -240,7 +283,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 `,
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({
@@ -253,13 +296,13 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
     expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
-      /The changelog information of each package has been omitted from this message/
+      /The changelog information of each package has been omitted from this message/,
     );
   });
 
   it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
-    let cwd = f.copy("simple-project");
-    await linkNodeModules(cwd);
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -299,7 +342,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 `,
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({
@@ -312,13 +355,13 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
     expect(mockedGithubMethods.pulls.create.mock.calls[0][0].body).toMatch(
-      /All release information have been omitted from this message, as the content exceeds the size limit/
+      /All release information have been omitted from this message, as the content exceeds the size limit/,
     );
   });
 
   it('updates an existing PR via GraphQL without converting it to draft when prDraft is "create"', async () => {
-    let cwd = f.copy("simple-project");
-    await linkNodeModules(cwd);
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({
       data: [{ number: 123, node_id: "PR_kwDOA" }],
@@ -336,7 +379,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
           summary: "Awesome feature",
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({
@@ -351,8 +394,8 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
   });
 
   it('updates an existing PR via GraphQL and converts it to draft when prDraft is "always"', async () => {
-    let cwd = f.copy("simple-project");
-    await linkNodeModules(cwd);
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({
       data: [{ number: 123, node_id: "PR_kwDOA" }],
@@ -370,7 +413,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
           summary: "Awesome feature",
         },
       ],
-      cwd
+      cwd,
     );
 
     await runVersion({

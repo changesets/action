@@ -1,11 +1,11 @@
+import fs from "node:fs/promises";
+import { createRequire } from "node:module";
+import path from "node:path";
 import * as core from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
 import type { PreState } from "@changesets/types";
 import { type Package, getPackages } from "@manypkg/get-packages";
-import fs from "node:fs/promises";
-import { createRequire } from "node:module";
-import path from "node:path";
 import semverLt from "semver/functions/lt.js";
 import { Git } from "./git.ts";
 import type { Octokit } from "./octokit.ts";
@@ -28,7 +28,7 @@ const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
 const createRelease = async (
   octokit: Octokit,
-  { pkg, tagName }: { pkg: Package; tagName: string }
+  { pkg, tagName }: { pkg: Package; tagName: string },
 ) => {
   let changelog;
   try {
@@ -45,7 +45,7 @@ const createRelease = async (
     // we can find a changelog but not the entry for this version
     // if this is true, something has probably gone wrong
     throw new Error(
-      `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+      `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`,
     );
   }
 
@@ -91,7 +91,7 @@ export async function runPublish({
   let changesetPublishOutput = await getExecOutput(
     publishCommand,
     publishArgs,
-    { cwd, env: { ...process.env, GITHUB_TOKEN: githubToken } }
+    { cwd, env: { ...process.env, GITHUB_TOKEN: githubToken } },
   );
 
   let { packages, tool } = await getPackages(cwd);
@@ -111,7 +111,7 @@ export async function runPublish({
       if (pkg === undefined) {
         throw new Error(
           `Package "${pkgName}" not found.` +
-            "This is probably a bug in the action, please open an issue"
+            "This is probably a bug in the action, please open an issue",
         );
       }
       releasedPackages.push(pkg);
@@ -123,14 +123,14 @@ export async function runPublish({
           const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
           await git.pushTag(tagName);
           await createRelease(octokit, { pkg, tagName });
-        })
+        }),
       );
     }
   } else {
     if (packages.length === 0) {
       throw new Error(
         `No package found.` +
-          "This is probably a bug in the action, please open an issue"
+          "This is probably a bug in the action, please open an issue",
       );
     }
     let pkg = packages[0];
@@ -166,14 +166,16 @@ export async function runPublish({
 
 const requireChangesetsCliPkgJson = (cwd: string) => {
   try {
-    return require(require.resolve("@changesets/cli/package.json", {
-      paths: [cwd],
-    }));
+    return require(
+      require.resolve("@changesets/cli/package.json", {
+        paths: [cwd],
+      }),
+    );
   } catch (err) {
     if (isErrorWithCode(err, "MODULE_NOT_FOUND")) {
       throw new Error(
         `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`,
-        { cause: err }
+        { cause: err },
       );
     }
     throw err;
@@ -309,7 +311,7 @@ export async function runVersion({
       {
         cwd,
         env,
-      }
+      },
     );
   }
 
@@ -318,7 +320,7 @@ export async function runVersion({
     changedPackages.map(async (pkg) => {
       let changelogContents = await fs.readFile(
         path.join(pkg.dir, "CHANGELOG.md"),
-        "utf8"
+        "utf8",
       );
 
       let entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
@@ -328,7 +330,7 @@ export async function runVersion({
         content: entry.content,
         header: `## ${pkg.packageJson.name}@${pkg.packageJson.version}`,
       };
-    })
+    }),
   );
 
   const finalPrTitle = `${prTitle}${!!preState ? ` (${preState.tag})` : ""}`;
@@ -353,8 +355,8 @@ export async function runVersion({
     `Existing pull requests: ${JSON.stringify(
       existingPullRequests.data,
       null,
-      2
-    )}`
+      2,
+    )}`,
   );
 
   await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
