@@ -1,5 +1,4 @@
 import * as github from "@actions/github";
-import getReleasePlan from "@changesets/get-release-plan";
 import type {
   ComprehensiveRelease,
   ReleasePlan,
@@ -7,6 +6,7 @@ import type {
 } from "@changesets/types";
 import { markdownTable } from "markdown-table";
 import { commentMarker } from "./constants.ts";
+import { getPullRequestSnapshotInfo } from "./git-snapshot.ts";
 import {
   getNewChangesetTemplateContent,
   getNewChangesetUrl,
@@ -18,11 +18,14 @@ type PullRequestContext = NonNullable<
 
 export async function getCommentMessage(context: PullRequestContext) {
   const cwd = process.cwd();
-  const releasePlan = await getReleasePlan(cwd, context.base.ref);
-
-  const templateContent = await getNewChangesetTemplateContent(
+  const { releasePlan, changedPackages } = await getPullRequestSnapshotInfo({
     cwd,
-    context.base.ref,
+    targetRef: context.head.sha,
+    sinceRef: context.base.ref,
+  });
+
+  const templateContent = getNewChangesetTemplateContent(
+    changedPackages.map((pkg) => pkg.packageJson.name),
     context.title,
   );
 
