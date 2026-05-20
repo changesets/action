@@ -2,7 +2,7 @@
 
 This action comments on PRs of its changeset status, e.g. whether it has changeset files and which packages will be released if the PR is merged.
 
-The action requires the base ref (of the repo) and head ref (of the PR) to be checked out in order to infer the changed files and packages. It also requires the [`pull_request_target`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target) event to be triggered in order to have permissions to comment on the PR and to work in PRs from forks.
+The action requires the base ref (of the repo) to be checked out. It fetches the PR head ref into a temporary detached worktree in order to infer the changed files and packages. It also requires the [`pull_request_target`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target) event to be triggered in order to have permissions to comment on the PR and to work in PRs from forks.
 
 See the [action metadata](action.yml) for details on the inputs and outputs.
 
@@ -32,15 +32,6 @@ jobs:
     steps:
       - name: Check out base ref
         uses: actions/checkout@v6
-
-      - name: Check out head ref
-        run: |
-          git fetch "$REPO" "$REF"
-          git switch -c pr "$SHA"
-        env:
-          REPO: ${{ github.event.pull_request.head.repo.clone_url }}
-          REF: ${{ github.event.pull_request.head.ref }}
-          SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Comment changeset status
         uses: changesets/action/pr-status-comment@v1
