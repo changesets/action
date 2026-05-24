@@ -3,7 +3,7 @@
   "version": "1.8.0",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
   "scripts": {
     "build": "rolldown -c",
     "test": "vitest",
@@ -13,8 +13,7 @@
     "format:fix": "oxfmt",
     "changeset": "changeset",
     "bump": "node --experimental-strip-types ./scripts/bump.ts",
-    "release": "node --experimental-strip-types ./scripts/release.ts",
-    "release:pr": "node --experimental-strip-types ./scripts/release-pr.ts"
+    "release": "node --experimental-strip-types ./scripts/release.ts"
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
