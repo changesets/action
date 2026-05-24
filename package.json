@@ -4,6 +4,10 @@
   "license": "MIT",
   "type": "module",
   "exports": "./dist/index.js",
+  "files": [
+    "dist",
+    "action.yml"
+  ],
   "scripts": {
     "build": "rolldown -c",
     "test": "vitest",
