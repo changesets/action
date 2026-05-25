@@ -34,7 +34,7 @@
     "unified": "^8.4.2"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.0",
     "@changesets/types": "^6.1.0",
     "@changesets/write": "^0.4.0",
