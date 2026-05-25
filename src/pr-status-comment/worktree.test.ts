@@ -30,6 +30,8 @@ describe("withPullRequestWorktree", () => {
     });
     const sourceRepo = sourceRepoFixture.path;
     await git(sourceRepo, ["init", "-b", "main"]);
+    await git(sourceRepo, ["config", "user.name", "Test User"]);
+    await git(sourceRepo, ["config", "user.email", "test@example.com"]);
     await git(sourceRepo, ["add", "."]);
     await git(sourceRepo, ["commit", "-m", "base"]);
 
@@ -70,6 +72,14 @@ describe("withPullRequestWorktree", () => {
     await git(forkRepo, ["config", "user.name", "Test User"]);
     await git(forkRepo, ["config", "user.email", "test@example.com"]);
     await git(forkRepo, ["checkout", "-b", "feature"]);
+
+    // log all files in forkRepo with dot files
+    console.log(
+      "Files in forkRepo:\n",
+      await exec("ls", ["-Ra"], { nodeOptions: { cwd: forkRepo } }).then(
+        (res) => res.stdout.trim(),
+      ),
+    );
 
     await forkRepoFixture.mkdir("packages/pkg-a/src");
     await forkRepoFixture.writeFile(
