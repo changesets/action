@@ -6,7 +6,6 @@ import type {
   VersionType,
 } from "@changesets/types";
 import { markdownTable } from "markdown-table";
-import { commentMarker } from "./constants.ts";
 import {
   getNewChangesetTemplateContent,
   getNewChangesetUrl,
@@ -54,8 +53,6 @@ function getApproveMessage(
   releasePlan: ReleasePlan,
 ) {
   return `\
-${commentMarker}
-  
 ### 🦋 Changeset detected
 
 Latest commit: ${commitSha}
@@ -75,8 +72,6 @@ function getAbsentMessage(
   releasePlan: ReleasePlan,
 ) {
   return `\
-${commentMarker}
-
 ### ⚠️ No Changeset found
 
 Latest commit: ${commitSha}

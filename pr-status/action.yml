@@ -1,0 +1,12 @@
+name: Changesets - PR Status
+description: Generate the changeset status in PRs
+runs:
+  using: node24
+  main: ../dist/pr-status.js
+inputs: {}
+outputs:
+  commentBody:
+    description: The generated comment body to present the changeset status in PRs.
+branding:
+  icon: package
+  color: blue

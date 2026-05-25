@@ -4,7 +4,7 @@ This action for [Changesets](https://github.com/changesets/changesets) creates a
 
 There are also sub-actions hosted in this repository. Check out their respective READMEs for more details:
 
-- [pr-status-comment](./pr-status-comment/README.md): Comment the changeset status in PRs.
+- [pr-status](./pr-status/README.md): Generate changeset status in PRs.
 
 ## Usage
 

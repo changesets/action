@@ -32,9 +32,9 @@ async function deleteRef(cwd: string, ref: string) {
 function getRefNames(context: PullRequestContext) {
   const suffix = `${context.number}-${randomUUID()}`;
   return {
-    baseLocalRef: `refs/changesets-action-pr-status-comment/base/${suffix}`,
+    baseLocalRef: `refs/changesets-action-pr-status/base/${suffix}`,
     baseRemoteRef: `refs/heads/${context.base.ref}`,
-    headLocalRef: `refs/changesets-action-pr-status-comment/head/${suffix}`,
+    headLocalRef: `refs/changesets-action-pr-status/head/${suffix}`,
     headRemoteRef: `refs/heads/${context.head.ref}`,
   };
 }
@@ -87,7 +87,7 @@ export async function withPullRequestWorktree<T>(
   repoCwd: string = process.cwd(),
 ) {
   const worktreeDir = await fs.mkdtemp(
-    path.join(os.tmpdir(), "changesets-action-pr-status-comment-"),
+    path.join(os.tmpdir(), "changesets-action-pr-status-"),
   );
   const refs = getRefNames(context);
 
