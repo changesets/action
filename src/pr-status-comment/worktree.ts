@@ -15,6 +15,20 @@ type WorktreeInfo = {
   cwd: string;
 };
 
+type TinyexecOptions = Parameters<typeof exec>[2];
+
+function git(cwd: string, args: string[], opts: TinyexecOptions = {}) {
+  return exec("git", args, {
+    nodeOptions: { cwd, ...opts.nodeOptions },
+    throwOnError: true,
+    ...opts,
+  });
+}
+
+async function deleteRef(cwd: string, ref: string) {
+  await git(cwd, ["update-ref", "-d", ref], { throwOnError: false });
+}
+
 function getRefNames(context: PullRequestContext) {
   const suffix = `${context.number}-${randomUUID()}`;
   return {
@@ -23,10 +37,6 @@ function getRefNames(context: PullRequestContext) {
     headLocalRef: `refs/changesets-action-pr-status-comment/head/${suffix}`,
     headRemoteRef: `refs/heads/${context.head.ref}`,
   };
-}
-
-async function deleteRef(cwd: string, ref: string) {
-  await exec("git", ["update-ref", "-d", ref], { nodeOptions: { cwd } });
 }
 
 async function ensureMergeBase(args: {
@@ -38,10 +48,10 @@ async function ensureMergeBase(args: {
   const { cwd, refs, headRemoteUrl, deepenBy = 50 } = args;
 
   while (true) {
-    const mergeBase = await exec(
-      "git",
+    const mergeBase = await git(
+      cwd,
       ["merge-base", refs.baseLocalRef, "HEAD"],
-      { nodeOptions: { cwd } },
+      { throwOnError: false },
     );
 
     if (mergeBase.exitCode === 0) {
@@ -54,28 +64,20 @@ async function ensureMergeBase(args: {
       );
     }
 
-    await exec(
-      "git",
-      [
-        "fetch",
-        "--no-tags",
-        `--deepen=${deepenBy}`,
-        "origin",
-        `${refs.baseRemoteRef}:${refs.baseLocalRef}`,
-      ],
-      { nodeOptions: { cwd } },
-    );
-    await exec(
-      "git",
-      [
-        "fetch",
-        "--no-tags",
-        `--deepen=${deepenBy}`,
-        headRemoteUrl,
-        `${refs.headRemoteRef}:${refs.headLocalRef}`,
-      ],
-      { nodeOptions: { cwd } },
-    );
+    await git(cwd, [
+      "fetch",
+      "--no-tags",
+      `--deepen=${deepenBy}`,
+      "origin",
+      `${refs.baseRemoteRef}:${refs.baseLocalRef}`,
+    ]);
+    await git(cwd, [
+      "fetch",
+      "--no-tags",
+      `--deepen=${deepenBy}`,
+      headRemoteUrl,
+      `${refs.headRemoteRef}:${refs.headLocalRef}`,
+    ]);
   }
 }
 
@@ -90,33 +92,27 @@ export async function withPullRequestWorktree<T>(
   const refs = getRefNames(context);
 
   try {
-    await exec(
-      "git",
-      [
-        "fetch",
-        "--no-tags",
-        "--depth=1",
-        "origin",
-        `${refs.baseRemoteRef}:${refs.baseLocalRef}`,
-      ],
-      { nodeOptions: { cwd: repoCwd } },
-    );
-    await exec(
-      "git",
-      [
-        "fetch",
-        "--no-tags",
-        "--depth=1",
-        context.head.repo.clone_url,
-        `${refs.headRemoteRef}:${refs.headLocalRef}`,
-      ],
-      { nodeOptions: { cwd: repoCwd } },
-    );
-    await exec(
-      "git",
-      ["worktree", "add", "--detach", worktreeDir, refs.headLocalRef],
-      { nodeOptions: { cwd: repoCwd } },
-    );
+    await git(repoCwd, [
+      "fetch",
+      "--no-tags",
+      "--depth=1",
+      "origin",
+      `${refs.baseRemoteRef}:${refs.baseLocalRef}`,
+    ]);
+    await git(repoCwd, [
+      "fetch",
+      "--no-tags",
+      "--depth=1",
+      context.head.repo.clone_url,
+      `${refs.headRemoteRef}:${refs.headLocalRef}`,
+    ]);
+    await git(repoCwd, [
+      "worktree",
+      "add",
+      "--detach",
+      worktreeDir,
+      refs.headLocalRef,
+    ]);
     await ensureMergeBase({
       cwd: worktreeDir,
       refs,
@@ -128,8 +124,8 @@ export async function withPullRequestWorktree<T>(
       cwd: worktreeDir,
     });
   } finally {
-    await exec("git", ["worktree", "remove", "--force", worktreeDir], {
-      nodeOptions: { cwd: repoCwd },
+    await git(repoCwd, ["worktree", "remove", "--force", worktreeDir], {
+      throwOnError: false,
     });
     await Promise.all([
       deleteRef(repoCwd, refs.baseLocalRef),

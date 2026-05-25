@@ -6,7 +6,10 @@ import { describe, expect, it } from "vitest";
 import { withPullRequestWorktree } from "./worktree.ts";
 
 async function git(cwd: string, args: string[]) {
-  const output = await exec("git", args, { nodeOptions: { cwd } });
+  const output = await exec("git", args, {
+    nodeOptions: { cwd },
+    throwOnError: true,
+  });
   return output.stdout.trim();
 }
 
