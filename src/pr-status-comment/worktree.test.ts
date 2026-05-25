@@ -1,126 +1,95 @@
-import fs from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import getReleasePlan from "@changesets/get-release-plan";
-import { afterEach, describe, expect, it } from "vitest";
+import { createFixture } from "fs-fixture";
+import { exec } from "tinyexec";
+import { describe, expect, it } from "vitest";
 import { withPullRequestWorktree } from "./worktree.ts";
 
-const tempDirs: string[] = [];
-
-function runGit(cwd: string, args: string[]) {
-  return execFileSync("git", args, {
-    cwd,
-    encoding: "utf8",
-  }).trim();
+async function git(cwd: string, args: string[]) {
+  const output = await exec("git", args, { nodeOptions: { cwd } });
+  return output.stdout.trim();
 }
-
-async function makeTempDir(prefix: string) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
-  tempDirs.push(dir);
-  return dir;
-}
-
-async function makeTempPath(prefix: string, leaf: string) {
-  const parent = await makeTempDir(prefix);
-  return path.join(parent, leaf);
-}
-
-async function writeFile(cwd: string, filePath: string, contents: string) {
-  const absolutePath = path.join(cwd, filePath);
-  await fs.mkdir(path.dirname(absolutePath), { recursive: true });
-  await fs.writeFile(absolutePath, contents);
-}
-
-function toFileUrl(filePath: string) {
-  return `file://${filePath}`;
-}
-
-async function createRepo(cwd: string) {
-  runGit(cwd, ["init", "-b", "main"]);
-  runGit(cwd, ["config", "user.name", "Test User"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-}
-
-afterEach(async () => {
-  await Promise.all(
-    tempDirs.splice(0).map((cwd) =>
-      fs.rm(cwd, { recursive: true, force: true }),
-    ),
-  );
-});
 
 describe("withPullRequestWorktree", () => {
   it("fetches a PR branch into a detached worktree and keeps the main checkout untouched", async () => {
-    const sourceRepo = await makeTempDir("changesets-action-source-");
-    await createRepo(sourceRepo);
-    await writeFile(sourceRepo, ".changeset/config.json", JSON.stringify({}));
-    await writeFile(
-      sourceRepo,
-      "package.json",
-      JSON.stringify({
+    // Local source repo
+    await using sourceRepoFixture = await createFixture({
+      ".changeset/config.json": JSON.stringify({}),
+      "package.json": JSON.stringify({
         name: "repo",
         private: true,
         workspaces: ["packages/*"],
       }),
-    );
-    await writeFile(
-      sourceRepo,
-      "packages/pkg-a/package.json",
-      JSON.stringify({
+      "packages/pkg-a/package.json": JSON.stringify({
         name: "pkg-a",
         version: "1.0.0",
       }),
-    );
-    runGit(sourceRepo, ["add", "."]);
-    runGit(sourceRepo, ["commit", "-m", "base"]);
+    });
+    const sourceRepo = sourceRepoFixture.path;
+    await git(sourceRepo, ["init", "-b", "main"]);
+    await git(sourceRepo, ["add", "."]);
+    await git(sourceRepo, ["commit", "-m", "base"]);
 
-    const originBare = await makeTempPath("changesets-action-origin-", "origin.git");
-    runGit(path.dirname(originBare), ["clone", "--bare", sourceRepo, originBare]);
+    // Simulate remote bare git server
+    await using originBareFixture = await createFixture();
+    const originBare = originBareFixture.path;
+    await git(originBare, ["clone", "--bare", sourceRepo, originBare]);
 
-    const checkoutRepo = await makeTempPath("changesets-action-checkout-", "checkout");
-    runGit(path.dirname(checkoutRepo), [
+    // Simulate checkout PR in github action
+    await using checkoutRepoFixture = await createFixture();
+    const checkoutRepo = checkoutRepoFixture.path;
+    await git(checkoutRepo, [
       "clone",
       "--depth",
       "1",
       "--branch",
       "main",
-      toFileUrl(originBare),
+      pathToFileURL(originBare).toString(),
       checkoutRepo,
     ]);
 
-    const forkBare = await makeTempPath("changesets-action-fork-bare-", "fork.git");
-    runGit(path.dirname(forkBare), ["clone", "--bare", originBare, forkBare]);
+    // Simulate remote fork bare git server
+    await using forkBareFixture = await createFixture();
+    const forkBare = forkBareFixture.path;
+    await git(forkBare, ["clone", "--bare", originBare, forkBare]);
 
-    const forkRepo = await makeTempPath("changesets-action-fork-", "fork");
-    runGit(path.dirname(forkRepo), [
+    await using forkRepoFixture = await createFixture();
+    const forkRepo = forkRepoFixture.path;
+    await git(forkRepo, [
       "clone",
       "--depth",
       "1",
       "--branch",
       "main",
-      toFileUrl(forkBare),
+      pathToFileURL(forkBare).toString(),
       forkRepo,
     ]);
-    runGit(forkRepo, ["config", "user.name", "Test User"]);
-    runGit(forkRepo, ["config", "user.email", "test@example.com"]);
-    runGit(forkRepo, ["checkout", "-b", "feature"]);
-    await writeFile(forkRepo, "packages/pkg-a/src/index.ts", "export const value = 1;\n");
-    await writeFile(
-      forkRepo,
+    await git(forkRepo, ["config", "user.name", "Test User"]);
+    await git(forkRepo, ["config", "user.email", "test@example.com"]);
+    await git(forkRepo, ["checkout", "-b", "feature"]);
+
+    await forkRepoFixture.mkdir("packages/pkg-a/src");
+    await forkRepoFixture.writeFile(
+      "packages/pkg-a/src/index.ts",
+      "export const value = 1;\n",
+    );
+    await forkRepoFixture.writeFile(
       ".changeset/add-pkg-a.md",
-      `---
+      `\
+---
 "pkg-a": patch
 ---
 
 Add pkg-a
 `,
     );
-    runGit(forkRepo, ["add", "."]);
-    runGit(forkRepo, ["commit", "-m", "feature"]);
-    runGit(forkRepo, ["push", "origin", "feature"]);
 
-    const originalHead = runGit(checkoutRepo, ["rev-parse", "HEAD"]);
+    await git(forkRepo, ["add", "."]);
+    await git(forkRepo, ["commit", "-m", "feature"]);
+    await git(forkRepo, ["push", "origin", "feature"]);
+
+    // Run tests
+    const originalHead = await git(checkoutRepo, ["rev-parse", "HEAD"]);
     const context = {
       number: 123,
       base: {
@@ -129,7 +98,7 @@ Add pkg-a
       head: {
         ref: "feature",
         repo: {
-          clone_url: toFileUrl(forkBare),
+          clone_url: pathToFileURL(forkBare).toString(),
         },
       },
     } as any;
@@ -139,8 +108,8 @@ Add pkg-a
       async ({ cwd, baseRef }) => {
         const releasePlan = await getReleasePlan(cwd, baseRef);
         return {
-          currentHead: runGit(cwd, ["rev-parse", "HEAD"]),
-          currentBranch: runGit(cwd, ["branch", "--show-current"]),
+          currentHead: await git(cwd, ["rev-parse", "HEAD"]),
+          currentBranch: await git(cwd, ["branch", "--show-current"]),
           releases: releasePlan.releases.map((release) => ({
             name: release.name,
             type: release.type,
@@ -160,7 +129,7 @@ Add pkg-a
         newVersion: "1.0.1",
       },
     ]);
-    expect(runGit(checkoutRepo, ["rev-parse", "HEAD"])).toBe(originalHead);
-    expect(runGit(checkoutRepo, ["branch", "--show-current"])).toBe("main");
+    expect(await git(checkoutRepo, ["rev-parse", "HEAD"])).toBe(originalHead);
+    expect(await git(checkoutRepo, ["branch", "--show-current"])).toBe("main");
   });
 });
