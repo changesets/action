@@ -5,15 +5,15 @@ import { getCommentMessage } from "./message.ts";
 (async () => {
   const context = github.context.payload.pull_request;
   if (!context) {
-    core.error("This action should only be run on pull_request_target events");
+    core.error(
+      "This action should only be run on `pull_request_target` or `pull_request` events",
+    );
     return;
   }
 
   core.info("Creating comment message...");
   const commentBody = await getCommentMessage(context);
-
   core.setOutput("commentBody", commentBody);
-
   core.info("Done!");
 })().catch((err) => {
   core.error(err);

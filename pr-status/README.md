@@ -2,7 +2,16 @@
 
 This action generates the changeset status in PRs, e.g. whether it has changeset files and which packages will be released if the PR is merged.
 
-It requires the repo to be checked out, and automatically fetches the PR head ref into a temporary detached worktree in order to infer the changed files and packages. It also requires the [`pull_request_target`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target) event to be triggered in order to have permissions to comment on the PR and to work in PRs from forks. You can also use the `pull_request` event if you prefer to lock permissions down and not run for PRs from forks.
+It requires the repo to be checked out, and automatically fetches the PR head ref into a temporary detached worktree in order to infer the changed files and packages. It also requires the [`pull_request_target`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target) event to be triggered in order to have permissions to comment on the PR and to work in PRs from forks.
+
+You can also use the [`pull_request`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request) event if you prefer to lock permissions down and not run for PRs from forks. Make sure to add an if check to prevent the action from failing in fork PRs:
+
+```yaml
+jobs:
+  pr-status:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    # ...
+```
 
 See the [action metadata](action.yml) for details on the inputs and outputs.
 
