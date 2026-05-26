@@ -60,6 +60,7 @@ const createRelease = async (
 
 type PublishOptions = {
   script: string;
+  node_id: string;
   githubToken: string;
   octokit: Octokit;
   createGithubReleases: boolean;
