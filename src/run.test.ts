@@ -5,7 +5,7 @@ import { createFixture } from "fs-fixture";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
-import { runVersion } from "./run.ts";
+import { isForgejoOrGitea, runVersion } from "./run.ts";
 
 vi.mock("@actions/github", () => ({
   context: {
@@ -425,5 +425,25 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     });
 
     expect(mockedGraphql.mock.calls[0]).toMatchSnapshot();
+  });
+});
+
+describe("isForgejoOrGitea", () => {
+  it("returns false when no Forgejo/Gitea env vars are set", () => {
+    delete process.env.GITEA_ACTIONS;
+    delete process.env.FORGEJO_ACTIONS;
+    expect(isForgejoOrGitea()).toBe(false);
+  });
+
+  it("returns true when GITEA_ACTIONS is set", () => {
+    process.env.GITEA_ACTIONS = "true";
+    expect(isForgejoOrGitea()).toBe(true);
+    delete process.env.GITEA_ACTIONS;
+  });
+
+  it("returns true when FORGEJO_ACTIONS is set", () => {
+    process.env.FORGEJO_ACTIONS = "true";
+    expect(isForgejoOrGitea()).toBe(true);
+    delete process.env.FORGEJO_ACTIONS;
   });
 });

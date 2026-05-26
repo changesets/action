@@ -1,5 +1,17 @@
 # @changesets/action
 
+## 1.8.2
+
+### Patch Changes
+
+- [`e47dcdc`](https://github.com/changesets/action/commit/e47dcdcda2d3c570ab43fc31f1ac43872b47a5a4) Thanks [@openscript](https://github.com/openscript)! - Filter clientside for Forgejo
+
+## 1.8.1
+
+### Patch Changes
+
+- [`2135466`](https://github.com/changesets/action/commit/213546601666ba543dd4a716db7b148c55f4c36f) Thanks [@openscript](https://github.com/openscript)! - Encode branch and base
+
 ## 1.8.0
 
 ### Minor Changes
@@ -11,6 +23,7 @@
 - [#502](https://github.com/changesets/action/pull/502) [`6002dbd`](https://github.com/changesets/action/commit/6002dbd987f49a3c0a134910d9c7bca975b79977) Thanks [@oshytiko](https://github.com/oshytiko)! - Fixed initial `.changeset` state being picked up, when `cwd` parameter is provided
 
 - [#536](https://github.com/changesets/action/pull/536) [`81b3f61`](https://github.com/changesets/action/commit/81b3f61ebffcb868f73e4c0b2682517149c834a2) Thanks [@radnan](https://github.com/radnan)! - Fixed `.changeset` state being picked for the version command when `cwd` parameter is provided
+- [`905ea6d`](https://github.com/changesets/action/commit/905ea6d481f54d210f11da2daa15655dadd89f15) Thanks [@openscript](https://github.com/openscript)! - Add Forgejo/Gitea actions support
 
 ## 1.7.0
 
