@@ -11,7 +11,7 @@ let changelog = `# @keystone-alpha/email
 
   Move frontmatter in docs into comments
 
-## 3.0.0
+## 3.0.0 (2026-02-27)
 
 ### Major Changes
 
