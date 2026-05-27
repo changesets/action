@@ -86,13 +86,10 @@ export async function runPublish({
   createGithubReleases,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
-  let [publishCommand, ...publishArgs] = script.split(/\s+/);
-
-  let changesetPublishOutput = await getExecOutput(
-    publishCommand,
-    publishArgs,
-    { cwd, env: { ...process.env, GITHUB_TOKEN: githubToken } },
-  );
+  let changesetPublishOutput = await getExecOutput(script, undefined, {
+    cwd,
+    env: { ...process.env, GITHUB_TOKEN: githubToken },
+  });
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -293,8 +290,7 @@ export async function runVersion({
   const env = { ...process.env, GITHUB_TOKEN: githubToken };
 
   if (script) {
-    let [versionCommand, ...versionArgs] = script.split(/\s+/);
-    await exec(versionCommand, versionArgs, { cwd, env });
+    await exec(script, undefined, { cwd, env });
   } else {
     let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
     let cmd = semverLt(changesetsCliPkgJson.version, "2.0.0")
