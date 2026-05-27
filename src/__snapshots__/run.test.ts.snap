@@ -12,8 +12,7 @@ exports[`version > creates a draft PR when prDraft is "create" 1`] = `
 
 ### Minor Changes
 
--   Awesome feature
-",
+- Awesome feature",
     "draft": true,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
@@ -35,19 +34,17 @@ exports[`version > creates simple PR 1`] = `
 
 ### Minor Changes
 
--   Awesome feature
+- Awesome feature
 
 ### Patch Changes
 
--   Updated dependencies
-    -   changesets-dev-simple-project-pkg-b@1.1.0
-
+- Updated dependencies
+  - changesets-dev-simple-project-pkg-b@1.1.0
 ## changesets-dev-simple-project-pkg-b@1.1.0
 
 ### Minor Changes
 
--   Awesome feature
-",
+- Awesome feature",
     "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
@@ -111,8 +108,7 @@ exports[`version > doesn't include ignored package that got a dependency update 
 
 ### Minor Changes
 
--   Awesome feature
-",
+- Awesome feature",
     "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
@@ -134,8 +130,7 @@ exports[`version > only includes bumped packages in the PR body 1`] = `
 
 ### Minor Changes
 
--   Awesome feature
-",
+- Awesome feature",
     "draft": false,
     "head": "changeset-release/some-branch",
     "owner": "changesets",
@@ -187,8 +182,7 @@ exports[`version > updates an existing PR via GraphQL and converts it to draft w
 
 ### Minor Changes
 
--   Awesome feature
-",
+- Awesome feature",
     "pullRequestId": "PR_kwDOA",
     "title": "Version Packages",
   },
@@ -228,8 +222,7 @@ exports[`version > updates an existing PR via GraphQL without converting it to d
 
 ### Minor Changes
 
--   Awesome feature
-",
+- Awesome feature",
     "pullRequestId": "PR_kwDOA",
     "title": "Version Packages",
   },
