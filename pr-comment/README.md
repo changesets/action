@@ -4,6 +4,8 @@ A simple GitHub Action to comment on PRs aimed to complement [`@changesets/actio
 
 This action is intentionally simple without advanced features. Check out other actions if so, such as [mshick/add-pr-comment](https://github.com/marketplace/actions/add-pr-comment) and [peter-evans/create-or-update-comment](https://github.com/marketplace/actions/create-or-update-comment).
 
+See the [action metadata](action.yml) for details on the inputs and outputs.
+
 ## Example setup
 
 ```yaml
