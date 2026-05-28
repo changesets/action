@@ -13,7 +13,7 @@ import { getCommentMessage } from "./message.ts";
 
   core.info("Creating comment message...");
   const commentBody = await getCommentMessage(context);
-  core.setOutput("commentBody", commentBody);
+  core.setOutput("comment-body", commentBody);
   core.info("Done!");
 })().catch((err) => {
   core.error(err);

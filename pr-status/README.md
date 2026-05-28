@@ -1,6 +1,6 @@
 # changesets/action/pr-status
 
-This action generates the changeset status in PRs, e.g. whether it has changeset files and which packages will be released if the PR is merged.
+This action generates the changesets status in PRs, e.g. whether it has changeset files and which packages will be released if the PR is merged.
 
 It requires the repo to be checked out, and automatically fetches the PR head ref into a temporary detached worktree in order to infer the changed files and packages. It also requires the [`pull_request_target`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target) event to be triggered in order to have permissions to comment on the PR and to work in PRs from forks.
 
@@ -21,8 +21,8 @@ See the [action metadata](action.yml) for details on the inputs and outputs.
 ## Example setup
 
 ```yaml
-# .github/workflows/comment-changeset-pr-status.yml
-name: Comment changeset status in PRs
+# .github/workflows/comment-changesets-pr-status.yml
+name: Comment changesets status in PRs
 
 on:
   pull_request_target:
@@ -54,8 +54,10 @@ jobs:
       pull-requests: write # to create and update comments on PRs
     steps:
       - name: Comment on PR
-        uses: mshick/add-pr-comment@v3
+        uses: changesets/action/pr-comment@v1
         with:
-          message-id: changeset-pr-status
-          message: ${{ needs.pr-status.outputs.commentBody }}
+          body: ${{ needs.pr-status.outputs.comment-body }}
+          update-id: changesets-pr-status
 ```
+
+The workflow uses [`@changesets/action/pr-comment`](../pr-comment/README.md), which is a simple GitHub Action to comment on PRs.
