@@ -145,7 +145,7 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
                   .map((p) => `${p.name}@${p.version}`)
                   .join(", ")}`
               : ""
-          }`
+          }`,
         );
         process.exit(result.exitCode);
       }
