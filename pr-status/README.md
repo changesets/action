@@ -22,11 +22,10 @@ See the [action metadata](action.yml) for details on the inputs and outputs.
 
 ```yaml
 # .github/workflows/comment-changesets-pr-status.yml
-name: Comment changesets status in PRs
+name: Comment Changesets status in PRs
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -38,7 +37,7 @@ jobs:
     permissions:
       contents: read # to check out files in the repo
     outputs:
-      commentBody: ${{ steps.pr-status.outputs.commentBody }}
+      comment-body: ${{ steps.pr-status.outputs.comment-body }}
     steps:
       - name: Check out repo
         uses: actions/checkout@v6
@@ -47,7 +46,7 @@ jobs:
         id: pr-status
         uses: changesets/action/pr-status@v1
 
-  comment:
+  pr-comment:
     needs: pr-status
     runs-on: ubuntu-slim
     permissions:
