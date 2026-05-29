@@ -27,7 +27,9 @@ async function main() {
   const body = core.getInput("body", { required: true });
   const updateId = core.getInput("update-id", { required: false });
 
-  const commentMarker = updateId ? `<!-- ${updateId} -->` : null;
+  const commentMarker = updateId
+    ? `<!-- changesets-action-pr-comment:${updateId} -->`
+    : null;
   const commentBody = commentMarker ? `${commentMarker}\n\n${body}` : body;
   const commentParam: CreateCommentParams | UpdateCommentParams = {
     repo: context.base.repo.name,
