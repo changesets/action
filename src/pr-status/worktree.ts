@@ -25,34 +25,49 @@ function git(cwd: string, args: string[], opts: TinyexecOptions = {}) {
   });
 }
 
-async function deleteRef(cwd: string, ref: string) {
-  await git(cwd, ["update-ref", "-d", ref], { throwOnError: false });
+interface Ref {
+  fetchSource: string;
+  local: string;
+  remote: string;
 }
 
-function getRefNames(context: PullRequestContext) {
+function getRefs(context: PullRequestContext): Record<"base" | "head", Ref> {
   const suffix = `${context.number}-${randomUUID()}`;
   return {
-    baseLocalRef: `refs/changesets-action-pr-status/base/${suffix}`,
-    baseRemoteRef: `refs/heads/${context.base.ref}`,
-    headLocalRef: `refs/changesets-action-pr-status/head/${suffix}`,
-    headRemoteRef: `refs/heads/${context.head.ref}`,
+    base: {
+      fetchSource: "origin",
+      local: `refs/changesets-action-pr-status/base/${suffix}`,
+      remote: `refs/heads/${context.base.ref}`,
+    },
+    head: {
+      fetchSource: context.head.repo.clone_url,
+      local: `refs/changesets-action-pr-status/head/${suffix}`,
+      remote: `refs/heads/${context.head.ref}`,
+    },
   };
+}
+
+async function deepenRef(cwd: string, ref: Ref, deepenBy: number) {
+  await git(cwd, [
+    "fetch",
+    "--no-tags",
+    `--deepen=${deepenBy}`,
+    ref.fetchSource,
+    `${ref.remote}:${ref.local}`,
+  ]);
 }
 
 async function ensureMergeBase(args: {
   cwd: string;
-  refs: ReturnType<typeof getRefNames>;
-  headRemoteUrl: string;
+  refs: ReturnType<typeof getRefs>;
   deepenBy?: number;
 }) {
-  const { cwd, refs, headRemoteUrl, deepenBy = 50 } = args;
+  const { cwd, refs, deepenBy = 50 } = args;
 
   while (true) {
-    const mergeBase = await git(
-      cwd,
-      ["merge-base", refs.baseLocalRef, "HEAD"],
-      { throwOnError: false },
-    );
+    const mergeBase = await git(cwd, ["merge-base", refs.base.local, "HEAD"], {
+      throwOnError: false,
+    });
 
     if (mergeBase.exitCode === 0) {
       return mergeBase.stdout.trim();
@@ -60,77 +75,91 @@ async function ensureMergeBase(args: {
 
     if (!(await isRepoShallow({ cwd }))) {
       throw new Error(
-        `Failed to find merge base between "${refs.baseLocalRef}" and HEAD, and the repository is no longer shallow.`,
+        `Failed to find merge base between "${refs.base.local}" and HEAD, and the repository is no longer shallow.`,
       );
     }
 
-    await git(cwd, [
-      "fetch",
-      "--no-tags",
-      `--deepen=${deepenBy}`,
-      "origin",
-      `${refs.baseRemoteRef}:${refs.baseLocalRef}`,
-    ]);
-    await git(cwd, [
-      "fetch",
-      "--no-tags",
-      `--deepen=${deepenBy}`,
-      headRemoteUrl,
-      `${refs.headRemoteRef}:${refs.headLocalRef}`,
-    ]);
+    await deepenRef(cwd, refs.base, deepenBy);
+    await deepenRef(cwd, refs.head, deepenBy);
   }
 }
 
-export async function withPullRequestWorktree<T>(
+async function mkdtemp(prefix: string) {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
+
+  return {
+    dir,
+    async [Symbol.asyncDispose]() {
+      await fs.rm(dir, { recursive: true, force: true });
+    },
+  };
+}
+
+async function tempRef(cwd: string, ref: Ref) {
+  await git(cwd, [
+    "fetch",
+    "--no-tags",
+    "--depth=1",
+    ref.fetchSource,
+    `${ref.remote}:${ref.local}`,
+  ]);
+  return {
+    async [Symbol.asyncDispose]() {
+      await git(cwd, ["update-ref", "-d", ref.local], { throwOnError: false });
+    },
+  };
+}
+
+async function tempWorktree(cwd: string, dir: string, ref: Ref) {
+  await git(cwd, ["worktree", "add", "--detach", dir, ref.local]);
+
+  return {
+    async [Symbol.asyncDispose]() {
+      await git(cwd, ["worktree", "remove", "--force", dir], {
+        throwOnError: false,
+      });
+    },
+  };
+}
+
+type WithAsyncDispose<T> = T & {
+  [Symbol.asyncDispose](): Promise<void>;
+};
+
+function moveDisposable<T extends object>(
+  stack: AsyncDisposableStack,
+  value: T,
+): WithAsyncDispose<T> {
+  const moved = stack.move();
+  return Object.assign(value, {
+    async [Symbol.asyncDispose]() {
+      await moved.disposeAsync();
+    },
+  });
+}
+
+export async function getPullRequestWorktree(
   context: PullRequestContext,
-  fn: (worktree: WorktreeInfo) => Promise<T>,
-  repoCwd: string = process.cwd(),
-) {
-  const worktreeDir = await fs.mkdtemp(
-    path.join(os.tmpdir(), "changesets-action-pr-status-"),
-  );
-  const refs = getRefNames(context);
+  cwd: string = process.cwd(),
+): Promise<WithAsyncDispose<WorktreeInfo>> {
+  await using stack = new AsyncDisposableStack();
+  const worktreeDir = stack.use(
+    await mkdtemp("changesets-action-pr-status-"),
+  ).dir;
 
-  try {
-    await git(repoCwd, [
-      "fetch",
-      "--no-tags",
-      "--depth=1",
-      "origin",
-      `${refs.baseRemoteRef}:${refs.baseLocalRef}`,
-    ]);
-    await git(repoCwd, [
-      "fetch",
-      "--no-tags",
-      "--depth=1",
-      context.head.repo.clone_url,
-      `${refs.headRemoteRef}:${refs.headLocalRef}`,
-    ]);
-    await git(repoCwd, [
-      "worktree",
-      "add",
-      "--detach",
-      worktreeDir,
-      refs.headLocalRef,
-    ]);
-    await ensureMergeBase({
-      cwd: worktreeDir,
-      refs,
-      headRemoteUrl: context.head.repo.clone_url,
-    });
+  const refs = getRefs(context);
 
-    return await fn({
-      baseRef: refs.baseLocalRef,
-      cwd: worktreeDir,
-    });
-  } finally {
-    await git(repoCwd, ["worktree", "remove", "--force", worktreeDir], {
-      throwOnError: false,
-    });
-    await Promise.all([
-      deleteRef(repoCwd, refs.baseLocalRef),
-      deleteRef(repoCwd, refs.headLocalRef),
-    ]);
-    await fs.rm(worktreeDir, { recursive: true, force: true });
-  }
+  stack.use(await tempRef(cwd, refs.base));
+  stack.use(await tempRef(cwd, refs.head));
+  stack.use(await tempWorktree(cwd, worktreeDir, refs.head));
+
+  await ensureMergeBase({
+    cwd: worktreeDir,
+    refs,
+  });
+
+  return moveDisposable(stack, {
+    baseRef: refs.base.local,
+    cwd: worktreeDir,
+  });
 }

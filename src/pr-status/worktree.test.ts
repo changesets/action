@@ -1,9 +1,14 @@
 import { pathToFileURL } from "node:url";
+import type * as github from "@actions/github";
 import getReleasePlan from "@changesets/get-release-plan";
 import { createFixture } from "fs-fixture";
 import { exec } from "tinyexec";
 import { describe, expect, it } from "vitest";
-import { withPullRequestWorktree } from "./worktree.ts";
+import { getPullRequestWorktree } from "./worktree.ts";
+
+type PullRequestContext = NonNullable<
+  typeof github.context.payload.pull_request
+>;
 
 async function git(cwd: string, args: string[]) {
   const output = await exec("git", args, {
@@ -13,7 +18,7 @@ async function git(cwd: string, args: string[]) {
   return output.stdout.trim();
 }
 
-describe("withPullRequestWorktree", () => {
+describe("getPullRequestWorktree", () => {
   it("fetches a PR branch into a detached worktree and keeps the main checkout untouched", async () => {
     // Local source repo
     await using sourceRepoFixture = await createFixture({
@@ -107,6 +112,9 @@ Add pkg-a
       number: 123,
       base: {
         ref: "main",
+        repo: {
+          clone_url: pathToFileURL(originBare).toString(),
+        },
       },
       head: {
         ref: "feature",
@@ -114,34 +122,34 @@ Add pkg-a
           clone_url: pathToFileURL(forkBare).toString(),
         },
       },
-    } as any;
+    };
 
-    const result = await withPullRequestWorktree(
-      context,
-      async ({ cwd, baseRef }) => {
-        const releasePlan = await getReleasePlan(cwd, baseRef);
-        return {
-          currentHead: await git(cwd, ["rev-parse", "HEAD"]),
-          currentBranch: await git(cwd, ["branch", "--show-current"]),
-          releases: releasePlan.releases.map((release) => ({
-            name: release.name,
-            type: release.type,
-            newVersion: release.newVersion,
-          })),
-        };
-      },
+    await using worktree = await getPullRequestWorktree(
+      context satisfies PullRequestContext as PullRequestContext,
       checkoutRepo,
     );
 
-    expect(result.currentHead).not.toBe(originalHead);
-    expect(result.currentBranch).toBe("");
-    expect(result.releases).toEqual([
+    const releasePlan = await getReleasePlan(worktree.cwd, worktree.baseRef);
+
+    const currentHead = await git(worktree.cwd, ["rev-parse", "HEAD"]);
+    expect(currentHead).not.toBe(originalHead);
+
+    const currentBranch = await git(worktree.cwd, ["branch", "--show-current"]);
+    expect(currentBranch).toBe("");
+
+    const releases = releasePlan.releases.map((release) => ({
+      name: release.name,
+      type: release.type,
+      newVersion: release.newVersion,
+    }));
+    expect(releases).toEqual([
       {
         name: "pkg-a",
         type: "patch",
         newVersion: "1.0.1",
       },
     ]);
+
     expect(await git(checkoutRepo, ["rev-parse", "HEAD"])).toBe(originalHead);
     expect(await git(checkoutRepo, ["branch", "--show-current"])).toBe("main");
   });

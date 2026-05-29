@@ -10,28 +10,20 @@ import {
   getNewChangesetTemplateContent,
   getNewChangesetUrl,
 } from "./template.ts";
-import { withPullRequestWorktree } from "./worktree.ts";
+import { getPullRequestWorktree } from "./worktree.ts";
 
 type PullRequestContext = NonNullable<
   typeof github.context.payload.pull_request
 >;
 
 export async function getCommentMessage(context: PullRequestContext) {
-  const { releasePlan, templateContent } = await withPullRequestWorktree(
-    context,
-    async ({ cwd, baseRef }) => {
-      const releasePlan = await getReleasePlan(cwd, baseRef);
-      const templateContent = await getNewChangesetTemplateContent(
-        cwd,
-        baseRef,
-        context.title,
-      );
+  await using worktree = await getPullRequestWorktree(context);
 
-      return {
-        releasePlan,
-        templateContent,
-      };
-    },
+  const releasePlan = await getReleasePlan(worktree.cwd, worktree.baseRef);
+  const templateContent = await getNewChangesetTemplateContent(
+    worktree.cwd,
+    worktree.baseRef,
+    context.title,
   );
 
   const newChangesetUrl = getNewChangesetUrl(
