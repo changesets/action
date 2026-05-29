@@ -78,14 +78,6 @@ describe("getPullRequestWorktree", () => {
     await git(forkRepo, ["config", "user.email", "test@example.com"]);
     await git(forkRepo, ["checkout", "-b", "feature"]);
 
-    // log all files in forkRepo with dot files
-    console.log(
-      "Files in forkRepo:\n",
-      await exec("ls", ["-Ra"], { nodeOptions: { cwd: forkRepo } }).then(
-        (res) => res.stdout.trim(),
-      ),
-    );
-
     await forkRepoFixture.mkdir("packages/pkg-a/src");
     await forkRepoFixture.writeFile(
       "packages/pkg-a/src/index.ts",
