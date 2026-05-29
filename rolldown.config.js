@@ -1,7 +1,10 @@
 import { defineConfig } from "rolldown";
 
 export default defineConfig({
-  input: "src/index.ts",
+  input: {
+    index: "src/index.ts",
+    ["pr-status"]: "src/pr-status/index.ts",
+  },
   output: {
     dir: "dist",
     format: "esm",
