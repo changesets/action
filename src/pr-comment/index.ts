@@ -9,13 +9,18 @@ type UpdateCommentParams = NonNullable<
   Parameters<Octokit["rest"]["issues"]["updateComment"]>[0]
 >;
 
-(async () => {
+try {
+  await main();
+} catch (err) {
+  core.setFailed((err as Error).message);
+}
+
+async function main() {
   const context = github.context.payload.pull_request;
   if (!context) {
-    core.error(
+    throw new Error(
       "This action should only be run on `pull_request_target` or `pull_request` events",
     );
-    return;
   }
 
   const githubToken = core.getInput("github-token", { required: true });
@@ -62,4 +67,4 @@ type UpdateCommentParams = NonNullable<
   }
 
   core.info("Done!");
-})();
+}

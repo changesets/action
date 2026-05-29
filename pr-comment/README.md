@@ -15,7 +15,7 @@ on:
   pull_request:
 
 jobs:
-  comment:
+  pr-comment:
     runs-on: ubuntu-slim
     permissions:
       pull-requests: write # to create and update comments on PRs
@@ -23,7 +23,7 @@ jobs:
       - uses: changesets/action/pr-comment@v1
         with:
           body: Hello world!
-          # Optional. If provided, the action will look for an existing comment with
-          # the same update id and update it instead of creating a new one.
+          # Optional. If provided, the action will update the comment that contains this id,
+          # or create a comment with this id to be updated later.
           update-id: changesets
 ```
