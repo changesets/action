@@ -1,0 +1,25 @@
+name: Changesets - PR Comment
+description: A simple GitHub Action to comment on PRs
+runs:
+  using: node24
+  main: ../dist/pr-comment.js
+inputs:
+  github-token:
+    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    required: false
+    default: ${{ github.token }}
+  body:
+    description: "The comment body to post on the PR."
+    required: true
+  update-id:
+    description: >
+      By default, the action will create and update a comment with this id. Pass a different id to
+      create and update a new comment, or pass an empty string to disable updating comments.
+    required: false
+    default: "changesets-action-pr-comment"
+outputs:
+  comment-id:
+    description: "The comment id of the comment that was created or updated."
+branding:
+  icon: message-circle
+  color: blue
