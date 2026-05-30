@@ -45,7 +45,7 @@
     "oxfmt": "^0.48.0",
     "rolldown": "^1.0.1",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.7"
   },
   "engines": {
     "node": ">=24"
