@@ -1,5 +1,21 @@
 # @changesets/action
 
+## 1.9.0
+
+### Minor Changes
+
+- [#636](https://github.com/changesets/action/pull/636) [`b072bcc`](https://github.com/changesets/action/commit/b072bccc4c664a373c42168eed9139dce1e003b1) Thanks [@bluwy](https://github.com/bluwy)! - Add a new `@changesets/action/pr-comment` sub-action to comment on PRs
+
+- [#625](https://github.com/changesets/action/pull/625) [`8795eee`](https://github.com/changesets/action/commit/8795eee5eee884e887d352ac673a515ffe35aaa6) Thanks [@bluwy](https://github.com/bluwy)! - Add a new `@changesets/action/pr-status` sub-action to generate the changeset status comment for PRs as an alternative to the [Changesets Bot](https://github.com/apps/changeset-bot).
+
+### Patch Changes
+
+- [#535](https://github.com/changesets/action/pull/535) [`34f64f6`](https://github.com/changesets/action/commit/34f64f6e2e1e47ddc183f174aa27c197aa47f520) Thanks [@Andarist](https://github.com/Andarist)! - Fixed an issue with GitHub releases not being created for successfully published packages when _some_ packages failed to be published to the registry.
+
+- [#632](https://github.com/changesets/action/pull/632) [`1d54b9e`](https://github.com/changesets/action/commit/1d54b9e660e435237accbcae0b4581af3be641b4) Thanks [@bluwy](https://github.com/bluwy)! - Simplify internal implementation to get changelog entries for a package version
+
+- [#629](https://github.com/changesets/action/pull/629) [`e0c90aa`](https://github.com/changesets/action/commit/e0c90aa7fbd0cc26931a679c5abe9bbc0deb0b50) Thanks [@bluwy](https://github.com/bluwy)! - Fix custom version and publish command argument parsing
+
 ## 1.8.0
 
 ### Minor Changes
