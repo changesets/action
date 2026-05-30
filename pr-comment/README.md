@@ -23,7 +23,30 @@ jobs:
       - uses: changesets/action/pr-comment@v1
         with:
           body: Hello world!
-          # Optional. If provided, the action will update the comment that contains this id,
-          # or create a comment with this id to be updated later.
-          update-id: changesets
+```
+
+When called repeatedly, the action will update the comment it created by default. If you use this action to create different types of comments, pass an `update-id` value to differentiate them.
+
+```yaml
+jobs:
+  pr-comment:
+    # ...
+    steps:
+      - uses: changesets/action/pr-comment@v1
+        with:
+          body: Hello world!
+          update-id: my-tag
+```
+
+If you want to always create new comments, pass an empty value to `update-id`.
+
+```yaml
+jobs:
+  pr-comment:
+    # ...
+    steps:
+      - uses: changesets/action/pr-comment@v1
+        with:
+          body: Hello world!
+          update-id: ""
 ```

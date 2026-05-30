@@ -56,7 +56,6 @@ jobs:
         uses: changesets/action/pr-comment@v1
         with:
           body: ${{ needs.pr-status.outputs.comment-body }}
-          update-id: changesets-pr-status
 ```
 
 The workflow uses [`@changesets/action/pr-comment`](../pr-comment/README.md), which is a simple GitHub Action to comment on PRs.

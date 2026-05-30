@@ -25,11 +25,9 @@ async function main() {
 
   const githubToken = core.getInput("github-token", { required: true });
   const body = core.getInput("body", { required: true });
-  const updateId = core.getInput("update-id", { required: false });
+  const updateId = core.getInput("update-id");
 
-  const commentMarker = updateId
-    ? `<!-- changesets-action-pr-comment:${updateId} -->`
-    : null;
+  const commentMarker = updateId ? getCommentMarker(updateId) : null;
   const commentBody = commentMarker ? `${commentMarker}\n\n${body}` : body;
   const commentParam: CreateCommentParams | UpdateCommentParams = {
     repo: context.base.repo.name,
@@ -69,4 +67,11 @@ async function main() {
   }
 
   core.info("Done!");
+}
+
+function getCommentMarker(updateId: string) {
+  const prefix = "changesets-action-pr-comment";
+  return prefix === updateId
+    ? `<!-- ${prefix} -->`
+    : `<!-- ${prefix}:${updateId} -->`;
 }

@@ -12,8 +12,11 @@ inputs:
     description: "The comment body to post on the PR."
     required: true
   update-id:
-    description: "If provided, the action will update the comment that contains this id, or create a comment with this id to be updated later."
+    description: >
+      By default, the action will create and update a comment with this id. Pass a different id to
+      create and update a new comment, or pass an empty string to disable updating comments.
     required: false
+    default: "changesets-action-pr-comment"
 outputs:
   comment-id:
     description: "The comment id of the comment that was created or updated."
