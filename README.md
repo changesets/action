@@ -24,6 +24,8 @@ There are also sub-actions hosted in this repository. Check out their respective
 
 - published - A boolean value to indicate whether a publishing has happened or not
 - publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- hasChangesets - A boolean value to indicate whether there were changesets. This can be useful if you want to create your own publishing functionality.
+- pullRequestNumber - The pull request number that was created or updated.
 
 ### Example workflow
 
