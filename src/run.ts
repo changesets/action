@@ -259,6 +259,7 @@ type VersionOptions = {
   octokit: Octokit;
   cwd?: string;
   prTitle?: string;
+  prBody?: string;
   commitMessage?: string;
   hasPublishScript?: boolean;
   prBodyMaxCharacters?: number;
@@ -277,6 +278,7 @@ export async function runVersion({
   octokit,
   cwd = process.cwd(),
   prTitle = "Version Packages",
+  prBody,
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
@@ -365,13 +367,15 @@ export async function runVersion({
     .filter((x) => x)
     .sort(sortTheThings);
 
-  let prBody = await getVersionPrBody({
-    hasPublishScript,
-    preState,
-    branch,
-    changedPackagesInfo,
-    prBodyMaxCharacters,
-  });
+  if (!prBody) {
+    prBody = await getVersionPrBody({
+      hasPublishScript,
+      preState,
+      branch,
+      changedPackagesInfo,
+      prBodyMaxCharacters,
+    });
+  }
 
   if (existingPullRequests.data.length === 0) {
     core.info("creating pull request");
