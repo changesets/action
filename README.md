@@ -6,6 +6,18 @@ There are also sub-actions hosted in this repository. Check out their respective
 
 - [pr-status](./pr-status/README.md): Generate changeset status in PRs.
 
+## Requirements
+
+This action is required to have permission to create a pull request in your repository. You can enable this by visiting "Settings -> Actions -> General" and enabling "**Allow GitHub Actions to create and approve pull requests**".
+
+Additionally, you will also need to add the following to your workflow files in order for pull requests and commits to be created:
+
+```yaml
+permissions:
+  pull-requests: write
+  contents: write
+```
+
 ## Usage
 
 ### Inputs
