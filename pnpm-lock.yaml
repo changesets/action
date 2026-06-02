@@ -26,8 +26,8 @@ importers:
         specifier: ^4.0.16
         version: 4.0.16
       '@changesets/ghcommit':
-        specifier: ^2.1.0
-        version: 2.1.0
+        specifier: ^2.1.1
+        version: 2.1.1
       '@changesets/git':
         specifier: ^3.0.4
         version: 3.0.4
@@ -154,8 +154,8 @@ packages:
   '@changesets/get-version-range-type@0.4.0':
     resolution: {integrity: sha512-hwawtob9DryoGTpixy1D3ZXbGgJu1Rhr+ySH2PvTLHvkZuQ7sRT4oQwMh0hbqZH1weAooedEjRsbrWcGLCeyVQ==}
 
-  '@changesets/ghcommit@2.1.0':
-    resolution: {integrity: sha512-l37Cr1M3/NtvOpTQ8foHSQZNm7MZHhoIFhzueDSUJzYy6EX3ZjxsDdL1ViR3+aMdZRVgZL6an2YLbiGILq75QQ==}
+  '@changesets/ghcommit@2.1.1':
+    resolution: {integrity: sha512-rtdVQucW4O1328NiNdGSLWlsaVu/B9faNGeDrrQqtf0FDqUN1WhbtHuofjVmSI2VQELgM2F4IjfWu6dji5CwGA==}
 
   '@changesets/git@3.0.4':
     resolution: {integrity: sha512-BXANzRFkX+XcC1q/d27NKvlJ1yf7PSAgi8JG6dt8EfbHFHi4neau7mufcSca5zRhwOL8j9s6EqsxmT+s+/E6Sw==}
@@ -1422,7 +1422,7 @@ snapshots:
 
   '@changesets/get-version-range-type@0.4.0': {}
 
-  '@changesets/ghcommit@2.1.0':
+  '@changesets/ghcommit@2.1.1':
     dependencies:
       isomorphic-git: 1.38.1
 
