@@ -2,7 +2,16 @@
 
 This action generates the changesets status in PRs, e.g. whether it has changeset files and which packages will be released if the PR is merged.
 
-It requires the repo to be checked out, and automatically fetches the PR head ref into a temporary detached worktree in order to infer the changed files and packages. It also requires the [`pull_request_target`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target) event to be triggered in order to have permissions to comment on the PR and to work in PRs from forks.
+It requires the repo to be checked out, and automatically fetches the PR head ref into a temporary detached worktree in order to infer the changed files and packages.
+
+> [!CAUTION]
+> **This action uses `pull_request_target` by default to support PRs from forks.**
+> 
+> Generally, **do not execute any code except for GitHub Actions** when using the `pull_request_target` event.
+> 
+> The example below only _checks out_ and does not _run_ any code from the PR.
+> 
+> Read more about the `pull_request_target` event in the [GitHub documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target).
 
 You can also use the [`pull_request`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request) event if you prefer to lock permissions down and not run for PRs from forks. Make sure to add an if check to prevent the action from failing in fork PRs:
 
@@ -15,9 +24,6 @@ jobs:
 
 See the [action metadata](action.yml) for details on the inputs and outputs.
 
-> [!WARNING]
-> **Do not run untrusted code** when using the `pull_request_target` event. The example below only checks out code and does not run any code from the PR. Read more about the `pull_request_target` event in the [GitHub documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target).
-
 ## Example setup
 
 ```yaml
@@ -26,6 +32,8 @@ name: Comment Changesets status in PRs
 
 on:
   pull_request_target:
+
+permissions: {} # require explicitly stating all permissions in each job
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
