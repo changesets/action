@@ -2,6 +2,8 @@ blockExoticSubdeps: true
 dedupePeers: true
 dedupePeerDependents: true
 minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - "@changesets/ghcommit@2.1.1"
 
 overrides:
   lightningcss: "-" # we do not bundle any css
