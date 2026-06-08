@@ -9,9 +9,9 @@ See the [action metadata](action.yml) for details on the inputs and outputs.
 > [!CAUTION]
 > **This action uses `pull_request_target` by default to support PRs from forks.**
 >
-> Generally, **do not execute any code except for GitHub Actions** when using the `pull_request_target` event.
+> **Do not run untrusted code** when using the `pull_request_target` event.
 >
-> The example below only _checks out_ and does not _run_ any code from the PR.
+> The example below only ***checks out*** and ***reads*** code, and does not ***execute*** any code from the fork.
 >
 > Read more about the `pull_request_target` event in the [GitHub documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target).
 
