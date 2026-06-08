@@ -11,7 +11,7 @@ See the [action metadata](action.yml) for details on the inputs and outputs.
 >
 > **Do not run untrusted code** when using the `pull_request_target` event.
 >
-> The example below only ***checks out*** and ***reads*** code, and does not ***execute*** any code from the fork.
+> The example below only **_checks out_** and **_reads_** code, and does not **_execute_** any code from the fork.
 >
 > Read more about the `pull_request_target` event in the [GitHub documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target).
 
