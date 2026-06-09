@@ -7,6 +7,9 @@ on:
   merge_group:
     branches:
       - main
+      - next
+      # merge group rulesets don't allow wildcards so in settings each maintenance branch needs to be added separately
+      - "maintenance/v*" # branch rulesets don't support v[0-9]+
 
 permissions:
   contents: read
@@ -37,9 +40,8 @@ jobs:
 
   test:
     name: Test
-    timeout-minutes: 20
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     steps:
       - name: Check out repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -53,9 +55,8 @@ jobs:
 
   typecheck:
     name: Typecheck
-    timeout-minutes: 20
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     steps:
       - name: Check out repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -69,9 +70,8 @@ jobs:
 
   lint:
     name: Lint
-    timeout-minutes: 20
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     steps:
       - name: Check out repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
