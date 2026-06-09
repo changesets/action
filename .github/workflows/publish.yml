@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - next
-      - "maintenance/v[0-9]+"
+      - "maintenance/v*" # branch rulesets don't support v[0-9]+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -72,7 +72,7 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          persist-credentials: true
+          persist-credentials: false
           token: ${{ steps.app-token.outputs.token }}
 
       - uses: ./.github/actions/ci-setup
