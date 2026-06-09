@@ -23,9 +23,7 @@ jobs:
     outputs:
       hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
     permissions:
-      contents: write # to create release (changesets/action)
-      issues: write # to post issue comments (changesets/action)
-      pull-requests: write # to create pull request (changesets/action)
+      contents: read # to check out repo (actions/checkout)
     steps:
       - name: Check out repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -44,6 +42,8 @@ jobs:
         with:
           client-id: ${{ vars.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write # to create version commits (changesets/action)
+          permission-pull-requests: write # to create pull request (changesets/action)
 
       - name: Create or update release pull request
         id: changesets
@@ -67,12 +67,12 @@ jobs:
         with:
           client-id: ${{ vars.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write # to bypass branch and tag protection rules (release.ts)
 
       - name: Check out repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: true
-          # we need this token to bypass the branch and tag protection rules
           token: ${{ steps.app-token.outputs.token }}
 
       - uses: ./.github/actions/ci-setup
