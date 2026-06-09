@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - next
+      - "maintenance/v[0-9]+"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
