@@ -1,5 +1,8 @@
 # Changesets Release Action
 
+> [!IMPORTANT]
+> This is the development branch for `changesets/action` v2 compatible with Changesets v3. For the v1 code compatible with Changesets v2, check out the [`maintenance/v1`](https://github.com/changesets/action/tree/maintenance/v1) branch.
+
 This action for [Changesets](https://github.com/changesets/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
 
 There are also sub-actions hosted in this repository. Check out their respective READMEs for more details:
