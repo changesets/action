@@ -4,6 +4,7 @@ import pkgJson from "../package.json" with { type: "json" };
 
 const tag = `v${pkgJson.version}`;
 const releaseLine = `v${pkgJson.version.split(".")[0]}`;
+const isPrerelease = pkgJson.version.includes("-");
 
 process.chdir(path.join(import.meta.dirname, ".."));
 
@@ -30,6 +31,11 @@ process.chdir(path.join(import.meta.dirname, ".."));
   await exec("git", ["commit", "-m", tag]);
 
   await exec("changeset", ["tag"]);
+
+  if (isPrerelease) {
+    await exec("git", ["push", "origin", `refs/tags/${tag}`]);
+    return;
+  }
 
   await exec("git", [
     "push",
