@@ -2,7 +2,12 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import * as core from "@actions/core";
-import { exec, getExecOutput } from "@actions/exec";
+import {
+  exec,
+  getExecOutput,
+  type ExecOptions,
+  type ExecOutput,
+} from "@actions/exec";
 import * as github from "@actions/github";
 import type { PreState } from "@changesets/types";
 import { type Package, getPackages } from "@manypkg/get-packages";
@@ -59,7 +64,7 @@ const createRelease = async (
 };
 
 type PublishOptions = {
-  script: string;
+  script?: string;
   githubToken: string;
   octokit: Octokit;
   createGithubReleases: boolean;
@@ -88,11 +93,29 @@ export async function runPublish({
   createGithubReleases,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
-  let changesetPublishOutput = await getExecOutput(script, undefined, {
+  let changesetPublishOutput: ExecOutput;
+  const execOptions: ExecOptions = {
     cwd,
     ignoreReturnCode: true,
     env: { ...process.env, GITHUB_TOKEN: githubToken },
-  });
+  };
+
+  if (script) {
+    changesetPublishOutput = await getExecOutput(
+      script,
+      undefined,
+      execOptions,
+    );
+  } else {
+    const changesetsCliBin = require.resolve("@changesets/cli/bin.js", {
+      paths: [cwd],
+    });
+    changesetPublishOutput = await getExecOutput(
+      "node",
+      [changesetsCliBin, "publish"],
+      execOptions,
+    );
+  }
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -300,19 +323,10 @@ export async function runVersion({
     let cmd = semverLt(changesetsCliPkgJson.version, "2.0.0")
       ? "bump"
       : "version";
-    await exec(
-      "node",
-      [
-        require.resolve("@changesets/cli/bin.js", {
-          paths: [cwd],
-        }),
-        cmd,
-      ],
-      {
-        cwd,
-        env,
-      },
-    );
+    const changesetsCliBin = require.resolve("@changesets/cli/bin.js", {
+      paths: [cwd],
+    });
+    await exec("node", [changesetsCliBin, cmd], { cwd, env });
   }
 
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);

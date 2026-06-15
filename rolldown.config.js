@@ -5,6 +5,9 @@ export default defineConfig({
     index: "src/index.ts",
     ["pr-status"]: "src/pr-status/index.ts",
     ["pr-comment"]: "src/pr-comment/index.ts",
+    ["select-mode"]: "src/select-mode/index.ts",
+    version: "src/version/index.ts",
+    publish: "src/publish/index.ts",
   },
   output: {
     dir: "dist",
