@@ -3,11 +3,7 @@ description: Whether to version or publish in the current repo state
 runs:
   using: node24
   main: ../dist/select-mode.js
-inputs:
-  github-token:
-    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
-    required: false
-    default: ${{ github.token }}
+inputs: {}
 outputs:
   mode:
     description: "The mode to use for the current repo state: 'version', 'publish', or 'none'."
