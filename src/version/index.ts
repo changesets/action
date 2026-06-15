@@ -12,10 +12,10 @@ try {
 async function main() {
   const githubToken = core.getInput("github-token", { required: true });
   const script = core.getInput("script");
+  const commitMessage = core.getInput("commit-message", { required: true });
   const prTitle = core.getInput("pr-title", { required: true });
-  const prCommit = core.getInput("pr-commit", { required: true });
-  const prBranch = core.getInput("pr-branch");
-  const prDraft = core.getInput("pr-draft") ?? undefined;
+  const prDraft = core.getInput("pr-draft") || undefined;
+  const baseBranch = core.getInput("base-branch");
   const commitMode = core.getInput("commit-mode") || "git-cli";
   const setupGitUser = core.getBooleanInput("setup-git-user");
 
@@ -45,11 +45,11 @@ async function main() {
     octokit,
     cwd,
     prTitle,
-    commitMessage: prCommit,
+    commitMessage,
     // TODO: Use neutral message for PR description
     hasPublishScript: true,
     prDraft,
-    branch: prBranch,
+    branch: baseBranch,
   });
 
   core.setOutput("pr-number", String(pullRequestNumber));

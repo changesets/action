@@ -11,19 +11,19 @@ inputs:
   script:
     description: "The command to use to publish packages"
     required: false
+  commit-message:
+    description: "The commit message. Default to `Version Packages`"
+    required: false
+    default: "Version Packages"
   pr-title:
     description: "The pull request title. Default to `Version Packages`"
     required: false
     default: "Version Packages"
-  pr-commit:
-    description: "The commit message. Default to `Version Packages`"
-    required: false
-    default: "Version Packages"
-  pr-branch:
-    description: "Sets the branch in which the action will run. Defaults to `github.ref_name`."
-    required: false
   pr-draft:
     description: "Controls draft PR behavior. Use 'create' to create new version PRs as draft, or 'always' to also convert existing version PRs back to draft when updating them."
+    required: false
+  base-branch:
+    description: "Sets the base branch of the PR. Defaults to `github.ref_name`."
     required: false
   commit-mode:
     description: >
