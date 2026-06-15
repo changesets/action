@@ -6,7 +6,6 @@ import { exec, getExecOutput } from "@actions/exec";
 import * as github from "@actions/github";
 import type { PreState } from "@changesets/types";
 import { type Package, getPackages } from "@manypkg/get-packages";
-import semverLt from "semver/functions/lt.js";
 import { Git } from "./git.ts";
 import type { Octokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
@@ -165,24 +164,6 @@ export async function runPublish({
   return { published: false, exitCode: changesetPublishOutput.exitCode };
 }
 
-const requireChangesetsCliPkgJson = (cwd: string) => {
-  try {
-    return require(
-      require.resolve("@changesets/cli/package.json", {
-        paths: [cwd],
-      }),
-    );
-  } catch (err) {
-    if (isErrorWithCode(err, "MODULE_NOT_FOUND")) {
-      throw new Error(
-        `Have you forgotten to install \`@changesets/cli\` in "${cwd}"?`,
-        { cause: err },
-      );
-    }
-    throw err;
-  }
-};
-
 type GetMessageOptions = {
   hasPublishScript: boolean;
   branch: string;
@@ -296,17 +277,13 @@ export async function runVersion({
   if (script) {
     await exec(script, undefined, { cwd, env });
   } else {
-    let changesetsCliPkgJson = requireChangesetsCliPkgJson(cwd);
-    let cmd = semverLt(changesetsCliPkgJson.version, "2.0.0")
-      ? "bump"
-      : "version";
     await exec(
       "node",
       [
         require.resolve("@changesets/cli/bin.js", {
           paths: [cwd],
         }),
-        cmd,
+        "version",
       ],
       {
         cwd,
