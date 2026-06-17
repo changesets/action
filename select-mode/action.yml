@@ -7,6 +7,8 @@ inputs: {}
 outputs:
   mode:
     description: "The mode to use for the current repo state: 'version', 'publish', or 'none'."
+  publish-plan-artifact-id:
+    description: "Artifact id for the generated publish plan when mode is `publish`"
 branding:
   icon: package
   color: blue
