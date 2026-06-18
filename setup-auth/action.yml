@@ -1,0 +1,31 @@
+name: "changesets/setup-auth"
+description: Set up authentication for Node.js projects, without also re-downloading Node.js (again).
+
+branding:
+  icon: lock
+  color: blue
+
+runs:
+  using: node24
+  main: ../dist/setup-auth.js
+
+inputs:
+  token:
+    description: The token to write to the package managers' config files.
+    required: true
+  scope:
+    description: Which scope to use the token with (e.g. `@my-org`).
+  registry:
+    description: Which registry to use the token with.
+    default: "//registry.npmjs.org"
+  package-manager:
+    # TODO: fix wording
+    description: Which package manager to set up. Defaults to detecting from project. (see supported package managers).
+  overwrite:
+    description: Whether to overwrite any existing configuration.
+
+outputs:
+  config-path:
+    description: The path to the updated config file
+  package-manager:
+    description: Which package manager was configured
