@@ -15,7 +15,7 @@ async function main() {
   const commitMessage = core.getInput("commit-message", { required: true });
   const prTitle = core.getInput("pr-title", { required: true });
   const prDraft = core.getInput("pr-draft") || undefined;
-  const baseBranch = core.getInput("base-branch");
+  const prBaseBranch = core.getInput("pr-base-branch");
   const commitMode = core.getInput("commit-mode") || "git-cli";
   const setupGitUser = core.getBooleanInput("setup-git-user");
 
@@ -49,7 +49,7 @@ async function main() {
     // TODO: Use neutral message for PR description
     hasPublishScript: true,
     prDraft,
-    branch: baseBranch,
+    branch: prBaseBranch,
   });
 
   core.setOutput("pr-number", String(pullRequestNumber));
