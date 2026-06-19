@@ -50,6 +50,5 @@ async function main() {
           : ""
       }`,
     );
-    process.exit(result.exitCode);
   }
 }

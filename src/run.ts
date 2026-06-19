@@ -1,5 +1,4 @@
 import fs from "node:fs/promises";
-import { createRequire } from "node:module";
 import path from "node:path";
 import * as core from "@actions/core";
 import {
@@ -15,14 +14,14 @@ import { Git } from "./git.ts";
 import type { Octokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
 import {
+  execChangesetsCli,
   getChangedPackages,
   getChangelogEntry,
+  getExecOutputChangesetsCli,
   getVersionsByDirectory,
   isErrorWithCode,
   sortTheThings,
 } from "./utils.ts";
-
-const require = createRequire(import.meta.url);
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -106,12 +105,8 @@ export async function runPublish({
       execOptions,
     );
   } else {
-    const changesetsCliBin = require.resolve("@changesets/cli/bin.js", {
-      paths: [cwd],
-    });
-    changesetPublishOutput = await getExecOutput(
-      "node",
-      [changesetsCliBin, "publish"],
+    changesetPublishOutput = await getExecOutputChangesetsCli(
+      ["publish"],
       execOptions,
     );
   }
@@ -300,10 +295,7 @@ export async function runVersion({
   if (script) {
     await exec(script, undefined, { cwd, env });
   } else {
-    const changesetsCliBin = require.resolve("@changesets/cli/bin.js", {
-      paths: [cwd],
-    });
-    await exec("node", [changesetsCliBin, "version"], { cwd, env });
+    await execChangesetsCli(["version"], { cwd, env });
   }
 
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);

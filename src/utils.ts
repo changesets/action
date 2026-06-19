@@ -1,5 +1,14 @@
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
+import {
+  exec,
+  getExecOutput,
+  type ExecOptions as ActionsExecOptions,
+  type ExecOutput,
+} from "@actions/exec";
 import { getPackages, type Package } from "@manypkg/get-packages";
+
+const require = createRequire(import.meta.url);
 
 export const BumpLevels = {
   dep: 0,
@@ -109,5 +118,34 @@ export function fileExists(filePath: string) {
   return fs.access(filePath, fs.constants.F_OK).then(
     () => true,
     () => false,
+  );
+}
+
+function resolveChangesetsCli(cwd: string) {
+  return require.resolve("@changesets/cli/bin.js", {
+    paths: [cwd],
+  });
+}
+
+interface ExecOptions extends Omit<ActionsExecOptions, "env"> {
+  env?: Record<string, string | undefined>;
+}
+
+export function execChangesetsCli(args: string[], options?: ExecOptions) {
+  return exec(
+    "node",
+    [resolveChangesetsCli(options?.cwd ?? process.cwd()), ...args],
+    options as ActionsExecOptions,
+  );
+}
+
+export function getExecOutputChangesetsCli(
+  args: string[],
+  options?: ExecOptions,
+): Promise<ExecOutput> {
+  return getExecOutput(
+    "node",
+    [resolveChangesetsCli(options?.cwd ?? process.cwd()), ...args],
+    options as ActionsExecOptions,
   );
 }

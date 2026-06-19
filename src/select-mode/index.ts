@@ -1,13 +1,10 @@
 import fs from "node:fs/promises";
-import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import artifact from "@actions/artifact";
 import * as core from "@actions/core";
-import { exec } from "tinyexec";
 import readChangesetState from "../readChangesetState.ts";
-
-const require = createRequire(import.meta.url);
+import { execChangesetsCli } from "../utils.ts";
 
 type ModeResult =
   | {
@@ -21,10 +18,7 @@ type ModeResult =
       publishPlanPath: string;
     };
 
-type PublishPlan = {
-  version: number;
-  plan: unknown[];
-};
+type PublishPlan = unknown[];
 
 try {
   await main();
@@ -71,21 +65,13 @@ async function getMode(): Promise<ModeResult> {
     process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),
     `changeset-publish-plan-${Date.now()}.json`,
   );
-  const changesetsCliBin = require.resolve("@changesets/cli/bin.js", {
-    paths: [cwd],
+  await execChangesetsCli(["publish-plan", "--output", publishPlanPath], {
+    cwd,
+    env: process.env,
   });
 
-  await exec(
-    "node",
-    [changesetsCliBin, "publish-plan", "--output", publishPlanPath],
-    {
-      throwOnError: true,
-      nodeOptions: { cwd, env: process.env },
-    },
-  );
-
   const publishPlan = await readPublishPlan(publishPlanPath);
-  if (publishPlan.plan.length === 0) {
+  if (publishPlan.length === 0) {
     return { mode: "none" };
   }
 
@@ -126,8 +112,5 @@ async function readPublishPlan(publishPlanPath: string): Promise<PublishPlan> {
       `Invalid publish plan at ${publishPlanPath}: expected { version: number; plan: unknown[] }`,
     );
   }
-  return {
-    version: plan.version,
-    plan: plan.plan,
-  };
+  return plan.plan;
 }
