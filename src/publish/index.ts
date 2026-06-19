@@ -1,7 +1,10 @@
+import fs from "node:fs/promises";
+import os from "node:os";
 import * as core from "@actions/core";
 import { Git } from "../git.ts";
 import { setupOctokit } from "../octokit.ts";
 import { runPublish } from "../run.ts";
+import { downloadArtifact } from "../utils.ts";
 
 try {
   await main();
@@ -12,6 +15,7 @@ try {
 async function main() {
   const githubToken = core.getInput("github-token", { required: true });
   const script = core.getInput("script");
+  const packedArtifactId = core.getInput("packed-artifact-id");
   const createGithubReleases = core.getBooleanInput("create-github-releases");
 
   // If the user needs to change the cwd, set `working-directory` in the step instead
@@ -21,6 +25,14 @@ async function main() {
   // NOTE: Always pass octokit here as publish does not need a commit-mode
   const git = new Git({ octokit, cwd });
 
+  const fromPackDir = packedArtifactId
+    ? await downloadArtifact(
+        process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),
+        Number(packedArtifactId),
+        "changeset-pack",
+      )
+    : undefined;
+
   const result = await runPublish({
     script,
     githubToken,
@@ -28,12 +40,13 @@ async function main() {
     octokit,
     createGithubReleases,
     cwd,
+    fromPackDir,
   });
 
   if (result.published) {
     core.setOutput("published", "true");
     core.setOutput(
-      "publishedPackages",
+      "published-packages",
       JSON.stringify(result.publishedPackages),
     );
   } else {

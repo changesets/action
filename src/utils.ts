@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import { createRequire } from "node:module";
+import path from "node:path";
+import artifact from "@actions/artifact";
 import {
   exec,
   getExecOutput,
@@ -148,4 +150,29 @@ export function getExecOutputChangesetsCli(
     [resolveChangesetsCli(options?.cwd ?? process.cwd()), ...args],
     options as ActionsExecOptions,
   );
+}
+
+export async function downloadArtifact(
+  tmpDir: string,
+  artifactId: number,
+  name: string,
+) {
+  if (!Number.isInteger(artifactId) || artifactId <= 0) {
+    throw new Error(
+      `Invalid ${JSON.stringify(name)} artifact id: ${artifactId}`,
+    );
+  }
+
+  const downloadPath = path.join(tmpDir, `${name}-${artifactId}-${Date.now()}`);
+  const result = await artifact.downloadArtifact(artifactId, {
+    path: downloadPath,
+  });
+
+  if (!result.downloadPath) {
+    throw new Error(
+      `${JSON.stringify(name)} artifact download did not return a path for artifact ${artifactId}`,
+    );
+  }
+
+  return result.downloadPath;
 }

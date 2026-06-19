@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import artifact from "@actions/artifact";
 import * as core from "@actions/core";
-import { execChangesetsCli } from "../utils.ts";
+import { downloadArtifact, execChangesetsCli } from "../utils.ts";
 
 try {
   await main();
@@ -56,25 +56,12 @@ async function pack(
 }
 
 async function downloadPublishPlanArtifact(tmpDir: string, artifactId: number) {
-  if (!Number.isInteger(artifactId) || artifactId <= 0) {
-    throw new Error(`Invalid publish plan artifact id: ${artifactId}`);
-  }
-
-  const downloadPath = path.join(
+  const downloadPath = await downloadArtifact(
     tmpDir,
-    `changeset-publish-plan-${artifactId}-${Date.now()}`,
+    artifactId,
+    "changeset-publish-plan",
   );
-  const result = await artifact.downloadArtifact(artifactId, {
-    path: downloadPath,
-  });
-
-  if (!result.downloadPath) {
-    throw new Error(
-      `Publish plan artifact download did not return a path for artifact ${artifactId}`,
-    );
-  }
-
-  return path.join(result.downloadPath, "publish-plan.json");
+  return path.join(downloadPath, "publish-plan.json");
 }
 
 async function getFiles(dir: string): Promise<string[]> {

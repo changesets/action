@@ -63,6 +63,7 @@ const createRelease = async (
 
 type PublishOptions = {
   script?: string;
+  fromPackDir?: string;
   githubToken: string;
   octokit: Octokit;
   createGithubReleases: boolean;
@@ -85,6 +86,7 @@ type PublishResult =
 
 export async function runPublish({
   script,
+  fromPackDir,
   githubToken,
   git,
   octokit,
@@ -105,8 +107,12 @@ export async function runPublish({
       execOptions,
     );
   } else {
+    const args = ["publish"];
+    if (fromPackDir) {
+      args.push("--from-pack", fromPackDir);
+    }
     changesetPublishOutput = await getExecOutputChangesetsCli(
-      ["publish"],
+      args,
       execOptions,
     );
   }
