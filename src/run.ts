@@ -109,7 +109,7 @@ export async function runPublish({
   } else {
     const args = ["publish"];
     if (fromPackDir) {
-      args.push("--from-pack", fromPackDir);
+      args.push("--from-pack-dir", fromPackDir);
     }
     changesetPublishOutput = await getExecOutputChangesetsCli(
       args,
