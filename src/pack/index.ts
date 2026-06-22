@@ -30,6 +30,9 @@ async function main() {
     `changeset-pack-${Date.now()}`,
     await getFiles(outDir),
     outDir,
+    {
+      retentionDays: 30,
+    },
   );
   if (packDirArtifact.id === undefined) {
     throw new Error("Packed artifact upload did not return an artifact id");

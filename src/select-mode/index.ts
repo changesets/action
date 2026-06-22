@@ -36,6 +36,7 @@ async function main() {
       path.dirname(result.publishPlanPath),
       {
         skipArchive: true,
+        retentionDays: 30,
       },
     );
     if (publishPlanArtifact.id === undefined) {
