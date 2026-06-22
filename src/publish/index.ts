@@ -15,7 +15,7 @@ try {
 async function main() {
   const githubToken = core.getInput("github-token", { required: true });
   const script = core.getInput("script");
-  const packedArtifactId = core.getInput("packed-artifact-id");
+  const packDirArtifactId = core.getInput("pack-dir-artifact-id");
   const createGithubReleases = core.getBooleanInput("create-github-releases");
 
   // If the user needs to change the cwd, set `working-directory` in the step instead
@@ -25,10 +25,10 @@ async function main() {
   // NOTE: Always pass octokit here as publish does not need a commit-mode
   const git = new Git({ octokit, cwd });
 
-  const fromPackDir = packedArtifactId
+  const fromPackDir = packDirArtifactId
     ? await downloadArtifact(
         process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),
-        Number(packedArtifactId),
+        Number(packDirArtifactId),
         "changeset-pack",
       )
     : undefined;

@@ -26,15 +26,15 @@ async function main() {
       : undefined,
   });
 
-  const packedArtifact = await artifact.uploadArtifact(
+  const packDirArtifact = await artifact.uploadArtifact(
     `changeset-pack-${Date.now()}`,
     await getFiles(outDir),
     outDir,
   );
-  if (packedArtifact.id === undefined) {
+  if (packDirArtifact.id === undefined) {
     throw new Error("Packed artifact upload did not return an artifact id");
   }
-  core.setOutput("packed-artifact-id", String(packedArtifact.id));
+  core.setOutput("pack-dir-artifact-id", String(packDirArtifact.id));
 }
 
 async function pack(
