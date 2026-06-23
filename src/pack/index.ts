@@ -49,7 +49,7 @@ async function pack(
 ) {
   const cliArgs = ["pack", "--out-dir", args.outDir];
   if (args.publishPlanPath) {
-    cliArgs.push("--from-plan", args.publishPlanPath);
+    cliArgs.push("--from-publish-plan", args.publishPlanPath);
   }
 
   await execChangesetsCli(cliArgs, {
