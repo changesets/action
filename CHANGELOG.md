@@ -1,5 +1,15 @@
 # @changesets/action
 
+## 2.0.0-next.1
+
+### Patch Changes
+
+- [#663](https://github.com/changesets/action/pull/663) [`ccb3811`](https://github.com/changesets/action/commit/ccb38113eaaa4a13eb6aabe09520e49cc8519b84) Thanks [@Andarist](https://github.com/Andarist)! - Fix the computed publish plan path passed internally to `changeset pack` by the `/pack` subaction.
+
+- [#662](https://github.com/changesets/action/pull/662) [`5c88881`](https://github.com/changesets/action/commit/5c88881fff1f0d8b055d4a2d3a74a8ce843db6f3) Thanks [@Andarist](https://github.com/Andarist)! - Fixed usage of `--from-publish-plan` flag used by the `/pack` subaction
+
+- [#666](https://github.com/changesets/action/pull/666) [`dc29b73`](https://github.com/changesets/action/commit/dc29b738b532d9e95f46b9bf493e2e3fdf48a7ed) Thanks [@Andarist](https://github.com/Andarist)! - Fix the `/version` subaction to not crash on missing `pr-base-branch` input. This input is meant to be optional.
+
 ## 2.0.0-next.0
 
 ### Major Changes

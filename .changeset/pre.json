@@ -4,5 +4,12 @@
   "initialVersions": {
     "@changesets/action": "1.9.0"
   },
-  "changesets": ["eight-clocks-pull", "eighty-doors-swim", "lemon-turtles-itch"]
+  "changesets": [
+    "all-cars-grin",
+    "eight-clocks-pull",
+    "eighty-doors-swim",
+    "lemon-turtles-itch",
+    "ready-mangos-boil",
+    "silent-tips-dance"
+  ]
 }
