@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import artifact from "@actions/artifact";
+import * as core from "@actions/core";
 import {
   exec,
   getExecOutput,
@@ -121,6 +122,11 @@ export function fileExists(filePath: string) {
     () => true,
     () => false,
   );
+}
+
+export function getOptionalInput(name: string) {
+  // normalize empty string default return value of `core.getInput` to undefined
+  return core.getInput(name) || undefined;
 }
 
 function resolveChangesetsCli(cwd: string) {

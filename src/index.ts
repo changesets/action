@@ -1,13 +1,10 @@
 import fs from "node:fs/promises";
-import path from "node:path";
 import * as core from "@actions/core";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
-import { fileExists } from "./utils.ts";
-
-const getOptionalInput = (name: string) => core.getInput(name) || undefined;
+import { fileExists, getOptionalInput } from "./utils.ts";
 
 (async () => {
   // to maintain compatibility with workflows created before github-token input was introduced
