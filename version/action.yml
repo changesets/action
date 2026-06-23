@@ -9,7 +9,7 @@ inputs:
     required: false
     default: ${{ github.token }}
   script:
-    description: "The command to use to publish packages"
+    description: "The command to use to version packages"
     required: false
   commit-message:
     description: "The commit message. Default to `Version Packages`"
