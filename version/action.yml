@@ -1,0 +1,43 @@
+name: Changesets - Version
+description: Version packages
+runs:
+  using: node24
+  main: ../dist/version.js
+inputs:
+  github-token:
+    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    required: false
+    default: ${{ github.token }}
+  script:
+    description: "The command to use to publish packages"
+    required: false
+  commit-message:
+    description: "The commit message. Default to `Version Packages`"
+    required: false
+    default: "Version Packages"
+  pr-title:
+    description: "The pull request title. Default to `Version Packages`"
+    required: false
+    default: "Version Packages"
+  pr-draft:
+    description: "Controls draft PR behavior. Use 'create' to create new version PRs as draft, or 'always' to also convert existing version PRs back to draft when updating them."
+    required: false
+  pr-base-branch:
+    description: "Sets the base branch of the PR. Defaults to `github.ref_name`."
+    required: false
+  commit-mode:
+    description: >
+      An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI,
+      or "github-api" to push changes via the GitHub API. When using "github-api",
+      all commits and tags are signed using GitHub's GPG key and attributed to the user
+      or app who owns the GITHUB_TOKEN.
+    required: false
+    default: "git-cli"
+  setup-git-user:
+    description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
+    required: false
+    default: true
+outputs: {}
+branding:
+  icon: package
+  color: blue

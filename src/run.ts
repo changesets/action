@@ -1,8 +1,12 @@
 import fs from "node:fs/promises";
-import { createRequire } from "node:module";
 import path from "node:path";
 import * as core from "@actions/core";
-import { exec, getExecOutput } from "@actions/exec";
+import {
+  exec,
+  getExecOutput,
+  type ExecOptions,
+  type ExecOutput,
+} from "@actions/exec";
 import * as github from "@actions/github";
 import type { PreState } from "@changesets/types";
 import { type Package, getPackages } from "@manypkg/get-packages";
@@ -10,14 +14,14 @@ import { Git } from "./git.ts";
 import type { Octokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
 import {
+  execChangesetsCli,
   getChangedPackages,
   getChangelogEntry,
+  getExecOutputChangesetsCli,
   getVersionsByDirectory,
   isErrorWithCode,
   sortTheThings,
 } from "./utils.ts";
-
-const require = createRequire(import.meta.url);
 
 // GitHub Issues/PRs messages have a max size limit on the
 // message body payload.
@@ -58,7 +62,8 @@ const createRelease = async (
 };
 
 type PublishOptions = {
-  script: string;
+  script?: string;
+  fromPackDir?: string;
   githubToken: string;
   octokit: Octokit;
   createGithubReleases: boolean;
@@ -81,17 +86,36 @@ type PublishResult =
 
 export async function runPublish({
   script,
+  fromPackDir,
   githubToken,
   git,
   octokit,
   createGithubReleases,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
-  let changesetPublishOutput = await getExecOutput(script, undefined, {
+  let changesetPublishOutput: ExecOutput;
+  const execOptions: ExecOptions = {
     cwd,
     ignoreReturnCode: true,
     env: { ...process.env, GITHUB_TOKEN: githubToken },
-  });
+  };
+
+  if (script) {
+    changesetPublishOutput = await getExecOutput(
+      script,
+      undefined,
+      execOptions,
+    );
+  } else {
+    const args = ["publish"];
+    if (fromPackDir) {
+      args.push("--from-pack-dir", fromPackDir);
+    }
+    changesetPublishOutput = await getExecOutputChangesetsCli(
+      args,
+      execOptions,
+    );
+  }
 
   let { packages, tool } = await getPackages(cwd);
   let releasedPackages: Package[] = [];
@@ -277,19 +301,7 @@ export async function runVersion({
   if (script) {
     await exec(script, undefined, { cwd, env });
   } else {
-    await exec(
-      "node",
-      [
-        require.resolve("@changesets/cli/bin.js", {
-          paths: [cwd],
-        }),
-        "version",
-      ],
-      {
-        cwd,
-        env,
-      },
-    );
+    await execChangesetsCli(["version"], { cwd, env });
   }
 
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
