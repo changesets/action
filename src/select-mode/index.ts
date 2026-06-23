@@ -64,7 +64,9 @@ async function getMode(): Promise<ModeResult> {
   const cwd = process.cwd();
   const publishPlanPath = path.join(
     process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),
-    `changeset-publish-plan-${Date.now()}.json`,
+    `changeset-publish-plan-${Date.now()}`,
+    // we need a stable filename here (in a unique dirname) so the artifact download can find this cleanly
+    "publish-plan.json",
   );
   await execChangesetsCli(["publish-plan", "--output", publishPlanPath], {
     cwd,

@@ -22,11 +22,7 @@ async function main() {
   await pack(cwd, {
     outDir,
     publishPlanPath: publishPlanArtifactId
-      ? await downloadArtifact(
-          tmpDir,
-          Number(publishPlanArtifactId),
-          "changeset-publish-plan",
-        )
+      ? await downloadPublishPlanArtifact(tmpDir, Number(publishPlanArtifactId))
       : undefined,
   });
 
@@ -60,6 +56,15 @@ async function pack(
     cwd,
     env: process.env,
   });
+}
+
+async function downloadPublishPlanArtifact(tmpDir: string, artifactId: number) {
+  const downloadPath = await downloadArtifact(
+    tmpDir,
+    artifactId,
+    "changeset-publish-plan",
+  );
+  return path.join(downloadPath, "publish-plan.json");
 }
 
 async function getFiles(dir: string): Promise<string[]> {
