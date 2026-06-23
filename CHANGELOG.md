@@ -1,5 +1,17 @@
 # @changesets/action
 
+## 2.0.0-next.0
+
+### Major Changes
+
+- [#657](https://github.com/changesets/action/pull/657) [`4f718b5`](https://github.com/changesets/action/commit/4f718b5921490b1efeb015a81abb6a4633892851) Thanks [@Andarist](https://github.com/Andarist)! - Removed compatibility support for old Changesets v1.
+
+- [#659](https://github.com/changesets/action/pull/659) [`5649ff4`](https://github.com/changesets/action/commit/5649ff41b8eb1b7a281011e45df781c6d4628fd0) Thanks [@bluwy](https://github.com/bluwy)! - Remove `cwd` option for `changesets/action`. Use the step `working-directory` option instead to change the directory.
+
+### Minor Changes
+
+- [#656](https://github.com/changesets/action/pull/656) [`a12d90d`](https://github.com/changesets/action/commit/a12d90de8394e63c952622b2fd3f98c8729c48b0) Thanks [@bluwy](https://github.com/bluwy)! - Add new `/select-mode`, `/version`, and `/publish` sub-actions to better control version and publish steps
+
 ## 1.9.0
 
 ### Minor Changes
