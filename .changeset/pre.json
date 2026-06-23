@@ -4,5 +4,9 @@
   "initialVersions": {
     "@changesets/action": "1.9.0"
   },
-  "changesets": []
+  "changesets": [
+    "eight-clocks-pull",
+    "eighty-doors-swim",
+    "lemon-turtles-itch"
+  ]
 }
