@@ -73,7 +73,6 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
-          token: ${{ steps.app-token.outputs.token }}
 
       - uses: ./.github/actions/ci-setup
         with:
@@ -85,4 +84,5 @@ jobs:
       - name: Publish to marketplace
         uses: ./
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           publish: pnpm release
