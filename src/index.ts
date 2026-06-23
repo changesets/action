@@ -160,6 +160,7 @@ import { fileExists, getOptionalInput } from "./utils.ts";
         octokit,
         cwd,
         prTitle: getOptionalInput("title"),
+        prBody: getOptionalInput("body"),
         commitMessage: getOptionalInput("commit"),
         hasPublishScript,
         prDraft,
