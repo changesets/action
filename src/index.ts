@@ -1,10 +1,77 @@
 import fs from "node:fs/promises";
 import * as core from "@actions/core";
+import { getPackages } from "@manypkg/get-packages";
 import { Git } from "./git.ts";
 import { setupOctokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
 import { fileExists, getOptionalInput } from "./utils.ts";
+
+async function ensureUserNpmToken(tool: string, token: string) {
+  if (tool === "yarn") {
+    const userYarnrcPath = `${process.env.HOME}/.yarnrc.yml`;
+
+    if (await fileExists(userYarnrcPath)) {
+      core.info("Found existing user .yarnrc.yml file");
+      const userYarnrcContent = await fs.readFile(userYarnrcPath, "utf8");
+      const authLine = userYarnrcContent.split("\n").find((line) => {
+        // indented npmAuthToken can be found when configured for a specific registry in npmRegistries
+        // in here, we only take care of the default one (a top-level one)
+        return /^npmAuthToken\s*:/i.test(line);
+      });
+      if (authLine) {
+        core.info(
+          "Found existing npmAuthToken in the user .yarnrc.yml file",
+        );
+      } else {
+        core.info(
+          "Didn't find npmAuthToken in the user .yarnrc.yml file, creating one",
+        );
+        await fs.appendFile(userYarnrcPath, `\nnpmAuthToken: ${token}\n`);
+      }
+    } else {
+      core.info(
+        "No user .yarnrc.yml file found, creating one with NPM_TOKEN used as npmAuthToken",
+      );
+      await fs.writeFile(userYarnrcPath, `npmAuthToken: ${token}\n`);
+    }
+
+    return;
+  }
+
+  // pnpm still respects .npmrc for auth tokens but its own `pnpm login` writes to `~/.config/pnpm/auth.ini`
+  const userNpmrcPath = `${process.env.HOME}/.npmrc`;
+
+  if (await fileExists(userNpmrcPath)) {
+    core.info("Found existing user .npmrc file");
+    const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
+    const authLine = userNpmrcContent.split("\n").find((line) => {
+      // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
+      return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
+    });
+    if (authLine) {
+      core.info(
+        "Found existing auth token for the npm registry in the user .npmrc file",
+      );
+    } else {
+      core.info(
+        "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one",
+      );
+      await fs.appendFile(
+        userNpmrcPath,
+        `\n//registry.npmjs.org/:_authToken=${token}\n`,
+      );
+    }
+  } else {
+    core.info(
+      "No user .npmrc file found, creating one with NPM_TOKEN used as auth token",
+    );
+    await fs.writeFile(
+      userNpmrcPath,
+      `//registry.npmjs.org/:_authToken=${token}\n`,
+    );
+  }
+}
 
 (async () => {
   // to maintain compatibility with workflows created before github-token input was introduced
@@ -73,37 +140,8 @@ import { fileExists, getOptionalInput } from "./utils.ts";
       );
 
       if (process.env.NPM_TOKEN) {
-        const userNpmrcPath = `${process.env.HOME}/.npmrc`;
-
-        if (await fileExists(userNpmrcPath)) {
-          core.info("Found existing user .npmrc file");
-          const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
-          const authLine = userNpmrcContent.split("\n").find((line) => {
-            // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
-            return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
-          });
-          if (authLine) {
-            core.info(
-              "Found existing auth token for the npm registry in the user .npmrc file",
-            );
-          } else {
-            core.info(
-              "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one",
-            );
-            await fs.appendFile(
-              userNpmrcPath,
-              `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`,
-            );
-          }
-        } else {
-          core.info(
-            "No user .npmrc file found, creating one with NPM_TOKEN used as auth token",
-          );
-          await fs.writeFile(
-            userNpmrcPath,
-            `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`,
-          );
-        }
+        let { tool } = await getPackages(cwd);
+        await ensureUserNpmToken(tool, process.env.NPM_TOKEN);
       } else if (
         process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN &&
         process.env.ACTIONS_ID_TOKEN_REQUEST_URL
