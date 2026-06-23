@@ -19,8 +19,8 @@ const getOptionalInput = (name: string) => core.getInput(name) || undefined;
     return;
   }
 
-  const cwd = path.resolve(getOptionalInput("cwd") ?? "");
-  core.info(`using resolved cwd: ${cwd}`);
+  // If the user needs to change the cwd, set `working-directory` in the step instead
+  const cwd = process.cwd();
 
   const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commitMode") ?? "git-cli";
