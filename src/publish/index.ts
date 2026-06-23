@@ -4,7 +4,11 @@ import * as core from "@actions/core";
 import { Git } from "../git.ts";
 import { setupOctokit } from "../octokit.ts";
 import { runPublish } from "../run.ts";
-import { downloadArtifact, getOptionalInput } from "../utils.ts";
+import {
+  downloadArtifact,
+  getOptionalInput,
+  getRequiredInput,
+} from "../utils.ts";
 
 try {
   await main();
@@ -13,7 +17,7 @@ try {
 }
 
 async function main() {
-  const githubToken = core.getInput("github-token", { required: true });
+  const githubToken = getRequiredInput("github-token");
   const script = getOptionalInput("script");
   const packDirArtifactId = getOptionalInput("pack-dir-artifact-id");
   const createGithubReleases = core.getBooleanInput("create-github-releases");

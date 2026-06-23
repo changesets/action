@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import { Git } from "../git.ts";
 import { setupOctokit } from "../octokit.ts";
 import { runVersion } from "../run.ts";
-import { getOptionalInput } from "../utils.ts";
+import { getOptionalInput, getRequiredInput } from "../utils.ts";
 
 try {
   await main();
@@ -11,10 +11,10 @@ try {
 }
 
 async function main() {
-  const githubToken = core.getInput("github-token", { required: true });
+  const githubToken = getRequiredInput("github-token");
   const script = getOptionalInput("script");
-  const commitMessage = core.getInput("commit-message", { required: true });
-  const prTitle = core.getInput("pr-title", { required: true });
+  const commitMessage = getRequiredInput("commit-message");
+  const prTitle = getRequiredInput("pr-title");
   const prDraft = getOptionalInput("pr-draft");
   const prBaseBranch = getOptionalInput("pr-base-branch");
   const commitMode = getOptionalInput("commit-mode") ?? "git-cli";

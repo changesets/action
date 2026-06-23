@@ -129,6 +129,12 @@ export function getOptionalInput(name: string) {
   return core.getInput(name) || undefined;
 }
 
+export function getRequiredInput(name: string) {
+  // it's just a small utility wrapper, mainly introduced for usage parity with our custom `getOptionalInput`
+  // note: `core.getBooleanInput` gets used directly as it already normalizes the return value nicely
+  return core.getInput(name, { required: true });
+}
+
 function resolveChangesetsCli(cwd: string) {
   return require.resolve("@changesets/cli/bin.js", {
     paths: [cwd],
