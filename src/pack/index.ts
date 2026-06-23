@@ -3,7 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import artifact from "@actions/artifact";
 import * as core from "@actions/core";
-import { downloadArtifact, execChangesetsCli } from "../utils.ts";
+import {
+  downloadArtifact,
+  execChangesetsCli,
+  getOptionalInput,
+} from "../utils.ts";
 
 try {
   await main();
@@ -12,7 +16,7 @@ try {
 }
 
 async function main() {
-  const publishPlanArtifactId = core.getInput("publish-plan-artifact-id");
+  const publishPlanArtifactId = getOptionalInput("publish-plan-artifact-id");
 
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();

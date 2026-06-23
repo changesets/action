@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import artifact from "@actions/artifact";
+import * as core from "@actions/core";
 import {
   exec,
   getExecOutput,
@@ -121,6 +122,17 @@ export function fileExists(filePath: string) {
     () => true,
     () => false,
   );
+}
+
+export function getOptionalInput(name: string) {
+  // normalize empty string default return value of `core.getInput` to undefined
+  return core.getInput(name) || undefined;
+}
+
+export function getRequiredInput(name: string) {
+  // it's just a small utility wrapper, mainly introduced for usage parity with our custom `getOptionalInput`
+  // note: `core.getBooleanInput` gets used directly as it already normalizes the return value nicely
+  return core.getInput(name, { required: true });
 }
 
 function resolveChangesetsCli(cwd: string) {
