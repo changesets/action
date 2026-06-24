@@ -1,8 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import * as core from "@actions/core";
-import { Git } from "../git.ts";
-import { setupOctokit } from "../octokit.ts";
+import { GitHub } from "../github.ts";
 import { runPublish } from "../run.ts";
 import {
   downloadArtifact,
@@ -25,9 +24,8 @@ async function main() {
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
 
-  const octokit = setupOctokit(githubToken);
-  // NOTE: Always pass octokit here as publish does not need a commit-mode
-  const git = new Git({ octokit, cwd });
+  // NOTE: Always use API mode here as publish does not need a commit-mode.
+  const github = new GitHub({ cwd, githubToken, commitMode: "github-api" });
 
   const fromPackDir = packDirArtifactId
     ? await downloadArtifact(
@@ -39,9 +37,7 @@ async function main() {
 
   const result = await runPublish({
     script,
-    githubToken,
-    git,
-    octokit,
+    github,
     createGithubReleases,
     cwd,
     fromPackDir,
