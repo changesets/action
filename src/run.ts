@@ -7,10 +7,10 @@ import {
   type ExecOptions,
   type ExecOutput,
 } from "@actions/exec";
-import * as github from "@actions/github";
+import { context } from "@actions/github";
 import type { PreState } from "@changesets/types";
 import { type Package, getPackages } from "@manypkg/get-packages";
-import { Git } from "./git.ts";
+import type { GitHub } from "./github.ts";
 import type { Octokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
 import {
@@ -57,17 +57,15 @@ const createRelease = async (
     tag_name: tagName,
     body: changelogEntry.content,
     prerelease: pkg.packageJson.version.includes("-"),
-    ...github.context.repo,
+    ...context.repo,
   });
 };
 
 type PublishOptions = {
   script?: string;
   fromPackDir?: string;
-  githubToken: string;
-  octokit: Octokit;
   createGithubReleases: boolean;
-  git: Git;
+  github: GitHub;
   cwd: string;
 };
 
@@ -87,17 +85,16 @@ type PublishResult =
 export async function runPublish({
   script,
   fromPackDir,
-  githubToken,
-  git,
-  octokit,
+  github,
   createGithubReleases,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
+  const { octokit } = github;
   let changesetPublishOutput: ExecOutput;
   const execOptions: ExecOptions = {
     cwd,
     ignoreReturnCode: true,
-    env: { ...process.env, GITHUB_TOKEN: githubToken },
+    env: { ...process.env, GITHUB_TOKEN: github.getToken() },
   };
 
   if (script) {
@@ -144,7 +141,7 @@ export async function runPublish({
       await Promise.all(
         releasedPackages.map(async (pkg) => {
           const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          await git.pushTag(tagName);
+          await github.pushTag(tagName);
           await createRelease(octokit, { pkg, tagName });
         }),
       );
@@ -166,7 +163,7 @@ export async function runPublish({
         releasedPackages.push(pkg);
         if (createGithubReleases) {
           const tagName = `v${pkg.packageJson.version}`;
-          await git.pushTag(tagName);
+          await github.pushTag(tagName);
           await createRelease(octokit, { pkg, tagName });
         }
         break;
@@ -259,9 +256,7 @@ export async function getVersionPrBody({
 
 type VersionOptions = {
   script?: string;
-  githubToken: string;
-  git: Git;
-  octokit: Octokit;
+  github: GitHub;
   cwd?: string;
   prTitle?: string;
   commitMessage?: string;
@@ -277,26 +272,25 @@ type RunVersionResult = {
 
 export async function runVersion({
   script,
-  githubToken,
-  git,
-  octokit,
+  github,
   cwd = process.cwd(),
   prTitle = "Version Packages",
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
-  branch = github.context.ref.replace("refs/heads/", ""),
+  branch = context.ref.replace("refs/heads/", ""),
   prDraft,
 }: VersionOptions): Promise<RunVersionResult> {
+  const { octokit } = github;
   let versionBranch = `changeset-release/${branch}`;
 
   let { preState } = await readChangesetState(cwd);
 
-  await git.prepareBranch(versionBranch);
+  await github.prepareBranch(versionBranch);
 
   let versionsByDirectory = await getVersionsByDirectory(cwd);
 
-  const env = { ...process.env, GITHUB_TOKEN: githubToken };
+  const env = { ...process.env, GITHUB_TOKEN: github.getToken() };
 
   if (script) {
     await exec(script, undefined, { cwd, env });
@@ -335,9 +329,9 @@ export async function runVersion({
    * which GitHub will then react to by closing the PRs)
    */
   const existingPullRequests = await octokit.rest.pulls.list({
-    ...github.context.repo,
+    ...context.repo,
     state: "open",
-    head: `${github.context.repo.owner}:${versionBranch}`,
+    head: `${context.repo.owner}:${versionBranch}`,
     base: branch,
   });
   core.info(
@@ -348,7 +342,10 @@ export async function runVersion({
     )}`,
   );
 
-  await git.pushChanges({ branch: versionBranch, message: finalCommitMessage });
+  await github.pushChanges({
+    branch: versionBranch,
+    message: finalCommitMessage,
+  });
 
   const changedPackagesInfo = (await changedPackagesInfoPromises)
     .filter((x) => x)
@@ -370,7 +367,7 @@ export async function runVersion({
       title: finalPrTitle,
       body: prBody,
       draft: prDraft !== undefined,
-      ...github.context.repo,
+      ...context.repo,
     });
 
     return {

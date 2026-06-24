@@ -1,6 +1,5 @@
 import * as core from "@actions/core";
-import { Git } from "../git.ts";
-import { setupOctokit } from "../octokit.ts";
+import { GitHub } from "../github.ts";
 import { runVersion } from "../run.ts";
 import { getOptionalInput, getRequiredInput } from "../utils.ts";
 
@@ -24,26 +23,27 @@ async function main() {
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
     throw new Error(`Invalid pr-draft input: ${prDraft}`);
   }
+  if (commitMode !== "git-cli" && commitMode !== "github-api") {
+    throw new Error(`Invalid commit-mode input: ${commitMode}`);
+  }
 
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
 
-  const octokit = setupOctokit(githubToken);
-  const git = new Git({
-    octokit: commitMode === "github-api" ? octokit : undefined,
+  const github = new GitHub({
     cwd,
+    githubToken,
+    commitMode,
   });
 
   if (setupGitUser) {
     core.info("setting git user");
-    await git.setupUser();
+    await github.setupUser();
   }
 
   const { pullRequestNumber } = await runVersion({
     script,
-    githubToken,
-    git,
-    octokit,
+    github,
     cwd,
     prTitle,
     commitMessage,
