@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
 import type * as github from "@actions/github";
-import getReleasePlan from "@changesets/get-release-plan";
+import { getReleasePlan } from "@changesets/get-release-plan";
 import { createFixture } from "fs-fixture";
 import { exec } from "tinyexec";
 import { describe, expect, it } from "vitest";

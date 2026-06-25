@@ -1,5 +1,5 @@
 import * as github from "@actions/github";
-import getReleasePlan from "@changesets/get-release-plan";
+import { getReleasePlan } from "@changesets/get-release-plan";
 import type {
   ComprehensiveRelease,
   ReleasePlan,

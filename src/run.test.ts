@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Changeset } from "@changesets/types";
-import writeChangeset from "@changesets/write";
+import { writeChangeset } from "@changesets/write";
 import { createFixture } from "fs-fixture";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
