@@ -3,7 +3,18 @@ dedupePeers: true
 dedupePeerDependents: true
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
+  - "@changesets/apply-release-plan@8.0.0-next.6"
+  - "@changesets/assemble-release-plan@7.0.0-next.6"
+  - "@changesets/changelog-github@1.0.0-next.5"
+  - "@changesets/cli@3.0.0-next.6"
+  - "@changesets/get-release-plan@5.0.0-next.6"
   - "@changesets/ghcommit@3.0.0-next.1"
+  - "@changesets/git@4.0.0-next.5"
+  - "@changesets/parse@1.0.0-next.6"
+  - "@changesets/pre@3.0.0-next.5"
+  - "@changesets/read@1.0.0-next.6"
+  - "@changesets/types@7.0.0-next.5"
+  - "@changesets/write@1.0.0-next.5"
 
 overrides:
   lightningcss: "-" # we do not bundle any css
