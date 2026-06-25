@@ -21,7 +21,6 @@ jobs:
     timeout-minutes: 20
     outputs:
       mode: ${{ steps.select-mode.outputs.mode }}
-      publish-plan-artifact-id: ${{ steps.select-mode.outputs.publish-plan-artifact-id }}
     permissions:
       contents: read # to check out repo (actions/checkout)
     steps:
