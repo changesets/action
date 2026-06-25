@@ -114,25 +114,16 @@ export class GitHub {
   }
 
   async pushTag(tag: string) {
-    if (this.commitMode === "github-api") {
-      return this.octokit.rest.git
-        .createRef({
-          ...context.repo,
-          ref: `refs/tags/${tag}`,
-          sha: context.sha,
-        })
-        .catch((err) => {
-          // Assuming tag was manually pushed in custom publish script
-          core.warning(`Failed to create tag ${tag}: ${err.message}`);
-        });
+    try {
+      await this.octokit.rest.git.createRef({
+        ...context.repo,
+        ref: `refs/tags/${tag}`,
+        sha: context.sha,
+      });
+    } catch (err) {
+      // Assuming tag was manually pushed in custom publish script
+      core.warning(`Failed to create tag ${tag}: ${(err as Error).message}`);
     }
-    await exec("git", ["push", "origin", tag], {
-      cwd: this.cwd,
-      env: {
-        ...process.env,
-        ...this.#getCliAuthEnv(),
-      } as Record<string, string>,
-    });
   }
 
   async prepareBranch(branch: string) {
