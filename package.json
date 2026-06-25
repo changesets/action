@@ -22,7 +22,7 @@
     "@actions/exec": "^3.0.0",
     "@actions/github": "^9.1.1",
     "@changesets/get-release-plan": "^5.0.0-next.6",
-    "@changesets/ghcommit": "^2.1.1",
+    "@changesets/ghcommit": "^3.0.0-next.1",
     "@changesets/git": "^4.0.0-next.5",
     "@changesets/pre": "^3.0.0-next.5",
     "@changesets/read": "^1.0.0-next.6",
