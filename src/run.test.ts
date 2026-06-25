@@ -3,8 +3,7 @@ import type { Changeset } from "@changesets/types";
 import writeChangeset from "@changesets/write";
 import { createFixture } from "fs-fixture";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Git } from "./git.ts";
-import { setupOctokit } from "./octokit.ts";
+import { GitHub } from "./github.ts";
 import { runVersion } from "./run.ts";
 
 vi.mock("@actions/github", () => ({
@@ -21,7 +20,6 @@ vi.mock("@actions/github", () => ({
     graphql: mockedGraphql,
   }),
 }));
-vi.mock("./git.ts");
 vi.mock("@changesets/ghcommit/git");
 
 let mockedGithubMethods = {
@@ -91,6 +89,13 @@ const writeChangesets = (changesets: Changeset[], cwd: string) => {
   return Promise.all(changesets.map((commit) => writeChangeset(commit, cwd)));
 };
 
+const createGithub = (cwd: string) =>
+  new GitHub({
+    cwd,
+    githubToken: "@@GITHUB_TOKEN",
+    commitMode: "github-api",
+  });
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -126,9 +131,7 @@ describe("version", () => {
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
     });
 
@@ -161,9 +164,7 @@ describe("version", () => {
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
       prDraft: "create",
     });
@@ -197,9 +198,7 @@ describe("version", () => {
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
     });
 
@@ -232,9 +231,7 @@ describe("version", () => {
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
     });
 
@@ -287,9 +284,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
       prBodyMaxCharacters: 1000,
     });
@@ -346,9 +341,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
       prBodyMaxCharacters: 500,
     });
@@ -383,9 +376,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
       prDraft: "create",
     });
@@ -417,9 +408,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
     );
 
     await runVersion({
-      octokit: setupOctokit("@@GITHUB_TOKEN"),
-      githubToken: "@@GITHUB_TOKEN",
-      git: new Git({ cwd }),
+      github: createGithub(cwd),
       cwd,
       prDraft: "always",
     });

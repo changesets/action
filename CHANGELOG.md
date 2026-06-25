@@ -1,5 +1,13 @@
 # @changesets/action
 
+## 2.0.0-next.2
+
+### Patch Changes
+
+- [#670](https://github.com/changesets/action/pull/670) [`5a8b9b7`](https://github.com/changesets/action/commit/5a8b9b721bf683e3bf9bd72ea92a685dc024147b) Thanks [@Andarist](https://github.com/Andarist)! - Authenticate git CLI pushes with the configured GitHub token using Git extra headers instead of writing to a global `.netrc` file.
+
+- [#670](https://github.com/changesets/action/pull/670) [`5a8b9b7`](https://github.com/changesets/action/commit/5a8b9b721bf683e3bf9bd72ea92a685dc024147b) Thanks [@Andarist](https://github.com/Andarist)! - Derive the Git server URL from the GitHub Actions context when configuring git CLI authentication to support GitHub Enterprise Server setups.
+
 ## 2.0.0-next.1
 
 ### Patch Changes

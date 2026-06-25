@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import * as core from "@actions/core";
-import { Git } from "./git.ts";
-import { setupOctokit } from "./octokit.ts";
+import { GitHub } from "./github.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
 import { fileExists, getOptionalInput } from "./utils.ts";
@@ -19,7 +18,6 @@ import { fileExists, getOptionalInput } from "./utils.ts";
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
 
-  const octokit = setupOctokit(githubToken);
   const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
   const prDraft = getOptionalInput("pr-draft");
   if (commitMode !== "git-cli" && commitMode !== "github-api") {
@@ -30,23 +28,18 @@ import { fileExists, getOptionalInput } from "./utils.ts";
     core.setFailed(`Invalid pr-draft: ${prDraft}`);
     return;
   }
-  const git = new Git({
-    octokit: commitMode === "github-api" ? octokit : undefined,
+  const github = new GitHub({
     cwd,
+    githubToken,
+    commitMode,
   });
 
   let setupGitUser = core.getBooleanInput("setup-git-user");
 
   if (setupGitUser) {
     core.info("setting git user");
-    await git.setupUser();
+    await github.setupUser();
   }
-
-  core.info("setting GitHub credentials");
-  await fs.writeFile(
-    `${process.env.HOME}/.netrc`,
-    `machine github.com\nlogin github-actions[bot]\npassword ${githubToken}`,
-  );
 
   let { changesets } = await readChangesetState(cwd);
 
@@ -119,9 +112,7 @@ import { fileExists, getOptionalInput } from "./utils.ts";
 
       const result = await runPublish({
         script: publishScript,
-        githubToken,
-        git,
-        octokit,
+        github,
         createGithubReleases: core.getBooleanInput("create-github-releases"),
         cwd,
       });
@@ -152,12 +143,9 @@ import { fileExists, getOptionalInput } from "./utils.ts";
       core.info("All changesets are empty; not creating PR");
       return;
     case hasChangesets: {
-      const octokit = setupOctokit(githubToken);
       const { pullRequestNumber } = await runVersion({
         script: getOptionalInput("version"),
-        githubToken,
-        git,
-        octokit,
+        github,
         cwd,
         prTitle: getOptionalInput("title"),
         commitMessage: getOptionalInput("commit"),
