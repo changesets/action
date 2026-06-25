@@ -108,9 +108,6 @@ async function readChangesetsOutput(outputPath: string) {
   try {
     rawOutput = await fs.readFile(outputPath, "utf8");
   } catch (err) {
-    if (isErrorWithCode(err, "ENOENT")) {
-      return [];
-    }
     throw new Error(`Failed to read changesets output at ${outputPath}`, {
       cause: err,
     });
