@@ -1,12 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { exec } from "@actions/exec";
-import pkgJson from "../package.json" with { type: "json" };
 
 process.chdir(path.join(import.meta.dirname, ".."));
 
 await exec("changeset", ["version"]);
 
+// read after versioning to get the new version
+const pkgJson = (await import("../package.json", { with: { type: "json" } })).default;
 const releaseLine = `v${pkgJson.version.split(".")[0]}`;
 
 const readmePath = path.join(import.meta.dirname, "..", "README.md");
