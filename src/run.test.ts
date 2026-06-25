@@ -56,6 +56,7 @@ function createSimpleProjectFixture() {
       private: true,
       workspaces: ["packages/*"],
     }),
+    "package-lock.json": "",
   });
 }
 
@@ -82,6 +83,7 @@ function createIgnoredPackageFixture() {
       private: true,
       workspaces: ["packages/*"],
     }),
+    "package-lock.json": "",
   });
 }
 
