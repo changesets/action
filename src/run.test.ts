@@ -20,7 +20,7 @@ vi.mock("@actions/github", () => ({
     graphql: mockedGraphql,
   }),
 }));
-vi.mock("@changesets/ghcommit/git");
+vi.mock("@changesets/ghcommit");
 
 let mockedGithubMethods = {
   pulls: {

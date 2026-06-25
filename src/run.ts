@@ -321,13 +321,6 @@ export async function runVersion({
     !!preState ? ` (${preState.tag})` : ""
   }`;
 
-  /**
-   * Fetch any existing pull requests that are open against the branch,
-   * before we push any changes that may inadvertently close the existing PRs.
-   *
-   * (`@changesets/ghcommit` has to reset the branch to the same commit as the base,
-   * which GitHub will then react to by closing the PRs)
-   */
   const existingPullRequests = await octokit.rest.pulls.list({
     ...context.repo,
     state: "open",
