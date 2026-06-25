@@ -3,9 +3,16 @@ import * as core from "@actions/core";
 import { GitHub } from "./github.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
-import { fileExists, getOptionalInput } from "./utils.ts";
+import { fileExists, getOptionalInput, throwOnRenamedInputs } from "./utils.ts";
 
 (async () => {
+  throwOnRenamedInputs({
+    commitMode: "commit-mode",
+    createGithubReleases: "create-github-releases",
+    prDraft: "pr-draft",
+    setupGitUser: "setup-git-user",
+  });
+
   // to maintain compatibility with workflows created before github-token input was introduced
   // it's important to prefer the explicitly set GITHUB_TOKEN over the default token coming from github.token
   let githubToken = process.env.GITHUB_TOKEN || core.getInput("github-token");
