@@ -1,5 +1,6 @@
 {
   "name": "@changesets/action",
+  "private": true,
   "version": "2.0.0-next.2",
   "license": "MIT",
   "type": "module",
@@ -12,6 +13,7 @@
     "format": "oxfmt --check",
     "format:fix": "oxfmt",
     "changeset": "changeset",
+    "check-released": "node --experimental-strip-types ./scripts/check-released.ts",
     "bump": "node --experimental-strip-types ./scripts/bump.ts",
     "release": "node --experimental-strip-types ./scripts/release.ts",
     "release:pr": "node --experimental-strip-types ./scripts/release-pr.ts"
