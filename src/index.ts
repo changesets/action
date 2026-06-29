@@ -110,10 +110,14 @@ import { fileExists, getOptionalInput } from "./utils.ts";
         );
       }
 
+      const createGithubReleases = core.getBooleanInput("createGithubReleases");
+      const createGitTags =
+        createGithubReleases || core.getBooleanInput("create-git-tags");
       const result = await runPublish({
         script: publishScript,
         github,
-        createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        createGithubReleases,
+        createGitTags,
         cwd,
       });
 
