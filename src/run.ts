@@ -72,7 +72,11 @@ type PublishOptions = {
 };
 
 type PublishedPackage = { name: string; version: string };
-type ChangesetsOutputEvent = { type: "git-tag"; tag: string; packageName: string };
+type ChangesetsOutputEvent = {
+  type: "git-tag";
+  tag: string;
+  packageName: string;
+};
 
 type PublishResult =
   | {
