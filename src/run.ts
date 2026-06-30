@@ -65,7 +65,7 @@ type PublishOptions = {
   script?: string;
   fromPackDir?: string;
   createGithubReleases: boolean;
-  createGitTags: boolean;
+  pushGitTags: boolean;
   github: GitHub;
   cwd: string;
 };
@@ -88,7 +88,7 @@ export async function runPublish({
   fromPackDir,
   github,
   createGithubReleases,
-  createGitTags,
+  pushGitTags,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
   const { octokit } = github;
@@ -139,11 +139,11 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    if (createGithubReleases || createGitTags) {
+    if (createGithubReleases || pushGitTags) {
       await Promise.all(
         releasedPackages.map(async (pkg) => {
           const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          if (createGitTags) {
+          if (pushGitTags) {
             await github.pushTag(tagName);
           }
           if (createGithubReleases) {
@@ -168,7 +168,7 @@ export async function runPublish({
       if (match) {
         releasedPackages.push(pkg);
         const tagName = `v${pkg.packageJson.version}`;
-        if (createGitTags) {
+        if (pushGitTags) {
           await github.pushTag(tagName);
         }
         if (createGithubReleases) {

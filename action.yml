@@ -29,7 +29,7 @@ inputs:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
-  create-git-tags:
+  push-git-tags:
     description: >
       Whether to create git tags after publish. If `create-github-releases` is set to `true`,
       this option will also always be `true`.

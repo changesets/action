@@ -20,8 +20,8 @@ async function main() {
   const script = getOptionalInput("script");
   const packDirArtifactId = getOptionalInput("pack-dir-artifact-id");
   const createGithubReleases = core.getBooleanInput("create-github-releases");
-  const createGitTags =
-    createGithubReleases || core.getBooleanInput("create-git-tags");
+  const pushGitTags =
+    createGithubReleases || core.getBooleanInput("push-git-tags");
 
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
@@ -41,7 +41,7 @@ async function main() {
     script,
     github,
     createGithubReleases,
-    createGitTags,
+    pushGitTags,
     cwd,
     fromPackDir,
   });

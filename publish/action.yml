@@ -18,7 +18,7 @@ inputs:
     description: "Whether to create Github releases after publish"
     required: false
     default: true
-  create-git-tags:
+  push-git-tags:
     description: >
       Whether to create git tags after publish. If `create-github-releases` is set to `true`,
       this option will also always be `true`.
