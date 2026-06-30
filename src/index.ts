@@ -3,9 +3,21 @@ import * as core from "@actions/core";
 import { GitHub } from "./github.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
-import { fileExists, getOptionalInput, getRequiredInput } from "./utils.ts";
+import {
+  fileExists,
+  getOptionalInput,
+  getRequiredInput,
+  throwOnRenamedInputs,
+} from "./utils.ts";
 
 (async () => {
+  throwOnRenamedInputs({
+    commitMode: "commit-mode",
+    createGithubReleases: "create-github-releases",
+    prDraft: "pr-draft",
+    setupGitUser: "setup-git-user",
+  });
+
   const githubToken = getRequiredInput("github-token");
   if (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN !== githubToken) {
     throw new Error(
@@ -18,14 +30,14 @@ import { fileExists, getOptionalInput, getRequiredInput } from "./utils.ts";
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
 
-  const commitMode = getOptionalInput("commitMode") ?? "git-cli";
-  const prDraft = getOptionalInput("prDraft");
+  const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
+  const prDraft = getOptionalInput("pr-draft");
   if (commitMode !== "git-cli" && commitMode !== "github-api") {
     core.setFailed(`Invalid commit mode: ${commitMode}`);
     return;
   }
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
-    core.setFailed(`Invalid prDraft: ${prDraft}`);
+    core.setFailed(`Invalid pr-draft: ${prDraft}`);
     return;
   }
   const github = new GitHub({
@@ -34,7 +46,7 @@ import { fileExists, getOptionalInput, getRequiredInput } from "./utils.ts";
     commitMode,
   });
 
-  let setupGitUser = core.getBooleanInput("setupGitUser");
+  let setupGitUser = core.getBooleanInput("setup-git-user");
 
   if (setupGitUser) {
     core.info("setting git user");
@@ -51,8 +63,8 @@ import { fileExists, getOptionalInput, getRequiredInput } from "./utils.ts";
   let hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
-  core.setOutput("publishedPackages", "[]");
-  core.setOutput("hasChangesets", String(hasChangesets));
+  core.setOutput("published-packages", "[]");
+  core.setOutput("has-changesets", String(hasChangesets));
 
   switch (true) {
     case !hasChangesets && !hasPublishScript:
@@ -113,14 +125,14 @@ import { fileExists, getOptionalInput, getRequiredInput } from "./utils.ts";
       const result = await runPublish({
         script: publishScript,
         github,
-        createGithubReleases: core.getBooleanInput("createGithubReleases"),
+        createGithubReleases: core.getBooleanInput("create-github-releases"),
         cwd,
       });
 
       if (result.published) {
         core.setOutput("published", "true");
         core.setOutput(
-          "publishedPackages",
+          "published-packages",
           JSON.stringify(result.publishedPackages),
         );
       }
@@ -154,7 +166,7 @@ import { fileExists, getOptionalInput, getRequiredInput } from "./utils.ts";
         branch: getOptionalInput("branch"),
       });
 
-      core.setOutput("pullRequestNumber", String(pullRequestNumber));
+      core.setOutput("pull-request-number", String(pullRequestNumber));
 
       return;
     }
