@@ -72,7 +72,7 @@ type PublishOptions = {
 };
 
 type PublishedPackage = { name: string; version: string };
-type ChangesetsOutputEvent = { type: "tag"; tag: string; packageName: string };
+type ChangesetsOutputEvent = { type: "git-tag"; tag: string; packageName: string };
 
 type PublishResult =
   | {
@@ -95,7 +95,7 @@ function isChangesetsOutputEvent(
   return (
     isObject(value) &&
     "type" in value &&
-    value.type === "tag" &&
+    value.type === "git-tag" &&
     "tag" in value &&
     typeof value.tag === "string" &&
     "packageName" in value &&
@@ -156,7 +156,7 @@ export async function runPublish({
 }: PublishOptions): Promise<PublishResult> {
   const { octokit } = github;
   let changesetPublishOutput: ExecOutput;
-  const outputPath = path.join(
+  const outputFile = path.join(
     process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),
     `changesets-output-${randomUUID()}.ndjson`,
   );
@@ -166,7 +166,7 @@ export async function runPublish({
     env: {
       ...process.env,
       GITHUB_TOKEN: github.getToken(),
-      CHANGESETS_OUTPUT_PATH: outputPath,
+      CHANGESETS_OUTPUT_FILE: outputFile,
     },
   };
 
@@ -189,7 +189,7 @@ export async function runPublish({
 
   let { packages, tool } = await getPackages(cwd);
   let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
-  let output = await readChangesetsOutput(outputPath);
+  let output = await readChangesetsOutput(outputFile);
   let releases = output.map((event) => {
     let pkg = packagesByName.get(event.packageName);
     if (pkg === undefined) {
