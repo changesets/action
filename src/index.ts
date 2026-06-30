@@ -122,9 +122,17 @@ import {
         );
       }
 
-      const createGithubReleases = core.getBooleanInput("create-github-releases");
-      const pushGitTags =
-        createGithubReleases || core.getBooleanInput("push-git-tags");
+      const createGithubReleases = core.getBooleanInput(
+        "create-github-releases",
+      );
+      const pushGitTags = core.getBooleanInput("push-git-tags");
+      if (createGithubReleases && !pushGitTags) {
+        throw new Error(
+          "The input 'create-github-releases' is set to true, but 'push-git-tags' is set to false. " +
+            "Creating GitHub releases requires pushing git tags. Please set 'push-git-tags' to true " +
+            "or set 'create-github-releases' to false.",
+        );
+      }
       const result = await runPublish({
         script: publishScript,
         github,

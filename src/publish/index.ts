@@ -20,8 +20,15 @@ async function main() {
   const script = getOptionalInput("script");
   const packDirArtifactId = getOptionalInput("pack-dir-artifact-id");
   const createGithubReleases = core.getBooleanInput("create-github-releases");
-  const pushGitTags =
-    createGithubReleases || core.getBooleanInput("push-git-tags");
+  const pushGitTags = core.getBooleanInput("push-git-tags");
+
+  if (createGithubReleases && !pushGitTags) {
+    throw new Error(
+      "The input 'create-github-releases' is set to true, but 'push-git-tags' is set to false. " +
+        "Creating GitHub releases requires pushing git tags. Please set 'push-git-tags' to true " +
+        "or set 'create-github-releases' to false.",
+    );
+  }
 
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
