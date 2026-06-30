@@ -3,7 +3,12 @@ import * as core from "@actions/core";
 import { GitHub } from "./github.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
-import { fileExists, getOptionalInput, throwOnRenamedInputs } from "./utils.ts";
+import {
+  fileExists,
+  getOptionalInput,
+  getRequiredInput,
+  throwOnRenamedInputs,
+} from "./utils.ts";
 
 (async () => {
   throwOnRenamedInputs({
@@ -13,13 +18,13 @@ import { fileExists, getOptionalInput, throwOnRenamedInputs } from "./utils.ts";
     setupGitUser: "setup-git-user",
   });
 
-  // to maintain compatibility with workflows created before github-token input was introduced
-  // it's important to prefer the explicitly set GITHUB_TOKEN over the default token coming from github.token
-  let githubToken = process.env.GITHUB_TOKEN || core.getInput("github-token");
-
-  if (!githubToken) {
-    core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
-    return;
+  const githubToken = getRequiredInput("github-token");
+  if (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN !== githubToken) {
+    throw new Error(
+      'The GITHUB_TOKEN environment variable is set and does not match the "github-token" input. ' +
+        'Please pass the custom GitHub token to the "github-token" input and ' +
+        "remove the GITHUB_TOKEN environment variable to avoid conflicts.",
+    );
   }
 
   // If the user needs to change the cwd, set `working-directory` in the step instead

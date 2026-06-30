@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Changeset } from "@changesets/types";
-import writeChangeset from "@changesets/write";
+import { writeChangeset } from "@changesets/write";
 import { createFixture } from "fs-fixture";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
@@ -20,7 +20,7 @@ vi.mock("@actions/github", () => ({
     graphql: mockedGraphql,
   }),
 }));
-vi.mock("@changesets/ghcommit/git");
+vi.mock("@changesets/ghcommit");
 
 let mockedGithubMethods = {
   pulls: {
@@ -56,6 +56,7 @@ function createSimpleProjectFixture() {
       private: true,
       workspaces: ["packages/*"],
     }),
+    "package-lock.json": "",
   });
 }
 
@@ -82,6 +83,7 @@ function createIgnoredPackageFixture() {
       private: true,
       workspaces: ["packages/*"],
     }),
+    "package-lock.json": "",
   });
 }
 

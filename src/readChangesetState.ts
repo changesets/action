@@ -1,5 +1,5 @@
 import { readPreState } from "@changesets/pre";
-import readChangesets from "@changesets/read";
+import { readChangesets } from "@changesets/read";
 import type { PreState, NewChangeset } from "@changesets/types";
 
 export type ChangesetState = {

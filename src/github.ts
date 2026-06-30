@@ -2,7 +2,7 @@ import { Buffer } from "node:buffer";
 import * as core from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import { context } from "@actions/github";
-import { commitChangesFromRepo } from "@changesets/ghcommit/git";
+import { commitChangesSinceBase } from "@changesets/ghcommit";
 import { setupOctokit, type Octokit } from "./octokit.ts";
 
 export type CommitMode = "git-cli" | "github-api";
@@ -146,14 +146,7 @@ export class GitHub {
 
   async pushChanges({ branch, message }: { branch: string; message: string }) {
     if (this.commitMode === "github-api") {
-      /**
-       * Only add files form the current working directory
-       *
-       * This will emulate the behavior of `git add .`,
-       * used in {@link commitAll}.
-       */
-      const addFromDirectory = this.cwd;
-      return commitChangesFromRepo({
+      await commitChangesSinceBase({
         octokit: this.octokit,
         ...context.repo,
         branch,
@@ -162,8 +155,8 @@ export class GitHub {
           commit: context.sha,
         },
         cwd: this.cwd,
-        force: true,
       });
+      return;
     }
     if (!(await checkIfClean({ cwd: this.cwd }))) {
       await commitAll(message, { cwd: this.cwd });
