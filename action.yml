@@ -21,11 +21,11 @@ inputs:
   title:
     description: The pull request title. Default to `Version Packages`
     required: false
-  setupGitUser:
+  setup-git-user:
     description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
     required: false
     default: true
-  createGithubReleases:
+  create-github-releases:
     description: "A boolean value to indicate whether to create Github releases after `publish` or not"
     required: false
     default: true
@@ -35,7 +35,7 @@ inputs:
       this option will also always be `true`.
     required: false
     default: true
-  commitMode:
+  commit-mode:
     description: >
       An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI,
       or "github-api" to push changes via the GitHub API. When using "github-api",
@@ -46,18 +46,18 @@ inputs:
   branch:
     description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
     required: false
-  prDraft:
+  pr-draft:
     description: 'Controls draft PR behavior. Use "create" to create new version PRs as draft, or "always" to also convert existing version PRs back to draft when updating them.'
     required: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
-  publishedPackages:
+  published-packages:
     description: >
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
-  hasChangesets:
+  has-changesets:
     description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
-  pullRequestNumber:
+  pull-request-number:
     description: The pull request number that was created or updated
 branding:
   icon: "package"

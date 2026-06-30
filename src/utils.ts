@@ -135,6 +135,16 @@ export function getRequiredInput(name: string) {
   return core.getInput(name, { required: true });
 }
 
+export function throwOnRenamedInputs(renames: Record<string, string>) {
+  for (const [oldInput, newInput] of Object.entries(renames)) {
+    if (core.getInput(oldInput)) {
+      throw new Error(
+        `The input "${oldInput}" has been renamed to "${newInput}". Please update your workflow file.`,
+      );
+    }
+  }
+}
+
 function resolveChangesetsCli(cwd: string) {
   return require.resolve("@changesets/cli/bin.js", {
     paths: [cwd],
