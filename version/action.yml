@@ -37,7 +37,9 @@ inputs:
     description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
     required: false
     default: true
-outputs: {}
+outputs:
+  pr-number:
+    description: The pull request number that was created or updated
 branding:
   icon: package
   color: blue

@@ -106,7 +106,7 @@ jobs:
         uses: changesets/action@v2
         with:
           # This expects you to have a script called release which does a build for your packages and calls changeset publish
-          publish: pnpm release
+          publish-script: pnpm release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -217,7 +217,7 @@ jobs:
         uses: changesets/action@v2
         with:
           # this expects you to have a npm script called version that runs some logic and then calls `changeset version`.
-          version: pnpm version
+          version-script: pnpm version
 ```
 
 #### With Yarn 2 / Plug'n'Play
@@ -227,6 +227,6 @@ If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you shoul
 ```yaml
 - uses: changesets/action@v2
   with:
-    version: yarn changeset version
+    version-script: yarn changeset version
     # ...
 ```
