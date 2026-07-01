@@ -1,0 +1,1 @@
+import{i as e,t}from"./dist-IQHIouET.js";async function n(n=process.cwd()){let r=await e(n),i=await t(n);if(r!==void 0&&r.mode===`pre`){let e=new Set(r.changesets);return{preState:r,changesets:i.filter(t=>!e.has(t.id))}}return{preState:void 0,changesets:i}}export{n as t};
