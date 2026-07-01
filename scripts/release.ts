@@ -24,7 +24,7 @@ await exec("git", ["checkout", "--detach"]);
 await exec("git", ["add", "--force", "dist"]);
 await exec("git", ["commit", "-m", tag]);
 
-await exec("changeset", ["tag"]);
+await exec("changeset", ["git-tag"]);
 
 if (isPrerelease) {
   await exec("git", ["push", "origin", `refs/tags/${tag}`], {
