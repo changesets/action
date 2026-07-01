@@ -27,7 +27,7 @@ There are also sub-actions hosted in this repository. Check out their respective
 ### Outputs
 
 - published - A boolean value to indicate whether a publishing has happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- publish-output - The path to the Changesets publish output file in NDJSON format
 
 ### Example workflow
 

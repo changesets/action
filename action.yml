@@ -52,10 +52,9 @@ inputs:
     default: true
 outputs:
   published:
-    description: A boolean value to indicate whether a publishing is happened or not
-  published-packages:
-    description: >
-      A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+    description: A boolean value to indicate whether any release was published
+  publish-output:
+    description: The path to the changesets publish output file in NDJSON format
   has-changesets:
     description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
   pr-number:
