@@ -8,25 +8,28 @@ inputs:
     description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
     required: false
     default: ${{ github.token }}
-  publish:
+  publish-script:
     description: "The command to use to build and publish packages"
     required: false
-  version:
+  version-script:
     description: "The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided"
     required: false
-  commit:
-    description: |
-      The commit message. Default to `Version Packages`
+  commit-message:
+    description: "The commit message. Default to `Version Packages`"
     required: false
-  title:
-    description: The pull request title. Default to `Version Packages`
+    default: "Version Packages"
+  pr-title:
+    description: "The pull request title. Default to `Version Packages`"
     required: false
-  setup-git-user:
-    description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
+    default: "Version Packages"
+  pr-draft:
+    description: "Controls draft PR behavior. Use 'create' to create new version PRs as draft, or 'always' to also convert existing version PRs back to draft when updating them."
     required: false
-    default: true
+  pr-base-branch:
+    description: "Sets the base branch of the PR. Defaults to `github.ref_name`."
+    required: false
   create-github-releases:
-    description: "A boolean value to indicate whether to create Github releases after `publish` or not"
+    description: "Whether to create Github releases after publish"
     required: false
     default: true
   push-git-tags:
@@ -43,12 +46,10 @@ inputs:
       or app who owns the GITHUB_TOKEN.
     required: false
     default: "git-cli"
-  branch:
-    description: Sets the branch in which the action will run. Default to `github.ref_name` if not provided
+  setup-git-user:
+    description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
     required: false
-  pr-draft:
-    description: 'Controls draft PR behavior. Use "create" to create new version PRs as draft, or "always" to also convert existing version PRs back to draft when updating them.'
-    required: false
+    default: true
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
@@ -57,7 +58,7 @@ outputs:
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
   has-changesets:
     description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
-  pull-request-number:
+  pr-number:
     description: The pull request number that was created or updated
 branding:
   icon: "package"

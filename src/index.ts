@@ -12,9 +12,14 @@ import {
 
 (async () => {
   throwOnRenamedInputs({
-    commitMode: "commit-mode",
-    createGithubReleases: "create-github-releases",
+    publish: "publish-script",
+    version: "version-script",
+    commit: "commit-mesage",
+    title: "pr-title",
+    branch: "pr-base-branch",
     prDraft: "pr-draft",
+    createGithubReleases: "create-github-releases",
+    commitMode: "commit-mode",
     setupGitUser: "setup-git-user",
   });
 
@@ -55,7 +60,7 @@ import {
 
   let { changesets } = await readChangesetState(cwd);
 
-  let publishScript = core.getInput("publish");
+  let publishScript = core.getInput("publish-script");
   let hasChangesets = changesets.length !== 0;
   const hasNonEmptyChangesets = changesets.some(
     (changeset) => changeset.releases.length > 0,
@@ -168,17 +173,17 @@ import {
       return;
     case hasChangesets: {
       const { pullRequestNumber } = await runVersion({
-        script: getOptionalInput("version"),
+        script: getOptionalInput("version-script"),
         github,
         cwd,
-        prTitle: getOptionalInput("title"),
-        commitMessage: getOptionalInput("commit"),
+        prTitle: getOptionalInput("pr-title"),
+        commitMessage: getOptionalInput("commit-message"),
         hasPublishScript,
         prDraft,
-        branch: getOptionalInput("branch"),
+        branch: getOptionalInput("pr-base-branch"),
       });
 
-      core.setOutput("pull-request-number", String(pullRequestNumber));
+      core.setOutput("pr-number", String(pullRequestNumber));
 
       return;
     }

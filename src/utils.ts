@@ -136,12 +136,21 @@ export function getRequiredInput(name: string) {
 }
 
 export function throwOnRenamedInputs(renames: Record<string, string>) {
+  const references: Record<string, string> = {};
+
   for (const [oldInput, newInput] of Object.entries(renames)) {
     if (core.getInput(oldInput)) {
-      throw new Error(
-        `The input "${oldInput}" has been renamed to "${newInput}". Please update your workflow file.`,
-      );
+      references[oldInput] = newInput;
     }
+  }
+
+  if (Object.keys(references).length > 0) {
+    const list = Object.entries(references)
+      .map(([oldInput, newInput]) => `- "${oldInput}" -> "${newInput}"`)
+      .join("\n");
+    throw new Error(
+      `The following inputs have been renamed:\n${list}\nPlease update your workflow file.`,
+    );
   }
 }
 
