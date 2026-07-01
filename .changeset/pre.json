@@ -3,12 +3,18 @@
   "tag": "next",
   "changesets": [
     "all-cars-grin",
+    "chubby-geese-sink",
     "eight-clocks-pull",
     "eighty-doors-swim",
+    "eighty-parks-tickle",
+    "fiery-toes-vanish",
     "git-cli-auth-header",
     "git-cli-server-url",
     "lemon-turtles-itch",
     "ready-mangos-boil",
-    "silent-tips-dance"
+    "shaky-rings-type",
+    "shy-months-crash",
+    "silent-tips-dance",
+    "yellow-roses-fix"
   ]
 }
