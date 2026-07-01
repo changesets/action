@@ -172,7 +172,7 @@ export async function runPublish({
     env: {
       ...process.env,
       GITHUB_TOKEN: github.getToken(),
-      CHANGESETS_OUTPUT_FILE: outputFile,
+      CHANGESETS_OUTPUT: outputFile,
     },
   };
 
