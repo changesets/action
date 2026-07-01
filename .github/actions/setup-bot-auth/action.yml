@@ -1,0 +1,44 @@
+name: Setup bot auth
+description: Create a GitHub App token and configure matching git identity
+
+inputs:
+  client-id:
+    description: GitHub App client ID
+    required: true
+  private-key:
+    description: GitHub App private key
+    required: true
+  permission-contents:
+    description: Contents permission for the GitHub App token
+    required: false
+    default: write
+  permission-pull-requests:
+    description: Pull requests permission for the GitHub App token
+    required: false
+
+outputs:
+  token:
+    description: GitHub App installation access token
+    value: ${{ steps.app-token.outputs.token }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      id: app-token
+      with:
+        client-id: ${{ inputs.client-id }}
+        private-key: ${{ inputs.private-key }}
+        permission-contents: ${{ inputs.permission-contents }}
+        permission-pull-requests: ${{ inputs.permission-pull-requests }}
+
+    - name: Setup Git user
+      shell: bash
+      run: |
+        app_user="$APP_SLUG[bot]"
+        app_id="$(gh api "/users/$app_user" --jq .id)"
+        git config user.name "$app_user"
+        git config user.email "$app_id+$app_user@users.noreply.github.com"
+      env:
+        APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
