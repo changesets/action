@@ -65,6 +65,7 @@ type PublishOptions = {
   script?: string;
   fromPackDir?: string;
   createGithubReleases: boolean;
+  pushGitTags: boolean;
   github: GitHub;
   cwd: string;
 };
@@ -87,6 +88,7 @@ export async function runPublish({
   fromPackDir,
   github,
   createGithubReleases,
+  pushGitTags,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
   const { octokit } = github;
@@ -137,12 +139,16 @@ export async function runPublish({
       releasedPackages.push(pkg);
     }
 
-    if (createGithubReleases) {
+    if (createGithubReleases || pushGitTags) {
       await Promise.all(
         releasedPackages.map(async (pkg) => {
           const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          await github.pushTag(tagName);
-          await createRelease(octokit, { pkg, tagName });
+          if (pushGitTags) {
+            await github.pushTag(tagName);
+          }
+          if (createGithubReleases) {
+            await createRelease(octokit, { pkg, tagName });
+          }
         }),
       );
     }
@@ -161,9 +167,11 @@ export async function runPublish({
 
       if (match) {
         releasedPackages.push(pkg);
-        if (createGithubReleases) {
-          const tagName = `v${pkg.packageJson.version}`;
+        const tagName = `v${pkg.packageJson.version}`;
+        if (pushGitTags) {
           await github.pushTag(tagName);
+        }
+        if (createGithubReleases) {
           await createRelease(octokit, { pkg, tagName });
         }
         break;
