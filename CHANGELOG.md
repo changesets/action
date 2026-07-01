@@ -1,5 +1,35 @@
 # @changesets/action
 
+## 2.0.0-next.3
+
+### Major Changes
+
+- [#680](https://github.com/changesets/action/pull/680) [`ca57073`](https://github.com/changesets/action/commit/ca57073900dc678254406a052a03c0c8824e319d) Thanks [@bluwy](https://github.com/bluwy)! - Add a new `push-git-tags` option that complements `create-github-releases` to control specifically if git tags should be created but not GitHub releases.
+
+  If `create-github-releases` was previously set to `false`, which also indirectly disabled git tag creation, git tags will now be created instead by default. If this is not desired, set `push-git-tags` to `false` explicitly.
+
+- [#681](https://github.com/changesets/action/pull/681) [`7359107`](https://github.com/changesets/action/commit/73591071e61c7f61cf322dd7a6341dc29a8e1d4e) Thanks [@bluwy](https://github.com/bluwy)! - Rename the root action inputs and outputs to better match the sub-actions' conventions.
+
+  Inputs:
+  - `version` -> `version-script`
+  - `publish` -> `publish-script`
+  - `commit` -> `commit-message`
+  - `title` -> `pr-title`
+  - `branch` -> `pr-base-branch`
+
+  Outputs:
+  - `pull-request-number` -> `pr-number`
+
+- [#674](https://github.com/changesets/action/pull/674) [`164652b`](https://github.com/changesets/action/commit/164652bdd60525670d95291addb8c6f92833ac60) Thanks [@bluwy](https://github.com/bluwy)! - Remove support for passing custom GitHub token through the GITHUB_TOKEN environment variable. It should be passed to the `github-token` input instead.
+
+- [#673](https://github.com/changesets/action/pull/673) [`823cf74`](https://github.com/changesets/action/commit/823cf741ca57c5e22652123d3a847dfafcd77ca0) Thanks [@bluwy](https://github.com/bluwy)! - Update to Changesets v3 packages
+
+- [#668](https://github.com/changesets/action/pull/668) [`0eae789`](https://github.com/changesets/action/commit/0eae789230defbc4ad287e9b476aba7e842e34e0) Thanks [@bluwy](https://github.com/bluwy)! - Rename the input and output names to kebab-case instead of camelCase to match the official GitHub actions pattern
+
+### Minor Changes
+
+- [#678](https://github.com/changesets/action/pull/678) [`f71ae04`](https://github.com/changesets/action/commit/f71ae043ed5deb17952900091e009a60edef9507) Thanks [@Andarist](https://github.com/Andarist)! - Published packages detection done through stdout parsing was replaced with one based on the shared output file using `CHANGESETS_OUTPUT` environment variable. When using custom scripts this environment variable should always be passed down to the Changesets CLI invocations.
+
 ## 2.0.0-next.2
 
 ### Patch Changes
