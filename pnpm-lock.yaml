@@ -66,8 +66,8 @@ importers:
         specifier: ^1.0.0-next.6
         version: 1.0.0-next.6
       '@changesets/cli':
-        specifier: ^3.0.0-next.7
-        version: 3.0.0-next.7
+        specifier: ^3.0.0-next.8
+        version: 3.0.0-next.8
       '@changesets/types':
         specifier: ^7.0.0-next.6
         version: 7.0.0-next.6
@@ -199,8 +199,8 @@ packages:
     resolution: {integrity: sha512-0ShCWgNt50xP0mryAYT8wtSkMUinG8uhxXgCgwHZ4UvJnR2f4ns8OsGAxYu8FIds7kHFdLOz7qX4YQ6AX4tVUA==}
     engines: {node: ^22.11 || ^24 || >=26}
 
-  '@changesets/cli@3.0.0-next.7':
-    resolution: {integrity: sha512-DuwcGhtFina59DCREvS6N97zlXyYqnbhnFO/PBHaX5+ZalYsLxfnbWiwrbosdmy9QBlnvkyqXPVN2TFPZXzJmw==}
+  '@changesets/cli@3.0.0-next.8':
+    resolution: {integrity: sha512-gfIPhBs1XNdgXhTJ+uhzfG8jHmMLnQNNL4Uwqxoniw/xmmVRbc9xGIeLniRsGY77RgdhWW0V1z1zVjTztgMQzQ==}
     engines: {node: ^22.11 || ^24 || >=26, npm: '>=10.9.0', pnpm: '>=10.0.0', yarn: '>=4.5.2'}
     hasBin: true
 
@@ -1543,7 +1543,7 @@ snapshots:
       '@changesets/get-github-info': 1.0.0-next.3
       '@changesets/types': 7.0.0-next.6
 
-  '@changesets/cli@3.0.0-next.7':
+  '@changesets/cli@3.0.0-next.8':
     dependencies:
       '@changesets/apply-release-plan': 8.0.0-next.7
       '@changesets/assemble-release-plan': 7.0.0-next.7
