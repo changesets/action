@@ -43,11 +43,11 @@
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.12.4",
     "@types/semver": "^7.7.1",
-    "fs-fixture": "^2.13.0",
-    "oxfmt": "^0.48.0",
-    "rolldown": "^1.0.1",
+    "fs-fixture": "^2.14.0",
+    "oxfmt": "^0.56.0",
+    "rolldown": "^1.1.2",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=24"
