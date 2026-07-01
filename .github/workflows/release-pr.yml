@@ -122,13 +122,6 @@ jobs:
       pull-requests: write # to comment on the pull request with the release result (changesets/action)
 
     steps:
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        id: app-token
-        with:
-          client-id: ${{ vars.APP_CLIENT_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          permission-contents: write # to push the release snapshot branch (release-pr.ts)
-
       - name: Check out repo
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -173,15 +166,17 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Setup Git user
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - uses: ./.github/actions/setup-bot-auth
+        id: bot-auth
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write # to push the release snapshot branch (release-pr.ts)
 
       - name: Release snapshot version
         run: pnpm release:pr
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.bot-auth.outputs.token }}
 
       - name: Add success reaction
         run: gh api "/repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions" -f content='rocket'

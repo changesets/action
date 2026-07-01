@@ -20,12 +20,6 @@ const gitEnv = {
 
 process.chdir(path.join(import.meta.dirname, ".."));
 
-await exec("git", ["config", "user.name", `"github-actions[bot]"`]);
-await exec("git", [
-  "config",
-  "user.email",
-  `"41898282+github-actions[bot]@users.noreply.github.com"`,
-]);
 await exec("git", ["checkout", "--detach"]);
 await exec("git", ["add", "--force", "dist"]);
 await exec("git", ["commit", "-m", tag]);
