@@ -1,9 +1,6 @@
 {
   "mode": "pre",
   "tag": "next",
-  "initialVersions": {
-    "@changesets/action": "1.9.0"
-  },
   "changesets": [
     "all-cars-grin",
     "eight-clocks-pull",
