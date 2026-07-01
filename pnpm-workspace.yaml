@@ -3,18 +3,23 @@ dedupePeers: true
 dedupePeerDependents: true
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
-  - "@changesets/apply-release-plan@8.0.0-next.6"
-  - "@changesets/assemble-release-plan@7.0.0-next.6"
-  - "@changesets/changelog-github@1.0.0-next.5"
-  - "@changesets/cli@3.0.0-next.6"
-  - "@changesets/get-release-plan@5.0.0-next.6"
+  - "@changesets/apply-release-plan@8.0.0-next.7"
+  - "@changesets/assemble-release-plan@7.0.0-next.7"
+  - "@changesets/changelog-git@1.0.0-next.6"
+  - "@changesets/changelog-github@1.0.0-next.6"
+  - "@changesets/cli@3.0.0-next.7"
+  - "@changesets/config@4.0.0-next.6"
+  - "@changesets/get-dependents-graph@3.0.0-next.6"
+  - "@changesets/get-github-info@1.0.0-next.3"
+  - "@changesets/get-release-plan@5.0.0-next.7"
   - "@changesets/ghcommit@3.0.0-next.1"
-  - "@changesets/git@4.0.0-next.5"
-  - "@changesets/parse@1.0.0-next.6"
-  - "@changesets/pre@3.0.0-next.5"
-  - "@changesets/read@1.0.0-next.6"
-  - "@changesets/types@7.0.0-next.5"
-  - "@changesets/write@1.0.0-next.5"
+  - "@changesets/git@4.0.0-next.6"
+  - "@changesets/parse@1.0.0-next.7"
+  - "@changesets/pre@3.0.0-next.6"
+  - "@changesets/read@1.0.0-next.7"
+  - "@changesets/should-skip-package@1.0.0-next.6"
+  - "@changesets/types@7.0.0-next.6"
+  - "@changesets/write@1.0.0-next.6"
 
 overrides:
   lightningcss: "-" # we do not bundle any css

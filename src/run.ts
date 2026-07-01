@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import * as core from "@actions/core";
 import {
@@ -71,6 +73,11 @@ type PublishOptions = {
 };
 
 type PublishedPackage = { name: string; version: string };
+type ChangesetsOutputEvent = {
+  type: "git-tag";
+  tag: string;
+  packageName: string;
+};
 
 type PublishResult =
   | {
@@ -83,6 +90,68 @@ type PublishResult =
       exitCode: number;
     };
 
+function isObject(value: unknown) {
+  return typeof value === "object" && value !== null;
+}
+
+function isChangesetsOutputEvent(
+  value: unknown,
+): value is ChangesetsOutputEvent {
+  return (
+    isObject(value) &&
+    "type" in value &&
+    value.type === "git-tag" &&
+    "tag" in value &&
+    typeof value.tag === "string" &&
+    "packageName" in value &&
+    typeof value.packageName === "string"
+  );
+}
+
+async function readChangesetsOutput(outputPath: string) {
+  let rawOutput: string;
+  try {
+    rawOutput = await fs.readFile(outputPath, "utf8");
+  } catch (err) {
+    throw new Error(`Failed to read changesets output at ${outputPath}`, {
+      cause: err,
+    });
+  }
+
+  const events: ChangesetsOutputEvent[] = [];
+
+  let lineStart = 0;
+  while (lineStart <= rawOutput.length) {
+    let lineEnd = rawOutput.indexOf("\n", lineStart);
+    if (lineEnd === -1) {
+      lineEnd = rawOutput.length;
+    }
+    const line = rawOutput.slice(lineStart, lineEnd);
+    lineStart = lineEnd + 1;
+
+    if (/^\s*$/.test(line)) {
+      continue;
+    }
+
+    let event: unknown;
+    try {
+      event = JSON.parse(line);
+    } catch (err) {
+      throw new Error(`Failed to parse changesets output event: ${line}`, {
+        cause: err,
+      });
+    }
+
+    if (!isChangesetsOutputEvent(event)) {
+      continue;
+    }
+
+    events.push(event);
+  }
+
+  return events;
+}
+
 export async function runPublish({
   script,
   fromPackDir,
@@ -93,10 +162,18 @@ export async function runPublish({
 }: PublishOptions): Promise<PublishResult> {
   const { octokit } = github;
   let changesetPublishOutput: ExecOutput;
+  const outputFile = path.join(
+    process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),
+    `changesets-output-${randomUUID()}.ndjson`,
+  );
   const execOptions: ExecOptions = {
     cwd,
     ignoreReturnCode: true,
-    env: { ...process.env, GITHUB_TOKEN: github.getToken() },
+    env: {
+      ...process.env,
+      GITHUB_TOKEN: github.getToken(),
+      CHANGESETS_OUTPUT: outputFile,
+    },
   };
 
   if (script) {
@@ -117,72 +194,43 @@ export async function runPublish({
   }
 
   let { packages, tool } = await getPackages(cwd);
-  let releasedPackages: Package[] = [];
-
-  if (tool.type !== "root") {
-    let newTagRegex = /New tag:\s+(@[^/]+\/[^@]+|[^/]+)@([^\s]+)/;
-    let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
-
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
-      if (match === null) {
-        continue;
-      }
-      let pkgName = match[1];
-      let pkg = packagesByName.get(pkgName);
-      if (pkg === undefined) {
-        throw new Error(
-          `Package "${pkgName}" not found.` +
-            "This is probably a bug in the action, please open an issue",
-        );
-      }
-      releasedPackages.push(pkg);
-    }
-
-    if (createGithubReleases || pushGitTags) {
-      await Promise.all(
-        releasedPackages.map(async (pkg) => {
-          const tagName = `${pkg.packageJson.name}@${pkg.packageJson.version}`;
-          if (pushGitTags) {
-            await github.pushTag(tagName);
-          }
-          if (createGithubReleases) {
-            await createRelease(octokit, { pkg, tagName });
-          }
-        }),
-      );
-    }
-  } else {
-    if (packages.length === 0) {
+  let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
+  let output = await readChangesetsOutput(outputFile);
+  let releases = output.map((event) => {
+    let pkg = packagesByName.get(event.packageName);
+    if (pkg === undefined) {
       throw new Error(
-        `No package found.` +
+        `Package "${event.packageName}" not found.` +
           "This is probably a bug in the action, please open an issue",
       );
     }
-    let pkg = packages[0];
-    let newTagRegex = /New tag:/;
+    return { pkg, tag: event.tag };
+  });
 
-    for (let line of changesetPublishOutput.stdout.split("\n")) {
-      let match = line.match(newTagRegex);
-
-      if (match) {
-        releasedPackages.push(pkg);
-        const tagName = `v${pkg.packageJson.version}`;
-        if (pushGitTags) {
-          await github.pushTag(tagName);
-        }
-        if (createGithubReleases) {
-          await createRelease(octokit, { pkg, tagName });
-        }
-        break;
-      }
-    }
+  if (tool.type === "root" && packages.length === 0) {
+    throw new Error(
+      `No package found.` +
+        "This is probably a bug in the action, please open an issue",
+    );
   }
 
-  if (releasedPackages.length) {
+  if (createGithubReleases || pushGitTags) {
+    await Promise.all(
+      releases.map(async ({ pkg, tag }) => {
+        if (pushGitTags) {
+          await github.pushTag(tag);
+        }
+        if (createGithubReleases) {
+          await createRelease(octokit, { pkg, tagName: tag });
+        }
+      }),
+    );
+  }
+
+  if (releases.length) {
     return {
       published: true,
-      publishedPackages: releasedPackages.map((pkg) => ({
+      publishedPackages: releases.map(({ pkg }) => ({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version,
       })),
