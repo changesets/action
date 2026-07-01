@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@4.0.0-next.6/schema.json",
-  "changelog": ["@changesets/changelog-github"],
+  "changelog": "@changesets/changelog-github",
   "commit": false,
   "linked": [],
   "access": "restricted",
