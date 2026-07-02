@@ -145,7 +145,10 @@ import {
         cwd,
       });
 
-      core.setOutput("published", result.releases.length > 0 ? "true" : "false");
+      core.setOutput(
+        "published",
+        result.releases.length > 0 ? "true" : "false",
+      );
       core.setOutput("publish-output", result.output);
 
       if (result.exitCode !== 0) {
