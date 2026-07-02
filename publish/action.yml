@@ -26,10 +26,9 @@ inputs:
     default: true
 outputs:
   published:
-    description: "A boolean value to indicate whether a publishing has happened or not"
-  published-packages:
-    description: >
-      A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+    description: A boolean value to indicate whether any release was published
+  output:
+    description: The path to the Changesets publish output file in NDJSON format
 branding:
   icon: package
   color: blue

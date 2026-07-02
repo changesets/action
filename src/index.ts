@@ -68,7 +68,6 @@ import {
   let hasPublishScript = !!publishScript;
 
   core.setOutput("published", "false");
-  core.setOutput("published-packages", "[]");
   core.setOutput("has-changesets", String(hasChangesets));
 
   switch (true) {
@@ -146,19 +145,17 @@ import {
         cwd,
       });
 
-      if (result.published) {
-        core.setOutput("published", "true");
-        core.setOutput(
-          "published-packages",
-          JSON.stringify(result.publishedPackages),
-        );
-      }
+      core.setOutput(
+        "published",
+        result.releases.length > 0 ? "true" : "false",
+      );
+      core.setOutput("publish-output", result.output);
 
       if (result.exitCode !== 0) {
         core.error(
           `Publish command exited with code ${result.exitCode}${
-            result.published
-              ? `, but some packages were published: ${result.publishedPackages
+            result.releases.length
+              ? `, but some packages were published: ${result.releases
                   .map((p) => `${p.name}@${p.version}`)
                   .join(", ")}`
               : ""

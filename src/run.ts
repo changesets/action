@@ -72,23 +72,19 @@ type PublishOptions = {
   cwd: string;
 };
 
-type PublishedPackage = { name: string; version: string };
+type PackageRelease = { name: string; version: string };
+
 type ChangesetsOutputEvent = {
   type: "git-tag";
   tag: string;
   packageName: string;
 };
 
-type PublishResult =
-  | {
-      published: true;
-      publishedPackages: PublishedPackage[];
-      exitCode: number;
-    }
-  | {
-      published: false;
-      exitCode: number;
-    };
+type PublishResult = {
+  releases: PackageRelease[];
+  output: string;
+  exitCode: number;
+};
 
 function isObject(value: unknown) {
   return typeof value === "object" && value !== null;
@@ -227,18 +223,14 @@ export async function runPublish({
     );
   }
 
-  if (releases.length) {
-    return {
-      published: true,
-      publishedPackages: releases.map(({ pkg }) => ({
-        name: pkg.packageJson.name,
-        version: pkg.packageJson.version,
-      })),
-      exitCode: changesetPublishOutput.exitCode,
-    };
-  }
-
-  return { published: false, exitCode: changesetPublishOutput.exitCode };
+  return {
+    releases: releases.map(({ pkg }) => ({
+      name: pkg.packageJson.name,
+      version: pkg.packageJson.version,
+    })),
+    output: outputFile,
+    exitCode: changesetPublishOutput.exitCode,
+  };
 }
 
 type GetMessageOptions = {
