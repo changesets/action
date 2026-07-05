@@ -20,6 +20,7 @@ There are also sub-actions hosted in this repository. Check out their respective
 - pr-title - The pull request title. Default to `Version Packages`
 - setup-git-user - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
 - create-github-releases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- push-git-tags - A boolean value to indicate whether to create git tags after `publish` or not. Default to `true`
 - commit-mode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
 - pr-draft - Controls draft PR behavior. Use `create` to create new version PRs as draft, or `always` to also convert existing version PRs back to draft when updating them. By default, version PRs are not forced into draft mode
