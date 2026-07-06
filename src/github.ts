@@ -86,10 +86,19 @@ export class GitHub {
         `Invalid GIT_CONFIG_COUNT value: ${process.env.GIT_CONFIG_COUNT}`,
       );
     }
+    const extraHeaderKey = `http.${serverUrl}/.extraheader`;
+    const authHeader = `AUTHORIZATION: basic ${basic}`;
+
     return {
-      GIT_CONFIG_COUNT: String(gitConfigCount + 1),
-      [`GIT_CONFIG_KEY_${gitConfigCount}`]: `http.${serverUrl}/.extraheader`,
-      [`GIT_CONFIG_VALUE_${gitConfigCount}`]: `AUTHORIZATION: basic ${basic}`,
+      GIT_CONFIG_COUNT: String(gitConfigCount + 2),
+      // Reset inherited extraheaders first. In v1, `github-token` was written
+      // to ~/.netrc, so checkout's persisted extraheader could win for pushes.
+      // The ~/.netrc token was effectively only a fallback for git auth.
+      // Here `github-token` intentionally wins.
+      [`GIT_CONFIG_KEY_${gitConfigCount}`]: extraHeaderKey,
+      [`GIT_CONFIG_VALUE_${gitConfigCount}`]: "",
+      [`GIT_CONFIG_KEY_${gitConfigCount + 1}`]: extraHeaderKey,
+      [`GIT_CONFIG_VALUE_${gitConfigCount + 1}`]: authHeader,
     };
   }
 
