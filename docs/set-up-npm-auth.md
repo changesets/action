@@ -1,6 +1,6 @@
 # How to set up npm authentication
 
-This is a brief guide on setting up npm authentication on GitHub Actions. Most of the information below are also applicable outside of Changesets and can be referenced for other npm workflows.
+This is a brief guide on setting up npm authentication in GitHub Actions. Most of the information below are also applicable outside of Changesets and can be referenced for other npm workflows.
 
 ## Recommended Setup
 
@@ -94,19 +94,24 @@ Internally, `actions/setup-node` will set up a configuration like below in `~/.n
 
 This syntax allows to authenticate with the npm registry only when the `NODE_AUTH_TOKEN` environment variable is set, which is a safer approach than storing the token directly in the `.npmrc` file.
 
-For advanced use cases, you can also set up the `~/.npmrc` file manually. For example, if you need to publish different scopes to different registries, you can set up the `~/.npmrc` file like below:
+For advanced use cases, you can also set up the [`~/.npmrc` file](https://docs.npmjs.com/cli/configuring-npm/npmrc) manually. For example, if you need to publish different scopes to different registries, you can set up the `~/.npmrc` file like below:
 
-```ini
-# For unscoped packages, publish to the default npm registry
-//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
+```yaml
+- run: |
+    cat <<EOF > ~/.npmrc
 
-# For @foo/* packages, publish to a custom registry
-@foo:registry=https://my-registry.com/
-//my-registry.com/:_authToken=${NODE_FOO_AUTH_TOKEN}
+    # For unscoped packages, publish to the default npm registry
+    //registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}
 
-# For @bar/* packages, publish to the GitHub Package Registry
-@bar:registry=https://npm.pkg.github.com/
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+    # For @foo/* packages, publish to a custom registry
+    @foo:registry=https://my-registry.com/
+    //my-registry.com/:_authToken=\${NODE_FOO_AUTH_TOKEN}
+
+    # For @bar/* packages, publish to the GitHub Package Registry
+    @bar:registry=https://npm.pkg.github.com/
+    //npm.pkg.github.com/:_authToken=\${GITHUB_TOKEN}
+
+    EOF
 ```
 
 ### Package Managers Edge Cases
@@ -119,7 +124,7 @@ This is also the general recommendation for other package managers to not mix po
 
 #### yarn
 
-[Yarn](https://yarnpkg.com) does not support the `.npmrc` file, compared to every other package managers that do. To set up authentication for yarn, use a `~/.yarnrc.yml` file instead:
+[Yarn](https://yarnpkg.com) does not support the `.npmrc` file, compared to every other package managers that do. To set up authentication for yarn, use a [`~/.yarnrc.yml` file](https://yarnpkg.com/configuration/yarnrc) instead:
 
 ```yaml
 npmAuthToken: "${NODE_AUTH_TOKEN}"
@@ -128,15 +133,19 @@ npmAuthToken: "${NODE_AUTH_TOKEN}"
 For advanced use cases, similar to the `.npmrc` example above, the equivalent looks something like this:
 
 ```yaml
-npmAuthToken: "${NODE_AUTH_TOKEN}"
+- run: |
+    cat <<EOF > ~/.yarnrc.yml
 
-npmScopes:
-  foo:
-    npmRegistryServer: "https://my-registry.com/"
-    npmAuthToken: "${NODE_FOO_AUTH_TOKEN}"
-  bar:
-    npmRegistryServer: "https://npm.pkg.github.com/"
-    npmAuthToken: "${GITHUB_TOKEN}"
+    npmAuthToken: "\${NODE_AUTH_TOKEN}"
+
+    npmScopes:
+      foo:
+        npmRegistryServer: "https://my-registry.com/"
+        npmAuthToken: "\${NODE_FOO_AUTH_TOKEN}"
+      bar:
+        npmRegistryServer: "https://npm.pkg.github.com/"
+        npmAuthToken: "\${GITHUB_TOKEN}"
+    EOF
 ```
 
 #### Miscellaneous
