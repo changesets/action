@@ -79,6 +79,8 @@ type ChangesetsOutputEvent = {
   packageName: string;
 };
 
+class ChangesetsOutputReadError extends Error {}
+
 type PublishResult =
   | {
       published: true;
@@ -113,9 +115,10 @@ async function readChangesetsOutput(outputPath: string) {
   try {
     rawOutput = await fs.readFile(outputPath, "utf8");
   } catch (err) {
-    throw new Error(`Failed to read changesets output at ${outputPath}`, {
-      cause: err,
-    });
+    throw new ChangesetsOutputReadError(
+      `Failed to read changesets output at ${outputPath}`,
+      { cause: err },
+    );
   }
 
   const events: ChangesetsOutputEvent[] = [];
@@ -195,7 +198,18 @@ export async function runPublish({
 
   let { packages, tool } = await getPackages(cwd);
   let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
-  let output = await readChangesetsOutput(outputFile);
+  let output: ChangesetsOutputEvent[];
+  try {
+    output = await readChangesetsOutput(outputFile);
+  } catch (err) {
+    if (!script || !(err instanceof ChangesetsOutputReadError)) {
+      throw err;
+    }
+    core.warning(
+      `${err.message}. GitHub releases and git tags cannot be created without this output. Ensure the custom publish script passes CHANGESETS_OUTPUT to the Changesets CLI.`,
+    );
+    output = [];
+  }
   let releases = output.map((event) => {
     let pkg = packagesByName.get(event.packageName);
     if (pkg === undefined) {
