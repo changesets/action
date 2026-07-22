@@ -21,7 +21,7 @@ vi.mock("@actions/github", () => ({
     graphql: mockedGraphql,
   }),
 }));
-vi.mock("@actions/core", { spy: true })
+vi.mock("@actions/core", { spy: true });
 const mockedWarning = vi.mocked(core.warning);
 vi.mock("@changesets/ghcommit");
 
