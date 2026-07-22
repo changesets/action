@@ -50,6 +50,25 @@ const checkIfClean = async (options: GitOptions): Promise<boolean> => {
   return !stdout.length;
 };
 
+function getHttpUrl(remoteUrl: string): string | undefined {
+  try {
+    const url = new URL(remoteUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return;
+    }
+
+    // Git includes the username when deciding which URL-specific config is
+    // most specific, so retain it. Password, query, and fragment do not
+    // participate in matching; strip them before copying the URL into the env.
+    url.password = "";
+    url.search = "";
+    url.hash = "";
+    return url.href;
+  } catch {
+    return;
+  }
+}
+
 export class GitHub {
   readonly #githubToken: string;
   readonly octokit: Octokit;
@@ -71,7 +90,7 @@ export class GitHub {
     return this.#githubToken;
   }
 
-  #getCliAuthEnv(): Record<string, string> {
+  async #getCliAuthEnv(): Promise<Record<string, string>> {
     const basic = Buffer.from(`x-access-token:${this.#githubToken}`).toString(
       "base64",
     );
@@ -86,20 +105,57 @@ export class GitHub {
         `Invalid GIT_CONFIG_COUNT value: ${process.env.GIT_CONFIG_COUNT}`,
       );
     }
-    const extraHeaderKey = `http.${serverUrl}/.extraheader`;
-    const authHeader = `AUTHORIZATION: basic ${basic}`;
+    // `git push origin` may use remote.origin.pushurl instead of the fetch URL,
+    // and Git supports multiple push URLs. Ask Git for the effective targets so
+    // the URL-specific auth below applies to every HTTP destination.
+    const { stdout } = await getExecOutput(
+      "git",
+      ["remote", "get-url", "--push", "--all", "origin"],
+      {
+        cwd: this.cwd,
+        ignoreReturnCode: true,
+        // A user-configured remote can contain credentials.
+        silent: true,
+      },
+    );
 
-    return {
-      GIT_CONFIG_COUNT: String(gitConfigCount + 2),
-      // Reset inherited extraheaders first. In v1, `github-token` was written
-      // to ~/.netrc, so checkout's persisted extraheader could win for pushes.
-      // The ~/.netrc token was effectively only a fallback for git auth.
-      // Here `github-token` intentionally wins.
-      [`GIT_CONFIG_KEY_${gitConfigCount}`]: extraHeaderKey,
-      [`GIT_CONFIG_VALUE_${gitConfigCount}`]: "",
-      [`GIT_CONFIG_KEY_${gitConfigCount + 1}`]: extraHeaderKey,
-      [`GIT_CONFIG_VALUE_${gitConfigCount + 1}`]: authHeader,
+    // Git chooses HTTP config by URL specificity. The host key handles the
+    // extraheader normally installed by actions/checkout, while an exact push
+    // URL also outranks any inherited path-specific extraheader. Only the most
+    // specific matching subsection contributes, so these do not duplicate it.
+    const extraHeaderKeys = new Set([`http.${serverUrl}/.extraheader`]);
+    for (const remoteUrl of stdout.split(/\r?\n/)) {
+      const httpUrl = getHttpUrl(remoteUrl);
+      if (httpUrl !== undefined) {
+        extraHeaderKeys.add(`http.${httpUrl}.extraheader`);
+      }
+    }
+    const authHeader = `AUTHORIZATION: basic ${basic}`;
+    const env: Record<string, string> = {
+      GIT_CONFIG_COUNT: String(gitConfigCount + extraHeaderKeys.size * 2),
     };
+
+    // GIT_CONFIG_COUNT/KEY_n/VALUE_n add command-scoped config. Preserve any
+    // existing entries and append ours. `http.extraHeader` is multi-valued, so
+    // merely adding our Authorization header would make Git send both tokens.
+    // An empty value resets the list; the following value adds only our token.
+    //
+    // In v1, `github-token` lived in ~/.netrc. When checkout had already
+    // supplied Authorization through an extraheader, that header took
+    // precedence and ~/.netrc was effectively a fallback. These entries
+    // intentionally make `github-token` win for pushes.
+    let index = 0;
+    for (const extraHeaderKey of extraHeaderKeys) {
+      const resetIndex = gitConfigCount + index * 2;
+      const authIndex = resetIndex + 1;
+      env[`GIT_CONFIG_KEY_${resetIndex}`] = extraHeaderKey;
+      env[`GIT_CONFIG_VALUE_${resetIndex}`] = "";
+      env[`GIT_CONFIG_KEY_${authIndex}`] = extraHeaderKey;
+      env[`GIT_CONFIG_VALUE_${authIndex}`] = authHeader;
+      index++;
+    }
+
+    return env;
   }
 
   async setupUser() {
@@ -139,7 +195,7 @@ export class GitHub {
       cwd: this.cwd,
       env: {
         ...process.env,
-        ...this.#getCliAuthEnv(),
+        ...(await this.#getCliAuthEnv()),
       } as Record<string, string>,
     });
   }
@@ -174,7 +230,7 @@ export class GitHub {
       cwd: this.cwd,
       env: {
         ...process.env,
-        ...this.#getCliAuthEnv(),
+        ...(await this.#getCliAuthEnv()),
       } as Record<string, string>,
     });
   }
