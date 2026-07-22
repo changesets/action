@@ -7,6 +7,7 @@ import {
   downloadArtifact,
   execChangesetsCli,
   getOptionalInput,
+  validateChangesetsCliVersion,
 } from "../utils.ts";
 
 try {
@@ -20,6 +21,8 @@ async function main() {
 
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
   const tmpDir = process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir()));
   const outDir = path.join(tmpDir, `changeset-pack-${Date.now()}`);
 

@@ -4,7 +4,7 @@ import path from "node:path";
 import artifact from "@actions/artifact";
 import * as core from "@actions/core";
 import readChangesetState from "../readChangesetState.ts";
-import { execChangesetsCli } from "../utils.ts";
+import { execChangesetsCli, validateChangesetsCliVersion } from "../utils.ts";
 
 type ModeResult =
   | {
@@ -49,6 +49,9 @@ async function main() {
 }
 
 async function getMode(): Promise<ModeResult> {
+  const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
   const { changesets } = await readChangesetState();
 
   if (changesets.length > 0) {
@@ -61,7 +64,6 @@ async function getMode(): Promise<ModeResult> {
     return { mode: "none" };
   }
 
-  const cwd = process.cwd();
   const publishPlanPath = path.join(
     process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),
     `changeset-publish-plan-${Date.now()}`,

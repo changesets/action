@@ -10,6 +10,8 @@ import {
   type ExecOutput,
 } from "@actions/exec";
 import { getPackages, type Package } from "@manypkg/get-packages";
+import major from "semver/functions/major.js";
+import subset from "semver/ranges/subset.js";
 
 const require = createRequire(import.meta.url);
 
@@ -151,6 +153,55 @@ export function throwOnRenamedInputs(renames: Record<string, string>) {
     throw new Error(
       `The following inputs have been renamed:\n${list}\nPlease update your workflow file.`,
     );
+  }
+}
+
+const changesetsCliCompatibilityError =
+  "This version of the Changesets action is designed to work with Changesets CLI v3. " +
+  "Changesets CLI v2 is not supported; use Changesets action v1 instead, which is compatible with CLI v2.";
+
+export async function validateChangesetsCliVersion(cwd: string) {
+  const { rootPackage } = await getPackages(cwd);
+  const packageJson = rootPackage?.packageJson;
+  const declaredVersion =
+    packageJson?.devDependencies?.["@changesets/cli"] ??
+    packageJson?.dependencies?.["@changesets/cli"];
+
+  if (typeof declaredVersion === "string") {
+    const range = declaredVersion.startsWith("workspace:")
+      ? declaredVersion.slice("workspace:".length)
+      : declaredVersion;
+
+    let isV2 = false;
+
+    try {
+      isV2 = subset(range, ">=2.0.0-0 <3.0.0-0", {
+        includePrerelease: true,
+      });
+    } catch {
+      // it could be a non-semver protocol
+    }
+
+    if (isV2) {
+      throw new Error(changesetsCliCompatibilityError);
+    }
+  }
+
+  let cliPackageJson;
+
+  try {
+    cliPackageJson = require(
+      require.resolve("@changesets/cli/package.json", { paths: [cwd] }),
+    );
+  } catch {
+    return;
+  }
+
+  if (
+    typeof cliPackageJson.version === "string" &&
+    major(cliPackageJson.version) === 2
+  ) {
+    throw new Error(changesetsCliCompatibilityError);
   }
 }
 
