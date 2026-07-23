@@ -3,12 +3,15 @@ import os from "node:os";
 import * as core from "@actions/core";
 import { GitHub } from "../github.ts";
 import { runPublish } from "../run.ts";
+import { uploadStagedRelease } from "../staged-release.ts";
 import {
   downloadArtifact,
+  getOptionalBooleanInput,
   getOptionalInput,
   getRequiredInput,
   validateChangesetsCliVersion,
 } from "../utils.ts";
+import { assertValidStageInput } from "./options.ts";
 
 try {
   await main();
@@ -23,9 +26,12 @@ async function main() {
 
   const githubToken = getRequiredInput("github-token");
   const script = getOptionalInput("script");
+  const stage = getOptionalBooleanInput("stage");
   const packDirArtifactId = getOptionalInput("pack-dir-artifact-id");
   const createGithubReleases = core.getBooleanInput("create-github-releases");
   const pushGitTags = core.getBooleanInput("push-git-tags");
+
+  assertValidStageInput(stage, script);
 
   if (createGithubReleases && !pushGitTags) {
     throw new Error(
@@ -48,12 +54,21 @@ async function main() {
 
   const result = await runPublish({
     script,
+    stage,
     github,
     createGithubReleases,
     pushGitTags,
     cwd,
     fromPackDir,
   });
+
+  if (result.stagedPackages?.length) {
+    const artifactId = await uploadStagedRelease(
+      result.stagedPackages,
+      result.exitCode === 0 ? "approve" : "reject",
+    );
+    core.setOutput("staged-release-artifact-id", String(artifactId));
+  }
 
   if (result.published) {
     core.setOutput("published", "true");

@@ -5,7 +5,7 @@ import { writeChangeset } from "@changesets/write";
 import { createFixture } from "fs-fixture";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
-import { runPublish, runVersion } from "./run.ts";
+import { readChangesetsOutput, runPublish, runVersion } from "./run.ts";
 
 vi.mock("@actions/github", () => ({
   context: {
@@ -110,6 +110,102 @@ afterEach(() => {
 });
 
 describe("publish", () => {
+  it("parses staged publish events in emitted order", async () => {
+    await using fixture = await createFixture({
+      "changesets-output.ndjson": [
+        JSON.stringify({
+          type: "npm-stage",
+          packageName: "pkg-b",
+          version: "1.0.0",
+          tag: "latest",
+          gitTag: "pkg-b@1.0.0",
+          stageId: "stage-b",
+        }),
+        JSON.stringify({ type: "unknown" }),
+        JSON.stringify({
+          type: "npm-stage",
+          packageName: "pkg-a",
+          version: "1.0.0",
+          tag: "latest",
+          gitTag: "pkg-a@1.0.0",
+          stageId: "stage-a",
+        }),
+      ].join("\n"),
+    });
+
+    await expect(
+      readChangesetsOutput(path.join(fixture.path, "changesets-output.ndjson")),
+    ).resolves.toMatchObject([
+      { type: "npm-stage", stageId: "stage-b" },
+      { type: "npm-stage", stageId: "stage-a" },
+    ]);
+  });
+
+  it("returns staged packages from a custom publish script", async () => {
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
+    vi.stubEnv("RUNNER_TEMP", cwd);
+    await fixture.writeFile(
+      "write-output.cjs",
+      `require("node:fs").writeFileSync(process.env.CHANGESETS_OUTPUT, JSON.stringify({
+        type: "npm-stage",
+        packageName: "changesets-dev-simple-project-pkg-b",
+        version: "1.0.0",
+        tag: "latest",
+        gitTag: "changesets-dev-simple-project-pkg-b@1.0.0",
+        stageId: "stage-b"
+      }) + "\\n")`,
+    );
+
+    const result = await runPublish({
+      script: "node write-output.cjs",
+      github: createGithub(cwd),
+      createGithubReleases: false,
+      pushGitTags: false,
+      cwd,
+    });
+
+    expect(result).toMatchObject({
+      published: false,
+      exitCode: 0,
+      stagedPackages: [{ type: "npm-stage", stageId: "stage-b" }],
+    });
+    expect(mockedGithubMethods.repos.createRelease).not.toHaveBeenCalled();
+  });
+
+  it("passes an explicit stage override to the built-in CLI", async () => {
+    await using fixture = await createFixture({
+      "node_modules/@changesets/cli/package.json": JSON.stringify({
+        name: "@changesets/cli",
+        type: "module",
+      }),
+      "node_modules/@changesets/cli/bin.js": `
+        import fs from "node:fs";
+        fs.writeFileSync("args.json", JSON.stringify(process.argv.slice(2)));
+        fs.writeFileSync(process.env.CHANGESETS_OUTPUT, "");
+      `,
+      "package.json": JSON.stringify({
+        name: "simple-project",
+        version: "1.0.0",
+      }),
+      "package-lock.json": "",
+    });
+    const cwd = fixture.path;
+    vi.stubEnv("RUNNER_TEMP", cwd);
+
+    await runPublish({
+      stage: false,
+      github: createGithub(cwd),
+      createGithubReleases: false,
+      pushGitTags: false,
+      cwd,
+    });
+
+    await expect(
+      fixture.readFile("args.json", "utf8").then(JSON.parse),
+    ).resolves.toEqual(["publish", "--no-stage"]);
+  });
+
   it("warns when a custom publish script does not create the output file", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;

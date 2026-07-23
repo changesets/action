@@ -1,0 +1,23 @@
+name: Changesets - GitHub Release
+description: Create Git tags and GitHub Releases after approving a staged publish
+runs:
+  using: node24
+  main: ../dist/github-release.js
+inputs:
+  github-token:
+    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    required: false
+    default: ${{ github.token }}
+  staged-release-artifact-id:
+    description: "The exact artifact id emitted by the publish action"
+    required: true
+  verify-published:
+    description: "Verify that every approved package is visible in its configured registry before creating tags and releases"
+    required: false
+    default: true
+outputs:
+  released-packages:
+    description: "A JSON array of packages finalized by this action"
+branding:
+  icon: package
+  color: blue
