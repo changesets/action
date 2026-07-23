@@ -27,7 +27,10 @@ try {
 }
 
 async function main() {
-  const result = await getMode();
+  const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
+  const result = await getMode(cwd);
   core.setOutput("mode", result.mode);
   if (result.mode === "publish") {
     const publishPlanArtifact = await artifact.uploadArtifact(
@@ -48,11 +51,8 @@ async function main() {
   }
 }
 
-async function getMode(): Promise<ModeResult> {
-  const cwd = process.cwd();
-  await validateChangesetsCliVersion(cwd);
-
-  const { changesets } = await readChangesetState();
+async function getMode(cwd: string): Promise<ModeResult> {
+  const { changesets } = await readChangesetState(cwd);
 
   if (changesets.length > 0) {
     const hasNonEmptyChangesets = changesets.some(
