@@ -98,18 +98,18 @@ For advanced use cases, you can also set up the [`~/.npmrc` file](https://docs.n
 
 ```yaml
 - run: |
-    cat <<EOF > ~/.npmrc
+    cat << 'EOF' > ~/.npmrc
 
     # For unscoped packages, publish to the default npm registry
-    //registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}
+    //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
 
     # For @foo/* packages, publish to a custom registry
     @foo:registry=https://my-registry.com/
-    //my-registry.com/:_authToken=\${NODE_FOO_AUTH_TOKEN}
+    //my-registry.com/:_authToken=${NODE_FOO_AUTH_TOKEN}
 
     # For @bar/* packages, publish to the GitHub Package Registry
     @bar:registry=https://npm.pkg.github.com/
-    //npm.pkg.github.com/:_authToken=\${GITHUB_TOKEN}
+    //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 
     EOF
 ```
@@ -134,17 +134,18 @@ For advanced use cases, similar to the `.npmrc` example above, the equivalent lo
 
 ```yaml
 - run: |
-    cat <<EOF > ~/.yarnrc.yml
+    cat << 'EOF' > ~/.yarnrc.yml
 
-    npmAuthToken: "\${NODE_AUTH_TOKEN}"
+    npmAuthToken: "${NODE_AUTH_TOKEN}"
 
     npmScopes:
       foo:
         npmRegistryServer: "https://my-registry.com/"
-        npmAuthToken: "\${NODE_FOO_AUTH_TOKEN}"
+        npmAuthToken: "${NODE_FOO_AUTH_TOKEN}"
       bar:
         npmRegistryServer: "https://npm.pkg.github.com/"
-        npmAuthToken: "\${GITHUB_TOKEN}"
+        npmAuthToken: "${GITHUB_TOKEN}"
+
     EOF
 ```
 
