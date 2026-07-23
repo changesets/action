@@ -6,13 +6,6 @@ This is a brief guide on setting up npm authentication in GitHub Actions. Most o
 
 It is recommended by npm to use [Trusted Publishing](https://docs.npmjs.com/trusted-publishers), or [Staged Publishing](https://docs.npmjs.com/staged-publishing), or both, to securely publish packages from CI.
 
-Token-based publishing (with [Granular Access Tokens](https://docs.npmjs.com/about-access-tokens#about-granular-access-tokens)) is no longer recommended, with many restrictions that make it difficult to use in CI workflows. For example:
-
-- They expire after a maximum of 90 days, which requires periodic manual token rotation.
-- 2FA-bypass tokens are [being deprecated](https://github.blog/changelog/2026-07-08-npm-install-time-security-and-gat-bypass2fa-deprecation/#2fa-bypass-tokens-will-no-longer-publish-directly) and will soon be not allowed to publish packages with 2FA enabled.
-
-However, if you're using a different npm-compatible registry that does not support Trusted Publishing or Staged Publishing, you may still opt for token-based publishing. Check out the [next section](#token-based-publishing) for more information.
-
 Note that Staged Publishing does not work with Changesets at the moment, so it's recommended to use Trusted Publishing instead for now. Check out [its docs](https://docs.npmjs.com/trusted-publishers) for more information to set it up.
 
 Also, in contrary to npm's [workflow recommendation](https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow), make sure the `id-token: write` is only set on the job that needs to publish. As such, consider splitting the build, test, publish flows etc into separate jobs. Here's an example setup with Changesets:
@@ -55,7 +48,17 @@ jobs:
 
 ## Token-based publishing
 
-If you need to use token-based publishing, in most cases you can use [actions/setup-node](https://github.com/actions/setup-node) to set it up automatically.
+> [!CAUTION]
+> Token-based publishing (with [Granular Access Tokens](https://docs.npmjs.com/about-access-tokens#about-granular-access-tokens)) is no longer recommended, with many restrictions that make it difficult to use in CI workflows. For example:
+>
+> - They expire after a maximum of 90 days, which requires periodic manual token rotation.
+> - 2FA-bypass tokens are [being deprecated](https://github.blog/changelog/2026-07-08-npm-install-time-security-and-gat-bypass2fa-deprecation/#2fa-bypass-tokens-will-no-longer-publish-directly) and will soon be not allowed to publish packages with 2FA enabled.
+>
+> However, if you're using a different npm-compatible registry that does not support Trusted Publishing or Staged Publishing, you may still opt for token-based publishing. Check out the [next section](#token-based-publishing) for more information.
+
+You'll need an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) with "Bypass two-factor authentication" checked (to prevent npm requesting 2FA in CI). [Add this token as a secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) in your GitHub repo with the name `NPM_TOKEN` so it can be used in the workflow below.
+
+In most cases, you can use [actions/setup-node](https://github.com/actions/setup-node) to set up token-based authentication automatically.
 
 ```yaml
 # .github/workflows/publish.yml
@@ -118,16 +121,17 @@ For advanced use cases, you can also set up the [`~/.npmrc` file](https://docs.n
 
 #### pnpm
 
-An `.npmrc` file in a project directory with pnpm does not support environment variables due to [security reasons](https://pnpm.io/blog/2026/06/11/env-variables-in-repository-npmrc). As such, it's recommended to set up in the home directory instead.
-
-This is also the general recommendation for other package managers to not mix potential existing config setups in projects.
+An `.npmrc` file in a project directory with pnpm does not support environment variables due to [security reasons](https://pnpm.io/blog/2026/06/11/env-variables-in-repository-npmrc). As such, it's recommended to set up in the home directory instead. This is also the general recommendation for other package managers to not mix potential existing config setups in projects.
 
 #### yarn
 
 [Yarn](https://yarnpkg.com) does not support the `.npmrc` file, compared to every other package managers that do. To set up authentication for yarn, use a [`~/.yarnrc.yml` file](https://yarnpkg.com/configuration/yarnrc) instead:
 
 ```yaml
-npmAuthToken: "${NODE_AUTH_TOKEN}"
+- run: |
+    cat << 'EOF' > ~/.yarnrc.yml
+    npmAuthToken: "${NODE_AUTH_TOKEN}"
+    EOF
 ```
 
 For advanced use cases, similar to the `.npmrc` example above, the equivalent looks something like this:

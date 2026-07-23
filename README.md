@@ -72,7 +72,7 @@ jobs:
 
 #### With Publishing
 
-Before you can setup this action with publishing, you'll need to have an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) that can publish the packages in the repo you're setting up the action for and doesn't have 2FA on publish enabled ([2FA on auth can be enabled](https://docs.npmjs.com/about-two-factor-authentication)). You'll also need to [add it as a secret on your GitHub repo](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) with the name `NPM_TOKEN`. Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
+Check the [npm authentication guide](./docs/set-up-npm-auth.md) to set up publishing to npm. After that, an example workflow with publishing may look like this:
 
 ```yml
 name: Release
@@ -99,6 +99,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 26
+          registry-url: https://registry.npmjs.org/
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -110,31 +111,7 @@ jobs:
           # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish-script: pnpm release
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Send a Slack notification if a publish happens
-        if: steps.changesets.outputs.published == 'true'
-        # You can do something when a publish happens.
-        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
-```
-
-By default the GitHub Action creates a `.npmrc` file with the following content:
-
-```txt
-//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
-```
-
-However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
-For example, you can add a step before running the Changesets GitHub Action:
-
-```yml
-- name: Creating .npmrc
-  run: |
-    cat << EOF > "$HOME/.npmrc"
-      //registry.npmjs.org/:_authToken=$NPM_TOKEN
-    EOF
-  env:
-    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 #### Custom Publishing
@@ -166,6 +143,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 26
+          registry-url: https://registry.npmjs.org/
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -178,6 +156,8 @@ jobs:
         if: steps.changesets.outputs.hasChangesets == 'false'
         # You can do something when a publish should happen.
         run: pnpm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 #### With version script
