@@ -1,10 +1,11 @@
 import path from "node:path";
+import * as core from "@actions/core";
 import type { Changeset } from "@changesets/types";
 import { writeChangeset } from "@changesets/write";
 import { createFixture } from "fs-fixture";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
-import { runVersion } from "./run.ts";
+import { runPublish, runVersion } from "./run.ts";
 
 vi.mock("@actions/github", () => ({
   context: {
@@ -19,6 +20,10 @@ vi.mock("@actions/github", () => ({
     rest: mockedGithubMethods,
     graphql: mockedGraphql,
   }),
+}));
+vi.mock("@actions/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@actions/core")>()),
+  warning: vi.fn(),
 }));
 vi.mock("@changesets/ghcommit");
 
@@ -100,6 +105,59 @@ const createGithub = (cwd: string) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+describe("publish", () => {
+  it("warns when a custom publish script does not create the output file", async () => {
+    await using fixture = await createSimpleProjectFixture();
+    const cwd = fixture.path;
+    vi.stubEnv("RUNNER_TEMP", cwd);
+
+    const result = await runPublish({
+      script: 'node -e "void 0"',
+      github: createGithub(cwd),
+      createGithubReleases: true,
+      pushGitTags: true,
+      cwd,
+    });
+
+    expect(result).toEqual({ published: false, exitCode: 0 });
+    expect(core.warning).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "GitHub releases and git tags cannot be created without this output",
+      ),
+    );
+  });
+
+  it("throws when the built-in publish command does not create the output file", async () => {
+    await using fixture = await createFixture({
+      "node_modules/@changesets/cli/package.json": JSON.stringify({
+        name: "@changesets/cli",
+        type: "module",
+      }),
+      "node_modules/@changesets/cli/bin.js": "",
+      "package.json": JSON.stringify({
+        name: "simple-project",
+        version: "1.0.0",
+      }),
+      "package-lock.json": "",
+    });
+    const cwd = fixture.path;
+    vi.stubEnv("RUNNER_TEMP", cwd);
+
+    await expect(
+      runPublish({
+        github: createGithub(cwd),
+        createGithubReleases: true,
+        pushGitTags: true,
+        cwd,
+      }),
+    ).rejects.toThrow("Failed to read changesets output at");
+  });
 });
 
 describe("version", () => {
