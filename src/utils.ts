@@ -119,13 +119,6 @@ export function isErrorWithCode(err: unknown, code: string) {
   );
 }
 
-export function fileExists(filePath: string) {
-  return fs.access(filePath, fs.constants.F_OK).then(
-    () => true,
-    () => false,
-  );
-}
-
 export function getOptionalInput(name: string) {
   // normalize empty string default return value of `core.getInput` to undefined
   return core.getInput(name) || undefined;
