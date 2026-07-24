@@ -7,6 +7,7 @@ import {
   downloadArtifact,
   execChangesetsCli,
   getOptionalInput,
+  validateChangesetsCliVersion,
 } from "../utils.ts";
 
 try {
@@ -16,10 +17,12 @@ try {
 }
 
 async function main() {
-  const publishPlanArtifactId = getOptionalInput("publish-plan-artifact-id");
-
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
+  const publishPlanArtifactId = getOptionalInput("publish-plan-artifact-id");
+
   const tmpDir = process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir()));
   const outDir = path.join(tmpDir, `changeset-pack-${Date.now()}`);
 

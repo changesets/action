@@ -14,20 +14,22 @@ There are also sub-actions hosted in this repository. Check out their respective
 
 ### Inputs
 
-- publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
-- commit - The commit message to use. Default to `Version Packages`
-- title - The pull request title. Default to `Version Packages`
-- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
-- commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
+- publish-script - The command to use to build and publish packages
+- version-script - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
+- commit-message - The commit message to use. Default to `Version Packages`
+- pr-title - The pull request title. Default to `Version Packages`
+- setup-git-user - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
+- create-github-releases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- push-git-tags - A boolean value to indicate whether to create git tags after `publish` or not. Default to `true`
+- commit-mode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
-- prDraft - Controls draft PR behavior. Use `create` to create new version PRs as draft, or `always` to also convert existing version PRs back to draft when updating them. By default, version PRs are not forced into draft mode.
+- pr-draft - Controls draft PR behavior. Use `create` to create new version PRs as draft, or `always` to also convert existing version PRs back to draft when updating them. By default, version PRs are not forced into draft mode
+- github-token - Passes a custom GitHub token
 
 ### Outputs
 
 - published - A boolean value to indicate whether a publishing has happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- published-packages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
 ### Example workflow
 

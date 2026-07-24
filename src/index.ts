@@ -8,9 +8,14 @@ import {
   getOptionalInput,
   getRequiredInput,
   throwOnRenamedInputs,
+  validateChangesetsCliVersion,
 } from "./utils.ts";
 
 (async () => {
+  // If the user needs to change the cwd, set `working-directory` in the step instead
+  const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
   throwOnRenamedInputs({
     publish: "publish-script",
     version: "version-script",
@@ -31,9 +36,6 @@ import {
         "remove the GITHUB_TOKEN environment variable to avoid conflicts.",
     );
   }
-
-  // If the user needs to change the cwd, set `working-directory` in the step instead
-  const cwd = process.cwd();
 
   const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
   const prDraft = getOptionalInput("pr-draft");

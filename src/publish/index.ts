@@ -7,6 +7,7 @@ import {
   downloadArtifact,
   getOptionalInput,
   getRequiredInput,
+  validateChangesetsCliVersion,
 } from "../utils.ts";
 
 try {
@@ -16,6 +17,10 @@ try {
 }
 
 async function main() {
+  // If the user needs to change the cwd, set `working-directory` in the step instead
+  const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
   const githubToken = getRequiredInput("github-token");
   const script = getOptionalInput("script");
   const packDirArtifactId = getOptionalInput("pack-dir-artifact-id");
@@ -29,9 +34,6 @@ async function main() {
         "or set 'create-github-releases' to false.",
     );
   }
-
-  // If the user needs to change the cwd, set `working-directory` in the step instead
-  const cwd = process.cwd();
 
   // NOTE: Always use API mode here as publish does not need a commit-mode.
   const github = new GitHub({ cwd, githubToken, commitMode: "github-api" });
