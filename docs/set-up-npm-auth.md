@@ -22,7 +22,36 @@ on:
 permissions: {} # recommended: reset permissions
 
 jobs:
-  build-and-pack:
+  select-mode:
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+      publish-plan-artifact-id: ${{ steps.select-mode.outputs.publish-plan-artifact-id }}
+    permissions:
+      contents: read # to check out repo (actions/checkout)
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm install
+      - uses: changesets/action/select-mode@v2
+        id: select-mode
+
+  version:
+    if: needs.select-mode.outputs.mode == 'version'
+    needs: select-mode
+    runs-on: ubuntu-latest
+    outputs:
+      version-dir-artifact-id: ${{ steps.version.outputs.version-dir-artifact-id }}
+    permissions:
+      contents: read # to check out repo (actions/checkout)
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm install
+      - uses: changesets/action/version@v2
+        id: version
+
+  pack:
+    if: needs.select-mode.outputs.mode == 'publish'
+    needs: select-mode
     runs-on: ubuntu-latest
     outputs:
       pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
@@ -34,16 +63,18 @@ jobs:
       - run: npm build
       - uses: changesets/action/pack@v2
         id: pack
+        with:
+          publish-plan-artifact-id: ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
 
   publish:
-    needs: build-and-pack
+    needs: pack
     runs-on: ubuntu-latest
     permissions:
       id-token: write # for trusted publishing (changesets/action)
     steps:
       - uses: changesets/action/publish@v2
         with:
-          pack-dir-artifact-id: ${{ needs.build-and-pack.outputs.pack-dir-artifact-id }}
+          pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
 ```
 
 ## Token-based Publishing
@@ -72,7 +103,10 @@ on:
 permissions: {} # recommended: reset permissions
 
 jobs:
+  # ... other jobs like select-mode and version
   publish:
+    if: needs.select-mode.outputs.mode == 'publish'
+    needs: select-mode
     runs-on: ubuntu-latest
     permissions:
       contents: read # to check out repo (actions/checkout)
@@ -84,7 +118,7 @@ jobs:
           registry-url: https://registry.npmjs.org/ # set this option to set up npm authentication
       - run: npm install
       - run: npm build
-      - run: npm publish
+      - uses: changesets/action/publish@v2
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # pass the token here
 ```
