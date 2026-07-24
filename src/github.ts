@@ -93,22 +93,20 @@ export class GitHub {
     };
   }
 
-  async setupUser() {
-    if (this.commitMode === "github-api") {
-      return;
-    }
+  async ensureGitUser() {
     // Check the exact identities that Git would use for commits without
     // allowing Git to fall back to auto-detected values like user@hostname.
     // This covers explicit GIT_AUTHOR_* / GIT_COMMITTER_* env vars, local
     // config, and global config. A partial identity, with only a name or only
-    // an email, does not pass this check. If either identity is missing, set
-    // our default bot user so CLI commits don't fail or use host-derived data.
+    // an email, does not pass this check. If either identity is missing,
+    // configure our default bot user as a fallback.
     const authorIdentity = await getExecOutput(
       "git",
       ["-c", "user.useConfigOnly=true", "var", "GIT_AUTHOR_IDENT"],
       {
         cwd: this.cwd,
         ignoreReturnCode: true,
+        silent: true,
       },
     );
     const committerIdentity = await getExecOutput(
@@ -117,11 +115,13 @@ export class GitHub {
       {
         cwd: this.cwd,
         ignoreReturnCode: true,
+        silent: true,
       },
     );
     if (authorIdentity.exitCode === 0 && committerIdentity.exitCode === 0) {
       return;
     }
+    core.info("Setting Git user to github-actions[bot]");
     await exec("git", ["config", "user.name", `"github-actions[bot]"`], {
       cwd: this.cwd,
     });
@@ -184,6 +184,7 @@ export class GitHub {
       return;
     }
     if (!(await checkIfClean({ cwd: this.cwd }))) {
+      await this.ensureGitUser();
       await commitAll(message, { cwd: this.cwd });
     }
     await push(branch, {

@@ -46,10 +46,6 @@ inputs:
       or app who owns the GITHUB_TOKEN.
     required: false
     default: "git-cli"
-  setup-git-user:
-    description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-    required: false
-    default: true
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

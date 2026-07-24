@@ -75,7 +75,6 @@ jobs:
         uses: ./version
         with:
           github-token: ${{ steps.bot-auth.outputs.token }}
-          setup-git-user: false
           script: pnpm bump
 
   publish:
