@@ -46,7 +46,7 @@ jobs:
           pack-dir-artifact-id: ${{ needs.build-and-pack.outputs.pack-dir-artifact-id }}
 ```
 
-## Token-based publishing
+## Token-based Publishing
 
 > [!CAUTION]
 > Token-based publishing (with [Granular Access Tokens](https://docs.npmjs.com/about-access-tokens#about-granular-access-tokens)) is no longer recommended, with many restrictions that make it difficult to use in CI workflows. For example:
@@ -89,15 +89,22 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # pass the token here
 ```
 
-Internally, `actions/setup-node` will set up a configuration like below in `~/.npmrc` (in the home directory):
+> [!TIP]
+> Pass `registry-url: https://npm.pkg.github.com/` and `NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}` to publish to the GitHub Package Registry instead of npm.
+
+Internally, `actions/setup-node` will set up a `.npmrc` file that looks like this:
 
 ```ini
 //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
 ```
 
-This syntax allows to authenticate with the npm registry only when the `NODE_AUTH_TOKEN` environment variable is set, which is a safer approach than storing the token directly in the `.npmrc` file.
+This syntax allows to authenticate with the npm registry only when the `NODE_AUTH_TOKEN` environment variable is set, which is the safer approach than storing the token directly in the `.npmrc` file.
 
-For advanced use cases, you can also set up the [`~/.npmrc` file](https://docs.npmjs.com/cli/configuring-npm/npmrc) manually. For example, if you need to publish different scopes to different registries, you can set up the `~/.npmrc` file like below:
+### Manual Setup
+
+For advanced use cases, you can also set up the [`~/.npmrc` file](https://docs.npmjs.com/cli/configuring-npm/npmrc) manually. Make sure to remove the `registry-url` option from `actions/setup-node` to prevent conflicts with your custom `.npmrc` file.
+
+For example, if you need to publish different scopes to different registries, you can set up the `~/.npmrc` file like below:
 
 ```yaml
 - run: |

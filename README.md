@@ -99,7 +99,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 26
-          registry-url: https://registry.npmjs.org/
+          registry-url: https://registry.npmjs.org/ # set up .npmrc file for authentication
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -143,7 +143,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 26
-          registry-url: https://registry.npmjs.org/
+          registry-url: https://registry.npmjs.org/ # set up .npmrc file for authentication
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
