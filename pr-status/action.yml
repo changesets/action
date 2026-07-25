@@ -7,6 +7,14 @@ inputs: {}
 outputs:
   comment-body:
     description: The generated comment body to present the changesets status in PRs.
+  has-changesets:
+    description: A boolean about whether the pull request contains changesets.
+  max-bump:
+    description: >
+      The highest semver bump across the released packages. One of `major`, `minor`, `patch`, or `none`.
+  releases:
+    description: >
+      A JSON array to present the packages that will be released. The format is `[{"name": "@xx/xx", "type": "minor", "oldVersion": "1.1.0", "newVersion": "1.2.0"}]`
 branding:
   icon: package
   color: blue
