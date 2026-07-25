@@ -5,14 +5,17 @@ type PublishableRelease = {
   type: Exclude<VersionType, "none">;
   oldVersion: string;
   newVersion: string;
+  changesets: string[];
 };
 
 const bumpOrder = ["major", "minor", "patch"] as const;
 
 export function summarizeReleasePlan(releasePlan: ReleasePlan) {
   const releases = releasePlan.releases.flatMap<PublishableRelease>(
-    ({ name, type, oldVersion, newVersion }) =>
-      type === "none" ? [] : [{ name, type, oldVersion, newVersion }],
+    ({ name, type, oldVersion, newVersion, changesets }) =>
+      type === "none"
+        ? []
+        : [{ name, type, oldVersion, newVersion, changesets }],
   );
 
   const maxBump =
