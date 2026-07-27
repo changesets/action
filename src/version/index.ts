@@ -25,7 +25,6 @@ async function main() {
   const prDraft = getOptionalInput("pr-draft");
   const prBaseBranch = getOptionalInput("pr-base-branch");
   const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
-  const setupGitUser = core.getBooleanInput("setup-git-user");
 
   // Validations
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
@@ -40,11 +39,6 @@ async function main() {
     githubToken,
     commitMode,
   });
-
-  if (setupGitUser) {
-    core.info("setting git user");
-    await github.setupUser();
-  }
 
   const { pullRequestNumber } = await runVersion({
     script,

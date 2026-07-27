@@ -164,6 +164,10 @@ export async function runPublish({
   cwd,
 }: PublishOptions): Promise<PublishResult> {
   const { octokit } = github;
+  // Changesets creates annotated tags locally, including when the action pushes those tags through the GitHub API.
+  // It might also be important for custom publish scripts to have a valid git user configured.
+  await github.ensureGitUser();
+
   let changesetPublishOutput: ExecOutput;
   const outputFile = path.join(
     process.env.RUNNER_TEMP ?? (await fs.realpath(os.tmpdir())),

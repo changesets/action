@@ -3,6 +3,7 @@ import * as core from "@actions/core";
 import type { Changeset } from "@changesets/types";
 import { writeChangeset } from "@changesets/write";
 import { createFixture } from "fs-fixture";
+import { exec } from "tinyexec";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
 import { runPublish, runVersion } from "./run.ts";
@@ -101,6 +102,13 @@ const createGithub = (cwd: string) =>
     commitMode: "github-api",
   });
 
+async function initializeGitRepository(cwd: string) {
+  await exec("git", ["init"], {
+    nodeOptions: { cwd },
+    throwOnError: true,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -113,6 +121,7 @@ describe("publish", () => {
   it("warns when a custom publish script does not create the output file", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await initializeGitRepository(cwd);
     vi.stubEnv("RUNNER_TEMP", cwd);
 
     const result = await runPublish({
@@ -145,6 +154,7 @@ describe("publish", () => {
       "package-lock.json": "",
     });
     const cwd = fixture.path;
+    await initializeGitRepository(cwd);
     vi.stubEnv("RUNNER_TEMP", cwd);
 
     await expect(

@@ -23,7 +23,6 @@ import {
     prDraft: "pr-draft",
     createGithubReleases: "create-github-releases",
     commitMode: "commit-mode",
-    setupGitUser: "setup-git-user",
   });
 
   const githubToken = getRequiredInput("github-token");
@@ -50,13 +49,6 @@ import {
     githubToken,
     commitMode,
   });
-
-  let setupGitUser = core.getBooleanInput("setup-git-user");
-
-  if (setupGitUser) {
-    core.info("setting git user");
-    await github.setupUser();
-  }
 
   let { changesets } = await readChangesetState(cwd);
 
