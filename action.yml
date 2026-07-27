@@ -52,6 +52,8 @@ outputs:
   published-packages:
     description: >
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+  staged-release-artifact-id:
+    description: Artifact id for a staged release handoff emitted by the publish script
   has-changesets:
     description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
   pr-number:

@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { GitHub } from "./github.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
+import { uploadStagedRelease } from "./staged-release.ts";
 import {
   getOptionalInput,
   getRequiredInput,
@@ -92,6 +93,14 @@ import {
         pushGitTags,
         cwd,
       });
+
+      if (result.stagedPackages?.length) {
+        const artifactId = await uploadStagedRelease(
+          result.stagedPackages,
+          result.exitCode === 0 ? "approve" : "reject",
+        );
+        core.setOutput("staged-release-artifact-id", String(artifactId));
+      }
 
       if (result.published) {
         core.setOutput("published", "true");

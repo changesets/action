@@ -9,6 +9,7 @@ export default defineConfig({
     "select-mode": "src/select-mode/index.ts",
     version: "src/version/index.ts",
     publish: "src/publish/index.ts",
+    "github-release": "src/github-release/index.ts",
   },
   output: {
     dir: "dist",

@@ -130,6 +130,16 @@ export function getRequiredInput(name: string) {
   return core.getInput(name, { required: true });
 }
 
+export function getOptionalBooleanInput(name: string) {
+  const value = getOptionalInput(name);
+  if (value === undefined) return undefined;
+  if (value.toLowerCase() === "true") return true;
+  if (value.toLowerCase() === "false") return false;
+  throw new Error(
+    `Invalid boolean input ${JSON.stringify(name)}: ${JSON.stringify(value)}`,
+  );
+}
+
 export function throwOnRenamedInputs(renames: Record<string, string>) {
   const references: Record<string, string> = {};
 

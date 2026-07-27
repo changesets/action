@@ -31,7 +31,7 @@ import {
 // To avoid that, we ensure to cap the message to 60k chars.
 const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
-const createRelease = async (
+export const createRelease = async (
   octokit: Octokit,
   { pkg, tagName }: { pkg: Package; tagName: string },
 ) => {
@@ -66,6 +66,7 @@ const createRelease = async (
 type PublishOptions = {
   script?: string;
   fromPackDir?: string;
+  stage?: boolean;
   createGithubReleases: boolean;
   pushGitTags: boolean;
   github: GitHub;
@@ -73,11 +74,25 @@ type PublishOptions = {
 };
 
 type PublishedPackage = { name: string; version: string };
-type ChangesetsOutputEvent = {
-  type: "git-tag";
-  tag: string;
-  packageName: string;
-};
+export type ChangesetsOutputEvent =
+  | {
+      type: "git-tag";
+      tag: string;
+      packageName: string;
+    }
+  | {
+      type: "npm-stage";
+      packageName: string;
+      version: string;
+      tag: string;
+      gitTag: string;
+      stageId: string;
+    };
+
+export type NpmStageEvent = Extract<
+  ChangesetsOutputEvent,
+  { type: "npm-stage" }
+>;
 
 class ChangesetsOutputReadError extends Error {}
 
@@ -85,10 +100,12 @@ type PublishResult =
   | {
       published: true;
       publishedPackages: PublishedPackage[];
+      stagedPackages?: NpmStageEvent[];
       exitCode: number;
     }
   | {
       published: false;
+      stagedPackages?: NpmStageEvent[];
       exitCode: number;
     };
 
@@ -99,18 +116,32 @@ function isObject(value: unknown) {
 function isChangesetsOutputEvent(
   value: unknown,
 ): value is ChangesetsOutputEvent {
-  return (
-    isObject(value) &&
-    "type" in value &&
+  if (!isObject(value) || !("type" in value)) return false;
+  if (
     value.type === "git-tag" &&
     "tag" in value &&
     typeof value.tag === "string" &&
     "packageName" in value &&
     typeof value.packageName === "string"
+  ) {
+    return true;
+  }
+  return (
+    value.type === "npm-stage" &&
+    "packageName" in value &&
+    typeof value.packageName === "string" &&
+    "version" in value &&
+    typeof value.version === "string" &&
+    "tag" in value &&
+    typeof value.tag === "string" &&
+    "gitTag" in value &&
+    typeof value.gitTag === "string" &&
+    "stageId" in value &&
+    typeof value.stageId === "string"
   );
 }
 
-async function readChangesetsOutput(outputPath: string) {
+export async function readChangesetsOutput(outputPath: string) {
   let rawOutput: string;
   try {
     rawOutput = await fs.readFile(outputPath, "utf8");
@@ -158,6 +189,7 @@ async function readChangesetsOutput(outputPath: string) {
 export async function runPublish({
   script,
   fromPackDir,
+  stage,
   github,
   createGithubReleases,
   pushGitTags,
@@ -191,6 +223,9 @@ export async function runPublish({
     );
   } else {
     const args = ["publish"];
+    if (stage !== undefined) {
+      args.push(stage ? "--stage" : "--no-stage");
+    }
     if (fromPackDir) {
       args.push("--from-pack-dir", fromPackDir);
     }
@@ -200,8 +235,13 @@ export async function runPublish({
     );
   }
 
-  let { packages, tool } = await getPackages(cwd);
-  let packagesByName = new Map(packages.map((x) => [x.packageJson.name, x]));
+  let { packages, rootPackage, tool } = await getPackages(cwd);
+  let packagesByName = new Map(
+    [...packages, ...(rootPackage ? [rootPackage] : [])].map((x) => [
+      x.packageJson.name,
+      x,
+    ]),
+  );
   let output: ChangesetsOutputEvent[];
   try {
     output = await readChangesetsOutput(outputFile);
@@ -214,16 +254,24 @@ export async function runPublish({
     );
     output = [];
   }
-  let releases = output.map((event) => {
-    let pkg = packagesByName.get(event.packageName);
-    if (pkg === undefined) {
-      throw new Error(
-        `Package "${event.packageName}" not found.` +
-          "This is probably a bug in the action, please open an issue",
-      );
-    }
-    return { pkg, tag: event.tag };
-  });
+  const stagedPackages = output.filter(
+    (event): event is NpmStageEvent => event.type === "npm-stage",
+  );
+  let releases = output
+    .filter(
+      (event): event is Extract<ChangesetsOutputEvent, { type: "git-tag" }> =>
+        event.type === "git-tag",
+    )
+    .map((event) => {
+      let pkg = packagesByName.get(event.packageName);
+      if (pkg === undefined) {
+        throw new Error(
+          `Package "${event.packageName}" not found.` +
+            "This is probably a bug in the action, please open an issue",
+        );
+      }
+      return { pkg, tag: event.tag };
+    });
 
   if (tool.type === "root" && packages.length === 0) {
     throw new Error(
@@ -252,11 +300,16 @@ export async function runPublish({
         name: pkg.packageJson.name,
         version: pkg.packageJson.version,
       })),
+      ...(stagedPackages.length > 0 ? { stagedPackages } : {}),
       exitCode: changesetPublishOutput.exitCode,
     };
   }
 
-  return { published: false, exitCode: changesetPublishOutput.exitCode };
+  return {
+    published: false,
+    ...(stagedPackages.length > 0 ? { stagedPackages } : {}),
+    exitCode: changesetPublishOutput.exitCode,
+  };
 }
 
 type GetMessageOptions = {
