@@ -14,20 +14,26 @@ There are also sub-actions hosted in this repository. Check out their respective
 
 ### Inputs
 
-- publish - The command to use to build and publish packages
-- version - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
-- commit - The commit message to use. Default to `Version Packages`
-- title - The pull request title. Default to `Version Packages`
-- setupGitUser - Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-- createGithubReleases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
-- commitMode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`.
+- publish-script - The command to use to build and publish packages
+- version-script - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
+- commit-message - The commit message to use. Default to `Version Packages`
+- pr-title - The pull request title. Default to `Version Packages`
+- create-github-releases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
+- push-git-tags - A boolean value to indicate whether to create git tags after `publish` or not. Default to `true`
+- commit-mode - Specifies the commit mode. Use `"git-cli"` to push changes using the Git CLI, or `"github-api"` to push changes via the GitHub API. When using `"github-api"`, all commits and tags are GPG-signed and attributed to the user or app who owns the `GITHUB_TOKEN`. Default to `git-cli`
 - cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
-- prDraft - Controls draft PR behavior. Use `create` to create new version PRs as draft, or `always` to also convert existing version PRs back to draft when updating them. By default, version PRs are not forced into draft mode.
+- pr-draft - Controls draft PR behavior. Use `create` to create new version PRs as draft, or `always` to also convert existing version PRs back to draft when updating them. By default, version PRs are not forced into draft mode
+- github-token - Passes a custom GitHub token
+
+Before creating local commits or annotated tags, the action preserves complete
+Git author and committer identities configured through the environment or Git
+configuration. If either identity is unavailable, it configures
+`github-actions[bot]` as a fallback.
 
 ### Outputs
 
 - published - A boolean value to indicate whether a publishing has happened or not
-- publishedPackages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+- published-packages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
 
 ### Example workflow
 
@@ -70,7 +76,7 @@ jobs:
 
 #### With Publishing
 
-Before you can setup this action with publishing, you'll need to have an [npm token](https://docs.npmjs.com/creating-and-viewing-authentication-tokens) that can publish the packages in the repo you're setting up the action for and doesn't have 2FA on publish enabled ([2FA on auth can be enabled](https://docs.npmjs.com/about-two-factor-authentication)). You'll also need to [add it as a secret on your GitHub repo](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) with the name `NPM_TOKEN`. Once you've done that, you can create a file at `.github/workflows/release.yml` with the following content.
+Check the [npm authentication guide](./docs/set-up-npm-auth.md) to set up publishing to npm. After that, an example workflow with publishing may look like this:
 
 ```yml
 name: Release
@@ -97,6 +103,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 26
+          registry-url: https://registry.npmjs.org/ # makes the action set up npm authentication
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -108,31 +115,7 @@ jobs:
           # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish-script: pnpm release
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Send a Slack notification if a publish happens
-        if: steps.changesets.outputs.published == 'true'
-        # You can do something when a publish happens.
-        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
-```
-
-By default the GitHub Action creates a `.npmrc` file with the following content:
-
-```txt
-//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}
-```
-
-However, if a `.npmrc` file is found, the GitHub Action does not recreate the file. This is useful if you need to configure the `.npmrc` file on your own.
-For example, you can add a step before running the Changesets GitHub Action:
-
-```yml
-- name: Creating .npmrc
-  run: |
-    cat << EOF > "$HOME/.npmrc"
-      //registry.npmjs.org/:_authToken=$NPM_TOKEN
-    EOF
-  env:
-    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 #### Custom Publishing
@@ -164,6 +147,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 26
+          registry-url: https://registry.npmjs.org/ # makes the action set up npm authentication
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -176,6 +160,8 @@ jobs:
         if: steps.changesets.outputs.hasChangesets == 'false'
         # You can do something when a publish should happen.
         run: pnpm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 #### With version script

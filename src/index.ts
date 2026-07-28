@@ -1,16 +1,19 @@
-import fs from "node:fs/promises";
 import * as core from "@actions/core";
 import { GitHub } from "./github.ts";
 import readChangesetState from "./readChangesetState.ts";
 import { runPublish, runVersion } from "./run.ts";
 import {
-  fileExists,
   getOptionalInput,
   getRequiredInput,
   throwOnRenamedInputs,
+  validateChangesetsCliVersion,
 } from "./utils.ts";
 
 (async () => {
+  // If the user needs to change the cwd, set `working-directory` in the step instead
+  const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
   throwOnRenamedInputs({
     publish: "publish-script",
     version: "version-script",
@@ -20,7 +23,6 @@ import {
     prDraft: "pr-draft",
     createGithubReleases: "create-github-releases",
     commitMode: "commit-mode",
-    setupGitUser: "setup-git-user",
   });
 
   const githubToken = getRequiredInput("github-token");
@@ -31,9 +33,6 @@ import {
         "remove the GITHUB_TOKEN environment variable to avoid conflicts.",
     );
   }
-
-  // If the user needs to change the cwd, set `working-directory` in the step instead
-  const cwd = process.cwd();
 
   const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
   const prDraft = getOptionalInput("pr-draft");
@@ -50,13 +49,6 @@ import {
     githubToken,
     commitMode,
   });
-
-  let setupGitUser = core.getBooleanInput("setup-git-user");
-
-  if (setupGitUser) {
-    core.info("setting git user");
-    await github.setupUser();
-  }
 
   let { changesets } = await readChangesetState(cwd);
 
@@ -81,51 +73,6 @@ import {
       core.info(
         "No changesets found. Attempting to publish any unpublished packages to npm",
       );
-
-      if (process.env.NPM_TOKEN) {
-        const userNpmrcPath = `${process.env.HOME}/.npmrc`;
-
-        if (await fileExists(userNpmrcPath)) {
-          core.info("Found existing user .npmrc file");
-          const userNpmrcContent = await fs.readFile(userNpmrcPath, "utf8");
-          const authLine = userNpmrcContent.split("\n").find((line) => {
-            // check based on https://github.com/npm/cli/blob/8f8f71e4dd5ee66b3b17888faad5a7bf6c657eed/test/lib/adduser.js#L103-L105
-            return /^\s*\/\/registry\.npmjs\.org\/:[_-]authToken=/i.test(line);
-          });
-          if (authLine) {
-            core.info(
-              "Found existing auth token for the npm registry in the user .npmrc file",
-            );
-          } else {
-            core.info(
-              "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one",
-            );
-            await fs.appendFile(
-              userNpmrcPath,
-              `\n//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`,
-            );
-          }
-        } else {
-          core.info(
-            "No user .npmrc file found, creating one with NPM_TOKEN used as auth token",
-          );
-          await fs.writeFile(
-            userNpmrcPath,
-            `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}\n`,
-          );
-        }
-      } else if (
-        process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN &&
-        process.env.ACTIONS_ID_TOKEN_REQUEST_URL
-      ) {
-        core.info(
-          "No NPM_TOKEN found, but OIDC is available - using npm trusted publishing",
-        );
-      } else {
-        core.info(
-          "No NPM_TOKEN or OIDC available - assuming npm is already authenticated",
-        );
-      }
 
       const createGithubReleases = core.getBooleanInput(
         "create-github-releases",

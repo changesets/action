@@ -1,7 +1,11 @@
 import * as core from "@actions/core";
 import { GitHub } from "../github.ts";
 import { runVersion } from "../run.ts";
-import { getOptionalInput, getRequiredInput } from "../utils.ts";
+import {
+  getOptionalInput,
+  getRequiredInput,
+  validateChangesetsCliVersion,
+} from "../utils.ts";
 
 try {
   await main();
@@ -10,6 +14,10 @@ try {
 }
 
 async function main() {
+  // If the user needs to change the cwd, set `working-directory` in the step instead
+  const cwd = process.cwd();
+  await validateChangesetsCliVersion(cwd);
+
   const githubToken = getRequiredInput("github-token");
   const script = getOptionalInput("script");
   const commitMessage = getRequiredInput("commit-message");
@@ -17,7 +25,6 @@ async function main() {
   const prDraft = getOptionalInput("pr-draft");
   const prBaseBranch = getOptionalInput("pr-base-branch");
   const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
-  const setupGitUser = core.getBooleanInput("setup-git-user");
 
   // Validations
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
@@ -27,19 +34,11 @@ async function main() {
     throw new Error(`Invalid commit-mode input: ${commitMode}`);
   }
 
-  // If the user needs to change the cwd, set `working-directory` in the step instead
-  const cwd = process.cwd();
-
   const github = new GitHub({
     cwd,
     githubToken,
     commitMode,
   });
-
-  if (setupGitUser) {
-    core.info("setting git user");
-    await github.setupUser();
-  }
 
   const { pullRequestNumber } = await runVersion({
     script,

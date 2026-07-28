@@ -33,10 +33,6 @@ inputs:
       or app who owns the GITHUB_TOKEN.
     required: false
     default: "git-cli"
-  setup-git-user:
-    description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
-    required: false
-    default: true
 outputs:
   pr-number:
     description: The pull request number that was created or updated
