@@ -24,7 +24,7 @@ async function main() {
   const prTitle = getRequiredInput("pr-title");
   const prDraft = getOptionalInput("pr-draft");
   const prBaseBranch = getOptionalInput("pr-base-branch");
-  const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
+  const commitMode = getOptionalInput("commit-mode") ?? "github-api";
 
   // Validations
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {

@@ -82,7 +82,7 @@ export class GitHub {
   }) {
     this.#githubToken = options.githubToken;
     this.cwd = options.cwd;
-    this.commitMode = options.commitMode ?? "git-cli";
+    this.commitMode = options.commitMode ?? "github-api";
     this.octokit = setupOctokit(options.githubToken);
   }
 

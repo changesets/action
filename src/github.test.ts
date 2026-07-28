@@ -26,6 +26,15 @@ beforeEach(() => {
 });
 
 describe("GitHub", () => {
+  it("defaults to GitHub API mode", () => {
+    const github = new GitHub({
+      cwd: "/repo",
+      githubToken: "token",
+    });
+
+    expect(github.commitMode).toBe("github-api");
+  });
+
   it("clears inherited git auth headers before adding the github-token header", async () => {
     vi.mocked(getExecOutput)
       .mockResolvedValueOnce({

@@ -34,7 +34,7 @@ import {
     );
   }
 
-  const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
+  const commitMode = getOptionalInput("commit-mode") ?? "github-api";
   const prDraft = getOptionalInput("pr-draft");
   if (commitMode !== "git-cli" && commitMode !== "github-api") {
     core.setFailed(`Invalid commit mode: ${commitMode}`);

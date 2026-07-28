@@ -45,7 +45,7 @@ inputs:
       all commits and tags are signed using GitHub's GPG key and attributed to the user
       or app who owns the GITHUB_TOKEN.
     required: false
-    default: "git-cli"
+    default: "github-api"
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not
