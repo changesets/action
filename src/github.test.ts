@@ -5,7 +5,11 @@ import { exec } from "tinyexec";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
 import { createGitHttpServer } from "./test-utils/gitHttpServer.ts";
-import { createLocalRemote, gitdir, testdir } from "./test-utils/index.ts";
+import {
+  createLocalRemote,
+  shallowClone,
+  testdir,
+} from "./test-utils/index.ts";
 
 const githubContext = vi.hoisted(() => ({
   repo: {
@@ -61,10 +65,12 @@ describe("GitHub", () => {
 
   it("uses github-token instead of checkout's persisted header for CLI branch and tag pushes", async () => {
     await using _gitConfig = await isolateGitConfig();
-    await using repositoryFixture = await gitdir({ "file.txt": "initial\n" });
-    const repository = repositoryFixture.path;
-    await using remoteFixture = await createLocalRemote(repository);
+    await using remoteFixture = await createLocalRemote({
+      "file.txt": "initial\n",
+    });
     const remote = remoteFixture.path;
+    await using repositoryFixture = await shallowClone(remote);
+    const repository = repositoryFixture.path;
     const actionToken = "action-token";
     const checkoutToken = "checkout-token";
 
@@ -74,7 +80,7 @@ describe("GitHub", () => {
     });
     githubContext.serverUrl = server.origin;
     const remoteUrl = `${server.origin}/${path.basename(remote)}`;
-    await git(repository, ["remote", "add", "origin", remoteUrl]);
+    await git(repository, ["remote", "set-url", "origin", remoteUrl]);
     await git(repository, [
       "config",
       `http.${server.origin}/.extraheader`,
@@ -109,10 +115,12 @@ describe("GitHub", () => {
 
   it("uses github-token instead of credentials embedded in the CLI push URL", async () => {
     await using _gitConfig = await isolateGitConfig();
-    await using repositoryFixture = await gitdir({ "file.txt": "initial\n" });
-    const repository = repositoryFixture.path;
-    await using remoteFixture = await createLocalRemote(repository);
+    await using remoteFixture = await createLocalRemote({
+      "file.txt": "initial\n",
+    });
     const remote = remoteFixture.path;
+    await using repositoryFixture = await shallowClone(remote);
+    const repository = repositoryFixture.path;
     const actionToken = "action-token";
 
     await using server = await createGitHttpServer({
@@ -123,7 +131,7 @@ describe("GitHub", () => {
     const remoteUrl = new URL(`${server.origin}/${path.basename(remote)}`);
     remoteUrl.username = "x-access-token";
     remoteUrl.password = "checkout-token";
-    await git(repository, ["remote", "add", "origin", remoteUrl.href]);
+    await git(repository, ["remote", "set-url", "origin", remoteUrl.href]);
     const persistedCredentialUrl = new URL(remoteUrl);
     persistedCredentialUrl.password = "";
     await git(repository, [

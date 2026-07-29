@@ -83,18 +83,42 @@ export async function gitdir(dir: Fixture) {
   return moveDisposable(stack, fixture);
 }
 
-export async function createLocalRemote(cwd: string) {
+export async function createLocalRemote(dir: Fixture) {
   await using stack = new AsyncDisposableStack();
   const fixture = stack.use(await testdir());
   const remote = fixture.path;
-  await exec("git", ["clone", "--bare", pathToFileURL(cwd).toString(), "."], {
-    nodeOptions: { cwd: remote },
-    throwOnError: true,
-  });
+  {
+    // Use a working repository to create the bare remote's initial history.
+    // Once cloned, the remote owns that history and the source can be disposed.
+    await using sourceFixture = await gitdir(dir);
+    await exec(
+      "git",
+      ["clone", "--bare", pathToFileURL(sourceFixture.path).toString(), "."],
+      {
+        nodeOptions: { cwd: remote },
+        throwOnError: true,
+      },
+    );
+  }
   await disableGitBackgroundMaintenance(remote);
   await exec("git", ["config", "http.receivepack", "true"], {
     nodeOptions: { cwd: remote },
     throwOnError: true,
   });
+  return moveDisposable(stack, fixture);
+}
+
+export async function shallowClone(cwd: string, depth = 1) {
+  await using stack = new AsyncDisposableStack();
+  const fixture = stack.use(await testdir());
+  await exec(
+    "git",
+    ["clone", "--depth", depth.toString(), pathToFileURL(cwd).toString(), "."],
+    {
+      nodeOptions: { cwd: fixture.path },
+      throwOnError: true,
+    },
+  );
+  await disableGitBackgroundMaintenance(fixture.path);
   return moveDisposable(stack, fixture);
 }
