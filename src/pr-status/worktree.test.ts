@@ -3,7 +3,7 @@ import type * as github from "@actions/github";
 import { getReleasePlan } from "@changesets/get-release-plan";
 import { exec } from "tinyexec";
 import { describe, expect, it } from "vitest";
-import { gitdir, shallowClone, testdir } from "../test-utils/index.ts";
+import { gitdir, shallowClone, testdir } from "../test-utils.ts";
 import { getPullRequestWorktree } from "./worktree.ts";
 
 type PullRequestContext = NonNullable<

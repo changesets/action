@@ -4,11 +4,7 @@ import path from "node:path";
 import { exec } from "tinyexec";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
-import {
-  createGitHttpRemote,
-  shallowClone,
-  testdir,
-} from "./test-utils/index.ts";
+import { createGitHttpRemote, shallowClone, testdir } from "./test-utils.ts";
 
 const githubContext = vi.hoisted(() => ({
   repo: {
