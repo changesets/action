@@ -2,14 +2,24 @@ import { spawn } from "node:child_process";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 
-function getAuthorizationHeaders(request: IncomingMessage): string[] {
-  const values: string[] = [];
+type RecordedRequest = {
+  method: string;
+  url: string;
+  headers: Record<string, string[]>;
+};
+
+function recordRequest(request: IncomingMessage): RecordedRequest {
+  const headers: Record<string, string[]> = {};
   for (let index = 0; index < request.rawHeaders.length; index += 2) {
-    if (request.rawHeaders[index]?.toLowerCase() === "authorization") {
-      values.push(request.rawHeaders[index + 1] ?? "");
-    }
+    const name = request.rawHeaders[index]?.toLowerCase();
+    if (name === undefined) continue;
+    (headers[name] ??= []).push(request.rawHeaders[index + 1] ?? "");
   }
-  return values;
+  return {
+    method: request.method ?? "GET",
+    url: request.url ?? "/",
+    headers,
+  };
 }
 
 async function runGitHttpBackend(
@@ -92,10 +102,11 @@ export async function createGitHttpServer(options: {
   projectRoot: string;
   expectedAuthorization: string;
 }) {
-  const receivedAuthorizationHeaders: string[][] = [];
+  const requests: RecordedRequest[] = [];
   const server = http.createServer((request, response) => {
-    const authorizationHeaders = getAuthorizationHeaders(request);
-    receivedAuthorizationHeaders.push(authorizationHeaders);
+    const recordedRequest = recordRequest(request);
+    requests.push(recordedRequest);
+    const authorizationHeaders = recordedRequest.headers.authorization ?? [];
 
     if (
       authorizationHeaders.length !== 1 ||
@@ -125,7 +136,7 @@ export async function createGitHttpServer(options: {
 
   return {
     origin: `http://127.0.0.1:${address.port}`,
-    receivedAuthorizationHeaders,
+    requests,
     async [Symbol.asyncDispose]() {
       await new Promise<void>((resolve, reject) => {
         server.close((error) => {

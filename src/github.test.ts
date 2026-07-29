@@ -114,12 +114,10 @@ describe("GitHub", () => {
     expect(await git(remote, ["rev-parse", "refs/tags/v1.0.0"])).toBe(
       await git(repository, ["rev-parse", "v1.0.0"]),
     );
-    expect(server.receivedAuthorizationHeaders.length).toBeGreaterThan(0);
-    expect(server.receivedAuthorizationHeaders).toEqual(
-      server.receivedAuthorizationHeaders.map(() => [
-        getAuthorization(actionToken),
-      ]),
-    );
+    expect(server.requests.length).toBeGreaterThan(0);
+    expect(
+      server.requests.map((request) => request.headers.authorization),
+    ).toEqual(server.requests.map(() => [getAuthorization(actionToken)]));
   }, 15_000);
 
   it("uses github-token instead of credentials embedded in the CLI push URL", async () => {
@@ -166,11 +164,9 @@ describe("GitHub", () => {
     expect(
       await git(remote, ["rev-parse", "refs/heads/changeset-release/main"]),
     ).toBe(await git(repository, ["rev-parse", "HEAD"]));
-    expect(server.receivedAuthorizationHeaders.length).toBeGreaterThan(0);
-    expect(server.receivedAuthorizationHeaders).toEqual(
-      server.receivedAuthorizationHeaders.map(() => [
-        getAuthorization(actionToken),
-      ]),
-    );
+    expect(server.requests.length).toBeGreaterThan(0);
+    expect(
+      server.requests.map((request) => request.headers.authorization),
+    ).toEqual(server.requests.map(() => [getAuthorization(actionToken)]));
   }, 15_000);
 });
