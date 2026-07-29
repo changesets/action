@@ -1,9 +1,9 @@
 import { pathToFileURL } from "node:url";
 import type * as github from "@actions/github";
 import { getReleasePlan } from "@changesets/get-release-plan";
-import { createFixture } from "fs-fixture";
 import { exec } from "tinyexec";
 import { describe, expect, it } from "vitest";
+import { gitdir, shallowClone, testdir } from "../test-utils/index.ts";
 import { getPullRequestWorktree } from "./worktree.ts";
 
 type PullRequestContext = NonNullable<
@@ -21,7 +21,7 @@ async function git(cwd: string, args: string[]) {
 describe("getPullRequestWorktree", () => {
   it("fetches a PR branch into a detached worktree and keeps the main checkout untouched", async () => {
     // Local source repo
-    await using sourceRepoFixture = await createFixture({
+    await using sourceRepoFixture = await gitdir({
       ".changeset/config.json": JSON.stringify({}),
       "package.json": JSON.stringify({
         name: "repo",
@@ -35,46 +35,33 @@ describe("getPullRequestWorktree", () => {
       }),
     });
     const sourceRepo = sourceRepoFixture.path;
-    await git(sourceRepo, ["init", "-b", "main"]);
-    await git(sourceRepo, ["config", "user.name", "Test User"]);
-    await git(sourceRepo, ["config", "user.email", "test@example.com"]);
-    await git(sourceRepo, ["add", "."]);
-    await git(sourceRepo, ["commit", "-m", "base"]);
 
     // Simulate remote bare git server
-    await using originBareFixture = await createFixture();
+    await using originBareFixture = await testdir();
     const originBare = originBareFixture.path;
-    await git(originBare, ["clone", "--bare", sourceRepo, originBare]);
+    await git(originBare, [
+      "clone",
+      "--bare",
+      pathToFileURL(sourceRepo).toString(),
+      ".",
+    ]);
 
     // Simulate checkout PR in github action
-    await using checkoutRepoFixture = await createFixture();
+    await using checkoutRepoFixture = await shallowClone(originBare);
     const checkoutRepo = checkoutRepoFixture.path;
-    await git(checkoutRepo, [
-      "clone",
-      "--depth",
-      "1",
-      "--branch",
-      "main",
-      pathToFileURL(originBare).toString(),
-      checkoutRepo,
-    ]);
 
     // Simulate remote fork bare git server
-    await using forkBareFixture = await createFixture();
+    await using forkBareFixture = await testdir();
     const forkBare = forkBareFixture.path;
-    await git(forkBare, ["clone", "--bare", originBare, forkBare]);
-
-    await using forkRepoFixture = await createFixture();
-    const forkRepo = forkRepoFixture.path;
-    await git(forkRepo, [
+    await git(forkBare, [
       "clone",
-      "--depth",
-      "1",
-      "--branch",
-      "main",
-      pathToFileURL(forkBare).toString(),
-      forkRepo,
+      "--bare",
+      pathToFileURL(originBare).toString(),
+      ".",
     ]);
+
+    await using forkRepoFixture = await shallowClone(forkBare);
+    const forkRepo = forkRepoFixture.path;
     await git(forkRepo, ["config", "user.name", "Test User"]);
     await git(forkRepo, ["config", "user.email", "test@example.com"]);
     await git(forkRepo, ["checkout", "-b", "feature"]);
