@@ -139,7 +139,9 @@ export async function createGitHttpServer(options: {
     void runGitHttpBackend(request, response, options.projectRoot).catch(
       (error: unknown) => {
         response.destroy(
-          error instanceof Error ? error : new Error(String(error)),
+          Error.isError(error)
+            ? error
+            : new Error("Server error", { cause: error }),
         );
       },
     );

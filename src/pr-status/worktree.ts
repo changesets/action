@@ -5,6 +5,7 @@ import path from "node:path";
 import type * as github from "@actions/github";
 import { isRepoShallow } from "@changesets/git";
 import { exec } from "tinyexec";
+import { moveDisposable, type WithAsyncDispose } from "../utils.ts";
 
 type PullRequestContext = NonNullable<
   typeof github.context.payload.pull_request
@@ -120,22 +121,6 @@ async function tempWorktree(cwd: string, dir: string, ref: Ref) {
       });
     },
   };
-}
-
-type WithAsyncDispose<T> = T & {
-  [Symbol.asyncDispose](): Promise<void>;
-};
-
-function moveDisposable<T extends object>(
-  stack: AsyncDisposableStack,
-  value: T,
-): WithAsyncDispose<T> {
-  const moved = stack.move();
-  return Object.assign(value, {
-    async [Symbol.asyncDispose]() {
-      await moved.disposeAsync();
-    },
-  });
 }
 
 export async function getPullRequestWorktree(

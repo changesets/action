@@ -119,6 +119,22 @@ export function isErrorWithCode(err: unknown, code: string) {
   );
 }
 
+export type WithAsyncDispose<T> = T & {
+  [Symbol.asyncDispose](): Promise<void>;
+};
+
+export function moveDisposable<T extends object>(
+  stack: AsyncDisposableStack,
+  value: T,
+): WithAsyncDispose<T> {
+  const moved = stack.move();
+  return Object.assign(value, {
+    async [Symbol.asyncDispose]() {
+      await moved.disposeAsync();
+    },
+  });
+}
+
 export function getOptionalInput(name: string) {
   // normalize empty string default return value of `core.getInput` to undefined
   return core.getInput(name) || undefined;

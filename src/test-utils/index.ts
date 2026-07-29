@@ -3,12 +3,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createFixture, type FileTree } from "fs-fixture";
 import { exec } from "tinyexec";
-import { onTestFinished } from "vitest";
+import { moveDisposable } from "../utils.ts";
 
 export type Fixture = FileTree;
 
 export async function testdir(dir?: Fixture) {
-  const fixture = await createFixture(dir, {
+  return createFixture(dir, {
     fs: {
       ...fsp,
       rm: (filePath, options) =>
@@ -19,8 +19,6 @@ export async function testdir(dir?: Fixture) {
         }),
     },
   });
-  onTestFinished(() => fixture.rm());
-  return fixture.path;
 }
 
 // Git maintenance can race with fixture cleanup by touching pack files.
@@ -36,10 +34,14 @@ export async function disableGitBackgroundMaintenance(cwd: string) {
 }
 
 export async function gitdir(dir: Fixture) {
-  const cwd = await testdir({
-    ".gitattributes": "* text=auto eol=lf\n",
-    ...dir,
-  });
+  await using stack = new AsyncDisposableStack();
+  const fixture = stack.use(
+    await testdir({
+      ".gitattributes": "* text=auto eol=lf\n",
+      ...dir,
+    }),
+  );
+  const cwd = fixture.path;
 
   await exec("git", ["init"], {
     nodeOptions: { cwd },
@@ -78,11 +80,13 @@ export async function gitdir(dir: Fixture) {
     throwOnError: true,
   });
 
-  return cwd;
+  return moveDisposable(stack, fixture);
 }
 
 export async function createLocalRemote(cwd: string) {
-  const remote = await testdir();
+  await using stack = new AsyncDisposableStack();
+  const fixture = stack.use(await testdir());
+  const remote = fixture.path;
   await exec("git", ["clone", "--bare", pathToFileURL(cwd).toString(), "."], {
     nodeOptions: { cwd: remote },
     throwOnError: true,
@@ -92,5 +96,5 @@ export async function createLocalRemote(cwd: string) {
     nodeOptions: { cwd: remote },
     throwOnError: true,
   });
-  return remote;
+  return moveDisposable(stack, fixture);
 }

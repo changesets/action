@@ -34,8 +34,9 @@ function getAuthorization(token: string) {
 }
 
 async function isolateGitConfig() {
-  const configDir = await testdir({ "global.gitconfig": "" });
-  vi.stubEnv("GIT_CONFIG_GLOBAL", path.join(configDir, "global.gitconfig"));
+  const fixture = await testdir({ "global.gitconfig": "" });
+  vi.stubEnv("GIT_CONFIG_GLOBAL", path.join(fixture.path, "global.gitconfig"));
+  return fixture;
 }
 
 beforeEach(() => {
@@ -59,9 +60,11 @@ describe("GitHub", () => {
   });
 
   it("uses github-token instead of checkout's persisted header for CLI branch and tag pushes", async () => {
-    await isolateGitConfig();
-    const repository = await gitdir({ "file.txt": "initial\n" });
-    const remote = await createLocalRemote(repository);
+    await using _gitConfig = await isolateGitConfig();
+    await using repositoryFixture = await gitdir({ "file.txt": "initial\n" });
+    const repository = repositoryFixture.path;
+    await using remoteFixture = await createLocalRemote(repository);
+    const remote = remoteFixture.path;
     const actionToken = "action-token";
     const checkoutToken = "checkout-token";
 
@@ -105,9 +108,11 @@ describe("GitHub", () => {
   }, 15_000);
 
   it("uses github-token instead of credentials embedded in the CLI push URL", async () => {
-    await isolateGitConfig();
-    const repository = await gitdir({ "file.txt": "initial\n" });
-    const remote = await createLocalRemote(repository);
+    await using _gitConfig = await isolateGitConfig();
+    await using repositoryFixture = await gitdir({ "file.txt": "initial\n" });
+    const repository = repositoryFixture.path;
+    await using remoteFixture = await createLocalRemote(repository);
+    const remote = remoteFixture.path;
     const actionToken = "action-token";
 
     await using server = await createGitHttpServer({
