@@ -5,20 +5,14 @@ import http, { type IncomingMessage, type ServerResponse } from "node:http";
 type RecordedRequest = {
   method: string;
   url: string;
-  headers: Record<string, string[]>;
+  headers: NodeJS.Dict<string[]>;
 };
 
 function recordRequest(request: IncomingMessage): RecordedRequest {
-  const headers: Record<string, string[]> = {};
-  for (let index = 0; index < request.rawHeaders.length; index += 2) {
-    const name = request.rawHeaders[index]?.toLowerCase();
-    if (name === undefined) continue;
-    (headers[name] ??= []).push(request.rawHeaders[index + 1] ?? "");
-  }
   return {
     method: request.method ?? "GET",
     url: request.url ?? "/",
-    headers,
+    headers: request.headersDistinct,
   };
 }
 
