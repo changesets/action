@@ -154,4 +154,141 @@ describe("GitHub", () => {
       remote.requests.map((request) => request.headers.authorization),
     ).toEqual(remote.requests.map(() => [getAuthorization(actionToken)]));
   }, 15_000);
+
+  it("uses the push URL when it differs from the fetch URL", async () => {
+    await using _gitConfig = await isolateGitConfig();
+    const actionToken = "action-token";
+    await using fetchRemote = await createGitHttpRemote({
+      "file.txt": "initial\n",
+    });
+    await using pushRemote = await createGitHttpRemote({
+      "file.txt": "initial\n",
+    });
+    await using repositoryFixture = await shallowClone(fetchRemote.path);
+    const repository = repositoryFixture.path;
+
+    await git(repository, ["remote", "set-url", "origin", fetchRemote.url]);
+    await git(repository, ["config", "remote.origin.pushurl", pushRemote.url]);
+
+    await fs.writeFile(path.join(repository, "file.txt"), "changed\n");
+    const github = new GitHub({
+      cwd: repository,
+      githubToken: actionToken,
+      pushWithGitCli: true,
+      serverUrl: new URL(fetchRemote.url).origin,
+    });
+
+    await github.pushChanges({
+      branch: "changeset-release/main",
+      message: "Version Packages",
+    });
+
+    expect(fetchRemote.requests).toEqual([]);
+    expect(
+      await git(pushRemote.path, [
+        "rev-parse",
+        "refs/heads/changeset-release/main",
+      ]),
+    ).toBe(await git(repository, ["rev-parse", "HEAD"]));
+    expect(pushRemote.requests.length).toBeGreaterThan(0);
+    expect(
+      pushRemote.requests.map((request) => request.headers.authorization),
+    ).toEqual(pushRemote.requests.map(() => [getAuthorization(actionToken)]));
+  }, 15_000);
+
+  it("uses github-token for every push URL", async () => {
+    await using _gitConfig = await isolateGitConfig();
+    const actionToken = "action-token";
+    await using firstRemote = await createGitHttpRemote({
+      "file.txt": "initial\n",
+    });
+    await using secondRemote = await createGitHttpRemote({
+      "file.txt": "initial\n",
+    });
+    await using repositoryFixture = await shallowClone(firstRemote.path);
+    const repository = repositoryFixture.path;
+
+    await git(repository, [
+      "config",
+      "--add",
+      "remote.origin.pushurl",
+      firstRemote.url,
+    ]);
+    await git(repository, [
+      "config",
+      "--add",
+      "remote.origin.pushurl",
+      secondRemote.url,
+    ]);
+
+    await fs.writeFile(path.join(repository, "file.txt"), "changed\n");
+    const github = new GitHub({
+      cwd: repository,
+      githubToken: actionToken,
+      pushWithGitCli: true,
+      serverUrl: new URL(firstRemote.url).origin,
+    });
+
+    await github.pushChanges({
+      branch: "changeset-release/main",
+      message: "Version Packages",
+    });
+
+    const head = await git(repository, ["rev-parse", "HEAD"]);
+    for (const remote of [firstRemote, secondRemote]) {
+      expect(
+        await git(remote.path, [
+          "rev-parse",
+          "refs/heads/changeset-release/main",
+        ]),
+      ).toBe(head);
+      expect(remote.requests.length).toBeGreaterThan(0);
+      expect(
+        remote.requests.map((request) => request.headers.authorization),
+      ).toEqual(remote.requests.map(() => [getAuthorization(actionToken)]));
+    }
+  }, 15_000);
+
+  it("preserves existing command-scoped Git config entries", async () => {
+    await using _gitConfig = await isolateGitConfig();
+    const actionToken = "action-token";
+    await using fetchRemote = await createGitHttpRemote({
+      "file.txt": "initial\n",
+    });
+    await using pushRemote = await createGitHttpRemote({
+      "file.txt": "initial\n",
+    });
+    await using repositoryFixture = await shallowClone(fetchRemote.path);
+    const repository = repositoryFixture.path;
+
+    await git(repository, ["remote", "set-url", "origin", fetchRemote.url]);
+    vi.stubEnv("GIT_CONFIG_COUNT", "1");
+    vi.stubEnv("GIT_CONFIG_KEY_0", "remote.origin.pushurl");
+    vi.stubEnv("GIT_CONFIG_VALUE_0", pushRemote.url);
+
+    await fs.writeFile(path.join(repository, "file.txt"), "changed\n");
+    const github = new GitHub({
+      cwd: repository,
+      githubToken: actionToken,
+      pushWithGitCli: true,
+      serverUrl: new URL(fetchRemote.url).origin,
+    });
+
+    await github.pushChanges({
+      branch: "changeset-release/main",
+      message: "Version Packages",
+    });
+
+    expect(fetchRemote.requests).toEqual([]);
+    expect(
+      await git(pushRemote.path, [
+        "rev-parse",
+        "refs/heads/changeset-release/main",
+      ]),
+    ).toBe(await git(repository, ["rev-parse", "HEAD"]));
+    expect(pushRemote.requests.length).toBeGreaterThan(0);
+    expect(
+      pushRemote.requests.map((request) => request.headers.authorization),
+    ).toEqual(pushRemote.requests.map(() => [getAuthorization(actionToken)]));
+  }, 15_000);
 });
