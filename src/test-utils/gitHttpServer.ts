@@ -1,6 +1,6 @@
+import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
-import type { AddressInfo } from "node:net";
 
 type RecordedRequest = {
   method: string;
@@ -98,6 +98,23 @@ async function runGitHttpBackend(
   response.end(output.subarray(headerEnd + separator.length));
 }
 
+async function listen(server: http.Server) {
+  const waiter = Promise.withResolvers();
+
+  server.on("listening", waiter.resolve);
+  server.on("error", waiter.reject);
+
+  server.listen(0);
+
+  try {
+    await waiter.promise;
+    return server;
+  } finally {
+    server.off("listening", waiter.resolve);
+    server.off("error", waiter.reject);
+  }
+}
+
 export async function createGitHttpServer(options: {
   projectRoot: string;
   expectedAuthorization: string;
@@ -128,11 +145,12 @@ export async function createGitHttpServer(options: {
     );
   });
 
-  await new Promise<void>((resolve, reject) => {
-    server.on("error", reject);
-    server.listen(0, "127.0.0.1", resolve);
-  });
-  const address = server.address() as AddressInfo;
+  await listen(server);
+  const address = server.address();
+  assert(
+    !!address && typeof address !== "string",
+    "Failed to get server address",
+  );
 
   return {
     origin: `http://127.0.0.1:${address.port}`,
@@ -140,8 +158,11 @@ export async function createGitHttpServer(options: {
     async [Symbol.asyncDispose]() {
       await new Promise<void>((resolve, reject) => {
         server.close((error) => {
-          if (error) reject(error);
-          else resolve();
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve();
         });
       });
     },

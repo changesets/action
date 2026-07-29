@@ -1,11 +1,11 @@
 import { Buffer } from "node:buffer";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { createFixture } from "fs-fixture";
 import { exec } from "tinyexec";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
 import { createGitHttpServer } from "./test-utils/gitHttpServer.ts";
+import { createLocalRemote, gitdir, testdir } from "./test-utils/index.ts";
 
 const githubContext = vi.hoisted(() => ({
   repo: {
@@ -29,23 +29,13 @@ async function git(cwd: string, args: string[]) {
   return result.stdout.trim();
 }
 
-async function initializeRepositories(root: string) {
-  const repository = path.join(root, "repository");
-  const remote = path.join(root, "remote.git");
-
-  await git(repository, ["init", "-b", "main"]);
-  await git(repository, ["config", "user.name", "Test User"]);
-  await git(repository, ["config", "user.email", "test@example.com"]);
-  await git(repository, ["add", "."]);
-  await git(repository, ["commit", "-m", "Initial commit"]);
-  await git(root, ["clone", "--bare", repository, remote]);
-  await git(remote, ["config", "http.receivepack", "true"]);
-
-  return { remote, repository };
-}
-
 function getAuthorization(token: string) {
   return `basic ${Buffer.from(`x-access-token:${token}`).toString("base64")}`;
+}
+
+async function isolateGitConfig() {
+  const configDir = await testdir({ "global.gitconfig": "" });
+  vi.stubEnv("GIT_CONFIG_GLOBAL", path.join(configDir, "global.gitconfig"));
 }
 
 beforeEach(() => {
@@ -69,24 +59,18 @@ describe("GitHub", () => {
   });
 
   it("uses github-token instead of checkout's persisted header for CLI branch and tag pushes", async () => {
-    await using fixture = await createFixture({
-      "global.gitconfig": "",
-      "repository/file.txt": "initial\n",
-    });
-    vi.stubEnv(
-      "GIT_CONFIG_GLOBAL",
-      path.join(fixture.path, "global.gitconfig"),
-    );
-    const { remote, repository } = await initializeRepositories(fixture.path);
+    await isolateGitConfig();
+    const repository = await gitdir({ "file.txt": "initial\n" });
+    const remote = await createLocalRemote(repository);
     const actionToken = "action-token";
     const checkoutToken = "checkout-token";
 
     await using server = await createGitHttpServer({
-      projectRoot: fixture.path,
+      projectRoot: path.dirname(remote),
       expectedAuthorization: getAuthorization(actionToken),
     });
     githubContext.serverUrl = server.origin;
-    const remoteUrl = `${server.origin}/remote.git`;
+    const remoteUrl = `${server.origin}/${path.basename(remote)}`;
     await git(repository, ["remote", "add", "origin", remoteUrl]);
     await git(repository, [
       "config",
@@ -121,23 +105,17 @@ describe("GitHub", () => {
   }, 15_000);
 
   it("uses github-token instead of credentials embedded in the CLI push URL", async () => {
-    await using fixture = await createFixture({
-      "global.gitconfig": "",
-      "repository/file.txt": "initial\n",
-    });
-    vi.stubEnv(
-      "GIT_CONFIG_GLOBAL",
-      path.join(fixture.path, "global.gitconfig"),
-    );
-    const { remote, repository } = await initializeRepositories(fixture.path);
+    await isolateGitConfig();
+    const repository = await gitdir({ "file.txt": "initial\n" });
+    const remote = await createLocalRemote(repository);
     const actionToken = "action-token";
 
     await using server = await createGitHttpServer({
-      projectRoot: fixture.path,
+      projectRoot: path.dirname(remote),
       expectedAuthorization: getAuthorization(actionToken),
     });
     githubContext.serverUrl = server.origin;
-    const remoteUrl = new URL(`${server.origin}/remote.git`);
+    const remoteUrl = new URL(`${server.origin}/${path.basename(remote)}`);
     remoteUrl.username = "x-access-token";
     remoteUrl.password = "checkout-token";
     await git(repository, ["remote", "add", "origin", remoteUrl.href]);
