@@ -23,9 +23,9 @@ function recordRequest(request: IncomingMessage): RecordedRequest {
 }
 
 async function runGitHttpBackend(
+  cwd: string,
   request: IncomingMessage,
   response: ServerResponse,
-  projectRoot: string,
 ) {
   const requestUrl = new URL(
     request.url ?? "/",
@@ -36,7 +36,7 @@ async function runGitHttpBackend(
     CONTENT_LENGTH: request.headers["content-length"] ?? "0",
     GATEWAY_INTERFACE: "CGI/1.1",
     GIT_HTTP_EXPORT_ALL: "1",
-    GIT_PROJECT_ROOT: projectRoot,
+    GIT_PROJECT_ROOT: cwd,
     PATH_INFO: decodeURIComponent(requestUrl.pathname),
     QUERY_STRING: requestUrl.search.slice(1),
     REMOTE_ADDR: request.socket.remoteAddress ?? "",
@@ -115,36 +115,19 @@ async function listen(server: http.Server) {
   }
 }
 
-export async function createGitHttpServer(options: {
-  projectRoot: string;
-  expectedAuthorization: string;
-}) {
+export async function createGitHttpServer(cwd: string) {
   const requests: RecordedRequest[] = [];
   const server = http.createServer((request, response) => {
     const recordedRequest = recordRequest(request);
     requests.push(recordedRequest);
-    const authorizationHeaders = recordedRequest.headers.authorization ?? [];
 
-    if (
-      authorizationHeaders.length !== 1 ||
-      authorizationHeaders[0] !== options.expectedAuthorization
-    ) {
-      response.writeHead(401, {
-        "WWW-Authenticate": 'Basic realm="changesets-action-test"',
-      });
-      response.end();
-      return;
-    }
-
-    void runGitHttpBackend(request, response, options.projectRoot).catch(
-      (error: unknown) => {
-        response.destroy(
-          Error.isError(error)
-            ? error
-            : new Error("Server error", { cause: error }),
-        );
-      },
-    );
+    void runGitHttpBackend(cwd, request, response).catch((error: unknown) => {
+      response.destroy(
+        Error.isError(error)
+          ? error
+          : new Error("Server error", { cause: error }),
+      );
+    });
   });
 
   await listen(server);

@@ -109,17 +109,11 @@ async function createLocalRemote(dir: Fixture) {
   return moveDisposable(stack, fixture);
 }
 
-export async function createGitHttpRemote(
-  expectedAuthorization: string,
-  files: Fixture,
-) {
+export async function createGitHttpRemote(files: Fixture) {
   await using stack = new AsyncDisposableStack();
   const fixture = stack.use(await createLocalRemote(files));
   const server = stack.use(
-    await createGitHttpServer({
-      projectRoot: path.dirname(fixture.path),
-      expectedAuthorization,
-    }),
+    await createGitHttpServer(path.dirname(fixture.path)),
   );
 
   return moveDisposable(stack, {
