@@ -4,9 +4,8 @@ import path from "node:path";
 import { exec } from "tinyexec";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
-import { createGitHttpServer } from "./test-utils/gitHttpServer.ts";
 import {
-  createLocalRemote,
+  createGitHttpRemote,
   shallowClone,
   testdir,
 } from "./test-utils/index.ts";
@@ -65,25 +64,21 @@ describe("GitHub", () => {
 
   it("uses github-token instead of checkout's persisted header for CLI branch and tag pushes", async () => {
     await using _gitConfig = await isolateGitConfig();
-    await using remoteFixture = await createLocalRemote({
-      "file.txt": "initial\n",
-    });
-    const remote = remoteFixture.path;
-    await using repositoryFixture = await shallowClone(remote);
-    const repository = repositoryFixture.path;
     const actionToken = "action-token";
     const checkoutToken = "checkout-token";
-
-    await using server = await createGitHttpServer({
-      projectRoot: path.dirname(remote),
+    await using remote = await createGitHttpRemote({
+      files: { "file.txt": "initial\n" },
       expectedAuthorization: getAuthorization(actionToken),
     });
-    githubContext.serverUrl = server.origin;
-    const remoteUrl = `${server.origin}/${path.basename(remote)}`;
-    await git(repository, ["remote", "set-url", "origin", remoteUrl]);
+    await using repositoryFixture = await shallowClone(remote.path);
+    const repository = repositoryFixture.path;
+
+    const serverUrl = new URL(remote.url).origin;
+    githubContext.serverUrl = serverUrl;
+    await git(repository, ["remote", "set-url", "origin", remote.url]);
     await git(repository, [
       "config",
-      `http.${server.origin}/.extraheader`,
+      `http.${serverUrl}/.extraheader`,
       `AUTHORIZATION: ${getAuthorization(checkoutToken)}`,
     ]);
 
@@ -102,33 +97,32 @@ describe("GitHub", () => {
     await github.pushTag("v1.0.0");
 
     expect(
-      await git(remote, ["rev-parse", "refs/heads/changeset-release/main"]),
+      await git(remote.path, [
+        "rev-parse",
+        "refs/heads/changeset-release/main",
+      ]),
     ).toBe(await git(repository, ["rev-parse", "HEAD"]));
-    expect(await git(remote, ["rev-parse", "refs/tags/v1.0.0"])).toBe(
+    expect(await git(remote.path, ["rev-parse", "refs/tags/v1.0.0"])).toBe(
       await git(repository, ["rev-parse", "v1.0.0"]),
     );
-    expect(server.requests.length).toBeGreaterThan(0);
+    expect(remote.requests.length).toBeGreaterThan(0);
     expect(
-      server.requests.map((request) => request.headers.authorization),
-    ).toEqual(server.requests.map(() => [getAuthorization(actionToken)]));
+      remote.requests.map((request) => request.headers.authorization),
+    ).toEqual(remote.requests.map(() => [getAuthorization(actionToken)]));
   }, 15_000);
 
   it("uses github-token instead of credentials embedded in the CLI push URL", async () => {
     await using _gitConfig = await isolateGitConfig();
-    await using remoteFixture = await createLocalRemote({
-      "file.txt": "initial\n",
-    });
-    const remote = remoteFixture.path;
-    await using repositoryFixture = await shallowClone(remote);
-    const repository = repositoryFixture.path;
     const actionToken = "action-token";
-
-    await using server = await createGitHttpServer({
-      projectRoot: path.dirname(remote),
+    await using remote = await createGitHttpRemote({
+      files: { "file.txt": "initial\n" },
       expectedAuthorization: getAuthorization(actionToken),
     });
-    githubContext.serverUrl = server.origin;
-    const remoteUrl = new URL(`${server.origin}/${path.basename(remote)}`);
+    await using repositoryFixture = await shallowClone(remote.path);
+    const repository = repositoryFixture.path;
+
+    const remoteUrl = new URL(remote.url);
+    githubContext.serverUrl = remoteUrl.origin;
     remoteUrl.username = "x-access-token";
     remoteUrl.password = "checkout-token";
     await git(repository, ["remote", "set-url", "origin", remoteUrl.href]);
@@ -153,11 +147,14 @@ describe("GitHub", () => {
     });
 
     expect(
-      await git(remote, ["rev-parse", "refs/heads/changeset-release/main"]),
+      await git(remote.path, [
+        "rev-parse",
+        "refs/heads/changeset-release/main",
+      ]),
     ).toBe(await git(repository, ["rev-parse", "HEAD"]));
-    expect(server.requests.length).toBeGreaterThan(0);
+    expect(remote.requests.length).toBeGreaterThan(0);
     expect(
-      server.requests.map((request) => request.headers.authorization),
-    ).toEqual(server.requests.map(() => [getAuthorization(actionToken)]));
+      remote.requests.map((request) => request.headers.authorization),
+    ).toEqual(remote.requests.map(() => [getAuthorization(actionToken)]));
   }, 15_000);
 });

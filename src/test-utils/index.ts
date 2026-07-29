@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { createFixture, type FileTree } from "fs-fixture";
 import { exec } from "tinyexec";
 import { moveDisposable } from "../utils.ts";
+import { createGitHttpServer } from "./gitHttpServer.ts";
 
 export type Fixture = FileTree;
 
@@ -83,7 +84,7 @@ export async function gitdir(dir: Fixture) {
   return moveDisposable(stack, fixture);
 }
 
-export async function createLocalRemote(dir: Fixture) {
+async function createLocalRemote(dir: Fixture) {
   await using stack = new AsyncDisposableStack();
   const fixture = stack.use(await testdir());
   const remote = fixture.path;
@@ -106,6 +107,26 @@ export async function createLocalRemote(dir: Fixture) {
     throwOnError: true,
   });
   return moveDisposable(stack, fixture);
+}
+
+export async function createGitHttpRemote(options: {
+  files: Fixture;
+  expectedAuthorization: string;
+}) {
+  await using stack = new AsyncDisposableStack();
+  const fixture = stack.use(await createLocalRemote(options.files));
+  const server = stack.use(
+    await createGitHttpServer({
+      projectRoot: path.dirname(fixture.path),
+      expectedAuthorization: options.expectedAuthorization,
+    }),
+  );
+
+  return moveDisposable(stack, {
+    path: fixture.path,
+    url: `${server.origin}/${path.basename(fixture.path)}`,
+    requests: server.requests,
+  });
 }
 
 export async function shallowClone(cwd: string, depth = 1) {
