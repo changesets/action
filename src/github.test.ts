@@ -66,10 +66,10 @@ describe("GitHub", () => {
     await using _gitConfig = await isolateGitConfig();
     const actionToken = "action-token";
     const checkoutToken = "checkout-token";
-    await using remote = await createGitHttpRemote({
-      files: { "file.txt": "initial\n" },
-      expectedAuthorization: getAuthorization(actionToken),
-    });
+    await using remote = await createGitHttpRemote(
+      getAuthorization(actionToken),
+      { "file.txt": "initial\n" },
+    );
     await using repositoryFixture = await shallowClone(remote.path);
     const repository = repositoryFixture.path;
 
@@ -114,10 +114,10 @@ describe("GitHub", () => {
   it("uses github-token instead of credentials embedded in the CLI push URL", async () => {
     await using _gitConfig = await isolateGitConfig();
     const actionToken = "action-token";
-    await using remote = await createGitHttpRemote({
-      files: { "file.txt": "initial\n" },
-      expectedAuthorization: getAuthorization(actionToken),
-    });
+    await using remote = await createGitHttpRemote(
+      getAuthorization(actionToken),
+      { "file.txt": "initial\n" },
+    );
     await using repositoryFixture = await shallowClone(remote.path);
     const repository = repositoryFixture.path;
 
