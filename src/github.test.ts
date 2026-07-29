@@ -15,7 +15,6 @@ const githubContext = vi.hoisted(() => ({
     owner: "changesets",
     repo: "action",
   },
-  serverUrl: "http://127.0.0.1",
   sha: "base-sha",
 }));
 
@@ -74,7 +73,6 @@ describe("GitHub", () => {
     const repository = repositoryFixture.path;
 
     const serverUrl = new URL(remote.url).origin;
-    githubContext.serverUrl = serverUrl;
     await git(repository, ["remote", "set-url", "origin", remote.url]);
     await git(repository, [
       "config",
@@ -87,6 +85,7 @@ describe("GitHub", () => {
       cwd: repository,
       githubToken: actionToken,
       pushWithGitCli: true,
+      serverUrl,
     });
 
     await github.pushChanges({
@@ -122,7 +121,6 @@ describe("GitHub", () => {
     const repository = repositoryFixture.path;
 
     const remoteUrl = new URL(remote.url);
-    githubContext.serverUrl = remoteUrl.origin;
     remoteUrl.username = "x-access-token";
     remoteUrl.password = "checkout-token";
     await git(repository, ["remote", "set-url", "origin", remoteUrl.href]);
@@ -139,6 +137,7 @@ describe("GitHub", () => {
       cwd: repository,
       githubToken: actionToken,
       pushWithGitCli: true,
+      serverUrl: remoteUrl.origin,
     });
 
     await github.pushChanges({

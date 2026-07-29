@@ -72,15 +72,23 @@ export class GitHub {
   readonly octokit: Octokit;
   readonly cwd: string;
   readonly pushWithGitCli: boolean;
+  readonly serverUrl: string;
 
   constructor(options: {
     githubToken: string;
     cwd: string;
     pushWithGitCli?: boolean;
+    serverUrl?: string;
   }) {
     this.#githubToken = options.githubToken;
     this.cwd = options.cwd;
     this.pushWithGitCli = options.pushWithGitCli ?? false;
+    this.serverUrl = (
+      options.serverUrl ??
+      context.serverUrl ??
+      process.env.GITHUB_SERVER_URL ??
+      "https://github.com"
+    ).replace(/\/+$/, "");
     this.octokit = setupOctokit(options.githubToken);
   }
 
@@ -92,11 +100,6 @@ export class GitHub {
     const basic = Buffer.from(`x-access-token:${this.#githubToken}`).toString(
       "base64",
     );
-    const serverUrl = (
-      context.serverUrl ??
-      process.env.GITHUB_SERVER_URL ??
-      "https://github.com"
-    ).replace(/\/+$/, "");
     const gitConfigCount = Number(process.env.GIT_CONFIG_COUNT ?? 0);
     if (!Number.isInteger(gitConfigCount) || gitConfigCount < 0) {
       throw new Error(
@@ -121,7 +124,7 @@ export class GitHub {
     // extraheader normally installed by actions/checkout, while an exact push
     // URL also outranks any inherited path-specific extraheader. Only the most
     // specific matching subsection contributes, so these do not duplicate it.
-    const extraHeaderKeys = new Set([`http.${serverUrl}/.extraheader`]);
+    const extraHeaderKeys = new Set([`http.${this.serverUrl}/.extraheader`]);
     for (const remoteUrl of stdout.split(/\r?\n/)) {
       const httpUrl = getHttpUrl(remoteUrl);
       if (httpUrl !== undefined) {
