@@ -5,8 +5,6 @@ import { context } from "@actions/github";
 import { commitChangesSinceBase } from "@changesets/ghcommit";
 import { setupOctokit, type Octokit } from "./octokit.ts";
 
-export type CommitMode = "git-cli" | "github-api";
-
 type GitOptions = {
   cwd: string;
   env?: Record<string, string>;
@@ -73,16 +71,16 @@ export class GitHub {
   readonly #githubToken: string;
   readonly octokit: Octokit;
   readonly cwd: string;
-  readonly commitMode: CommitMode;
+  readonly pushWithGitCli: boolean;
 
   constructor(options: {
     githubToken: string;
     cwd: string;
-    commitMode?: CommitMode;
+    pushWithGitCli?: boolean;
   }) {
     this.#githubToken = options.githubToken;
     this.cwd = options.cwd;
-    this.commitMode = options.commitMode ?? "github-api";
+    this.pushWithGitCli = options.pushWithGitCli ?? false;
     this.octokit = setupOctokit(options.githubToken);
   }
 
@@ -204,7 +202,7 @@ export class GitHub {
   }
 
   async pushTag(tag: string) {
-    if (this.commitMode === "github-api") {
+    if (!this.pushWithGitCli) {
       return this.octokit.rest.git
         .createRef({
           ...context.repo,
@@ -226,7 +224,7 @@ export class GitHub {
   }
 
   async prepareBranch(branch: string) {
-    if (this.commitMode === "github-api") {
+    if (!this.pushWithGitCli) {
       // Preparing a new local branch is not necessary when using the API
       return;
     }
@@ -235,7 +233,7 @@ export class GitHub {
   }
 
   async pushChanges({ branch, message }: { branch: string; message: string }) {
-    if (this.commitMode === "github-api") {
+    if (!this.pushWithGitCli) {
       await commitChangesSinceBase({
         octokit: this.octokit,
         ...context.repo,

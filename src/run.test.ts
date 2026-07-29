@@ -99,7 +99,7 @@ const createGithub = (cwd: string) =>
   new GitHub({
     cwd,
     githubToken: "@@GITHUB_TOKEN",
-    commitMode: "github-api",
+    pushWithGitCli: false,
   });
 
 async function initializeGitRepository(cwd: string) {

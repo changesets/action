@@ -2,4 +2,4 @@
 "@changesets/action": major
 ---
 
-Default `commit-mode` to `github-api`. Set it to `git-cli` to retain Git CLI commits and tag pushes.
+Replace `commit-mode` with the boolean `push-with-git-cli` input. GitHub API pushes are used by default; set `push-with-git-cli` to `true` to push release commits and tags with the Git CLI.

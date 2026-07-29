@@ -38,14 +38,11 @@ inputs:
       this option will also always be `true`.
     required: false
     default: true
-  commit-mode:
+  push-with-git-cli:
     description: >
-      An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI,
-      or "github-api" to push changes via the GitHub API. When using "github-api",
-      all commits and tags are signed using GitHub's GPG key and attributed to the user
-      or app who owns the GITHUB_TOKEN.
+      Whether to use the Git CLI instead of the GitHub API to push release commits and tags.
     required: false
-    default: "github-api"
+    default: false
 outputs:
   published:
     description: A boolean value to indicate whether a publishing is happened or not

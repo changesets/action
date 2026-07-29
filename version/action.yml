@@ -25,14 +25,11 @@ inputs:
   pr-base-branch:
     description: "Sets the base branch of the PR. Defaults to `github.ref_name`."
     required: false
-  commit-mode:
+  push-with-git-cli:
     description: >
-      An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI,
-      or "github-api" to push changes via the GitHub API. When using "github-api",
-      all commits and tags are signed using GitHub's GPG key and attributed to the user
-      or app who owns the GITHUB_TOKEN.
+      Whether to use the Git CLI instead of the GitHub API to push release commits.
     required: false
-    default: "github-api"
+    default: false
 outputs:
   pr-number:
     description: The pull request number that was created or updated

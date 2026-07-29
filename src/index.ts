@@ -22,7 +22,7 @@ import {
     branch: "pr-base-branch",
     prDraft: "pr-draft",
     createGithubReleases: "create-github-releases",
-    commitMode: "commit-mode",
+    commitMode: "push-with-git-cli",
   });
 
   const githubToken = getRequiredInput("github-token");
@@ -34,12 +34,8 @@ import {
     );
   }
 
-  const commitMode = getOptionalInput("commit-mode") ?? "github-api";
+  const pushWithGitCli = core.getBooleanInput("push-with-git-cli");
   const prDraft = getOptionalInput("pr-draft");
-  if (commitMode !== "git-cli" && commitMode !== "github-api") {
-    core.setFailed(`Invalid commit mode: ${commitMode}`);
-    return;
-  }
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
     core.setFailed(`Invalid pr-draft: ${prDraft}`);
     return;
@@ -47,7 +43,7 @@ import {
   const github = new GitHub({
     cwd,
     githubToken,
-    commitMode,
+    pushWithGitCli,
   });
 
   let { changesets } = await readChangesetState(cwd);

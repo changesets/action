@@ -65,7 +65,7 @@ describe("GitHub", () => {
       githubToken: "token",
     });
 
-    expect(github.commitMode).toBe("github-api");
+    expect(github.pushWithGitCli).toBe(false);
   });
 
   it("uses github-token instead of checkout's persisted header for CLI branch and tag pushes", async () => {
@@ -98,7 +98,7 @@ describe("GitHub", () => {
     const github = new GitHub({
       cwd: repository,
       githubToken: actionToken,
-      commitMode: "git-cli",
+      pushWithGitCli: true,
     });
 
     await github.pushChanges({
@@ -155,7 +155,7 @@ describe("GitHub", () => {
     const github = new GitHub({
       cwd: repository,
       githubToken: actionToken,
-      commitMode: "git-cli",
+      pushWithGitCli: true,
     });
 
     await github.pushChanges({
