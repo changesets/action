@@ -1,27 +1,60 @@
 import { Buffer } from "node:buffer";
-import { exec, getExecOutput } from "@actions/exec";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { createFixture } from "fs-fixture";
+import { exec } from "tinyexec";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
+import { createGitHttpServer } from "./test-utils/gitHttpServer.ts";
 
-vi.mock("@actions/exec", () => ({
-  exec: vi.fn(),
-  getExecOutput: vi.fn(),
+const githubContext = vi.hoisted(() => ({
+  repo: {
+    owner: "changesets",
+    repo: "action",
+  },
+  serverUrl: "http://127.0.0.1",
+  sha: "base-sha",
 }));
 
 vi.mock("@actions/github", () => ({
-  context: {
-    repo: {
-      owner: "changesets",
-      repo: "action",
-    },
-    serverUrl: "https://github.com",
-    sha: "base-sha",
-  },
+  context: githubContext,
   getOctokit: () => ({}),
 }));
 
+async function git(cwd: string, args: string[]) {
+  const result = await exec("git", args, {
+    nodeOptions: { cwd },
+    throwOnError: true,
+  });
+  return result.stdout.trim();
+}
+
+async function initializeRepositories(root: string) {
+  const repository = path.join(root, "repository");
+  const remote = path.join(root, "remote.git");
+
+  await git(repository, ["init", "-b", "main"]);
+  await git(repository, ["config", "user.name", "Test User"]);
+  await git(repository, ["config", "user.email", "test@example.com"]);
+  await git(repository, ["add", "."]);
+  await git(repository, ["commit", "-m", "Initial commit"]);
+  await git(root, ["clone", "--bare", repository, remote]);
+  await git(remote, ["config", "http.receivepack", "true"]);
+
+  return { remote, repository };
+}
+
+function getAuthorization(token: string) {
+  return `basic ${Buffer.from(`x-access-token:${token}`).toString("base64")}`;
+}
+
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.stubEnv("GIT_CONFIG_COUNT", "0");
+  vi.stubEnv("GIT_CONFIG_NOSYSTEM", "1");
+  vi.stubEnv("GIT_TERMINAL_PROMPT", "0");
+});
+
+afterEach(() => {
   vi.unstubAllEnvs();
 });
 
@@ -35,27 +68,93 @@ describe("GitHub", () => {
     expect(github.commitMode).toBe("github-api");
   });
 
-  it("clears inherited git auth headers before adding the github-token header", async () => {
-    vi.mocked(getExecOutput)
-      .mockResolvedValueOnce({
-        exitCode: 0,
-        stdout: "",
-        stderr: "",
-      })
-      .mockResolvedValueOnce({
-        exitCode: 0,
-        stdout:
-          "https://x-access-token:remote-token@github.com/changesets/action\n",
-        stderr: "",
-      });
-    vi.mocked(exec).mockResolvedValue(0);
-    vi.stubEnv("GIT_CONFIG_COUNT", "1");
-    vi.stubEnv("GIT_CONFIG_KEY_0", "http.https://github.com/.extraheader");
-    vi.stubEnv("GIT_CONFIG_VALUE_0", "AUTHORIZATION: basic checkout-token");
+  it("uses github-token instead of checkout's persisted header for CLI branch and tag pushes", async () => {
+    await using fixture = await createFixture({
+      "global.gitconfig": "",
+      "repository/file.txt": "initial\n",
+    });
+    vi.stubEnv(
+      "GIT_CONFIG_GLOBAL",
+      path.join(fixture.path, "global.gitconfig"),
+    );
+    const { remote, repository } = await initializeRepositories(fixture.path);
+    const actionToken = "action-token";
+    const checkoutToken = "checkout-token";
 
+    await using server = await createGitHttpServer({
+      projectRoot: fixture.path,
+      expectedAuthorization: getAuthorization(actionToken),
+    });
+    githubContext.serverUrl = server.origin;
+    const remoteUrl = `${server.origin}/remote.git`;
+    await git(repository, ["remote", "add", "origin", remoteUrl]);
+    await git(repository, [
+      "config",
+      `http.${server.origin}/.extraheader`,
+      `AUTHORIZATION: ${getAuthorization(checkoutToken)}`,
+    ]);
+
+    await fs.writeFile(path.join(repository, "file.txt"), "changed\n");
     const github = new GitHub({
-      cwd: "/repo",
-      githubToken: "custom-token",
+      cwd: repository,
+      githubToken: actionToken,
+      commitMode: "git-cli",
+    });
+
+    await github.pushChanges({
+      branch: "changeset-release/main",
+      message: "Version Packages",
+    });
+    await git(repository, ["tag", "v1.0.0"]);
+    await github.pushTag("v1.0.0");
+
+    expect(
+      await git(remote, ["rev-parse", "refs/heads/changeset-release/main"]),
+    ).toBe(await git(repository, ["rev-parse", "HEAD"]));
+    expect(await git(remote, ["rev-parse", "refs/tags/v1.0.0"])).toBe(
+      await git(repository, ["rev-parse", "v1.0.0"]),
+    );
+    expect(server.receivedAuthorizationHeaders.length).toBeGreaterThan(0);
+    expect(server.receivedAuthorizationHeaders).toEqual(
+      server.receivedAuthorizationHeaders.map(() => [
+        getAuthorization(actionToken),
+      ]),
+    );
+  }, 15_000);
+
+  it("uses github-token instead of credentials embedded in the CLI push URL", async () => {
+    await using fixture = await createFixture({
+      "global.gitconfig": "",
+      "repository/file.txt": "initial\n",
+    });
+    vi.stubEnv(
+      "GIT_CONFIG_GLOBAL",
+      path.join(fixture.path, "global.gitconfig"),
+    );
+    const { remote, repository } = await initializeRepositories(fixture.path);
+    const actionToken = "action-token";
+
+    await using server = await createGitHttpServer({
+      projectRoot: fixture.path,
+      expectedAuthorization: getAuthorization(actionToken),
+    });
+    githubContext.serverUrl = server.origin;
+    const remoteUrl = new URL(`${server.origin}/remote.git`);
+    remoteUrl.username = "x-access-token";
+    remoteUrl.password = "checkout-token";
+    await git(repository, ["remote", "add", "origin", remoteUrl.href]);
+    const persistedCredentialUrl = new URL(remoteUrl);
+    persistedCredentialUrl.password = "";
+    await git(repository, [
+      "config",
+      `http.${persistedCredentialUrl.href}.extraheader`,
+      `AUTHORIZATION: ${getAuthorization("checkout-token")}`,
+    ]);
+
+    await fs.writeFile(path.join(repository, "file.txt"), "changed\n");
+    const github = new GitHub({
+      cwd: repository,
+      githubToken: actionToken,
       commitMode: "git-cli",
     });
 
@@ -64,38 +163,14 @@ describe("GitHub", () => {
       message: "Version Packages",
     });
 
-    expect(getExecOutput).toHaveBeenNthCalledWith(
-      2,
-      "git",
-      ["remote", "get-url", "--push", "--all", "origin"],
-      {
-        cwd: "/repo",
-        ignoreReturnCode: true,
-        silent: true,
-      },
+    expect(
+      await git(remote, ["rev-parse", "refs/heads/changeset-release/main"]),
+    ).toBe(await git(repository, ["rev-parse", "HEAD"]));
+    expect(server.receivedAuthorizationHeaders.length).toBeGreaterThan(0);
+    expect(server.receivedAuthorizationHeaders).toEqual(
+      server.receivedAuthorizationHeaders.map(() => [
+        getAuthorization(actionToken),
+      ]),
     );
-    expect(exec).toHaveBeenCalledWith(
-      "git",
-      ["push", "origin", "HEAD:changeset-release/main", "--force"],
-      expect.objectContaining({
-        env: expect.objectContaining({
-          GIT_CONFIG_COUNT: "5",
-          GIT_CONFIG_KEY_1: "http.https://github.com/.extraheader",
-          GIT_CONFIG_VALUE_1: "",
-          GIT_CONFIG_KEY_2: "http.https://github.com/.extraheader",
-          GIT_CONFIG_VALUE_2: `AUTHORIZATION: basic ${Buffer.from(
-            "x-access-token:custom-token",
-          ).toString("base64")}`,
-          GIT_CONFIG_KEY_3:
-            "http.https://x-access-token@github.com/changesets/action.extraheader",
-          GIT_CONFIG_VALUE_3: "",
-          GIT_CONFIG_KEY_4:
-            "http.https://x-access-token@github.com/changesets/action.extraheader",
-          GIT_CONFIG_VALUE_4: `AUTHORIZATION: basic ${Buffer.from(
-            "x-access-token:custom-token",
-          ).toString("base64")}`,
-        }),
-      }),
-    );
-  });
+  }, 15_000);
 });
