@@ -48,12 +48,12 @@ inputs:
     default: "git-cli"
 outputs:
   published:
-    description: A boolean value to indicate whether a publishing is happened or not
+    description: A "true" or "false" string value to indicate whether a publishing is happened or not
   published-packages:
     description: >
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
   has-changesets:
-    description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
+    description: A "true" or "false" string value about whether there were changesets. Useful if you want to create your own publishing functionality.
   pr-number:
     description: The pull request number that was created or updated
 branding:
