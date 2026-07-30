@@ -33,8 +33,8 @@ It requires the repo to be checked out, and will automatically fetch the PR head
 
 Inputs: _none_
 
-| Outputs        | Required | Description                                                         |
-| -------------- | -------- | ------------------------------------------------------------------- |
-| `comment-body` |          | The generated comment body to present the changesets status in PRs. |
+| Outputs        | Description                                                         |
+| -------------- | ------------------------------------------------------------------- |
+| `comment-body` | The generated comment body to present the changesets status in PRs. |
 
 <!-- api-end -->

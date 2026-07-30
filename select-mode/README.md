@@ -22,9 +22,9 @@ This action selects the mode to run a Changesets workflow:
 
 Inputs: _none_
 
-| Outputs                    | Required | Description                                                                  |
-| -------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `mode`                     |          | The mode to use for the current repo state: 'version', 'publish', or 'none'. |
-| `publish-plan-artifact-id` |          | Artifact id for the generated publish plan when mode is `publish`            |
+| Outputs                    | Description                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `mode`                     | The mode to use for the current repo state: 'version', 'publish', or 'none'. |
+| `publish-plan-artifact-id` | Artifact id for the generated publish plan when mode is `publish`            |
 
 <!-- api-end -->

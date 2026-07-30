@@ -34,13 +34,13 @@ async function main() {
 function renderSection(title: string, entries: Record<string, any>) {
   const rows: string[][] = [];
   for (const [name, entry] of Object.entries(entries)) {
-    const required = entry.required ? "Yes" : "";
-    const description = (entry.description ?? "").trim().replace(/\|/g, "\\|");
-    rows.push([`\`${name}\``, required, description]);
+    let description = (entry.description ?? "").trim().replace(/\|/g, "\\|");
+    if (entry.required) description = `**Required.** ${description}`;
+    rows.push([`\`${name}\``, description]);
   }
   if (rows.length === 0) {
     return `${title}: _none_`;
   }
-  rows.unshift([title, "Required", "Description"]);
+  rows.unshift([title, "Description"]);
   return markdownTable(rows);
 }

@@ -71,15 +71,15 @@ jobs:
 
 <!-- api-start -->
 
-| Inputs         | Required | Description                                                                                                                                                                         |
-| -------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `github-token` |          | The GitHub token to use for authentication. Defaults to the GitHub-provided token.                                                                                                  |
-| `body`         | Yes      | The comment body to post on the PR.                                                                                                                                                 |
-| `update-id`    |          | By default, the action will create and update a comment with this id. Pass a different id to create and update a new comment, or pass an empty string to disable updating comments. |
+| Inputs         | Description                                                                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-token` | The GitHub token to use for authentication. Defaults to the GitHub-provided token.                                                                                                  |
+| `body`         | **Required.** The comment body to post on the PR.                                                                                                                                   |
+| `update-id`    | By default, the action will create and update a comment with this id. Pass a different id to create and update a new comment, or pass an empty string to disable updating comments. |
 
-| Outputs      | Required | Description                                                |
-| ------------ | -------- | ---------------------------------------------------------- |
-| `comment-id` |          | The comment id of the comment that was created or updated. |
+| Outputs      | Description                                                |
+| ------------ | ---------------------------------------------------------- |
+| `comment-id` | The comment id of the comment that was created or updated. |
 
 <!-- api-end -->
 
