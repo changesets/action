@@ -1,5 +1,5 @@
 name: Changesets - PR Comment
-description: A simple GitHub Action to comment on PRs
+description: Create or update comments on PRs
 runs:
   using: node24
   main: ../dist/pr-comment.js

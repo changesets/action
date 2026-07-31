@@ -26,7 +26,7 @@ inputs:
     default: true
 outputs:
   published:
-    description: "A boolean value to indicate whether a publishing has happened or not"
+    description: A "true" or "false" string value to indicate whether a publishing has happened or not
   published-packages:
     description: >
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`

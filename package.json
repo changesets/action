@@ -13,9 +13,10 @@
     "format": "oxfmt --check",
     "format:fix": "oxfmt",
     "changeset": "changeset",
-    "bump": "node --experimental-strip-types ./scripts/bump.ts",
-    "release": "node --experimental-strip-types ./scripts/release.ts",
-    "release:pr": "node --experimental-strip-types ./scripts/release-pr.ts"
+    "bump": "node ./scripts/bump.ts",
+    "update-readme": "node ./scripts/update-readme.ts",
+    "release": "node ./scripts/release.ts",
+    "release:pr": "node ./scripts/release-pr.ts"
   },
   "dependencies": {
     "@actions/artifact": "^6.2.1",
@@ -47,7 +48,8 @@
     "oxfmt": "^0.48.0",
     "rolldown": "^1.0.1",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.6",
+    "yaml": "^2.9.0"
   },
   "engines": {
     "node": ">=24"
