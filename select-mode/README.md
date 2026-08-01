@@ -28,3 +28,6 @@ Inputs: _none_
 | `publish-plan-artifact-id` | Artifact id for the generated publish plan when mode is `publish`            |
 
 <!-- api-end -->
+
+[job-permissions]: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idpermissions
+[workflow-triggers]: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
