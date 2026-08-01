@@ -11,7 +11,7 @@ This action versions packages and creates or updates a pull request with the cha
 - [Workflow triggers][workflow-triggers]: _any_
 
 > [!NOTE]
-> In your repository settings, in `Actions > General`, also ensure `Allow GitHub Actions to create and approve pull requests` option is enabled
+> In your repository settings, in `Actions > General`, also ensure the `Allow GitHub Actions to create and approve pull requests` option is enabled
 
 ## Usage
 
