@@ -28,6 +28,9 @@ If using [trusted publishing](https://docs.npmjs.com/trusted-publishers), it's r
   - `id-token: write`: if using [trusted publishing](https://docs.npmjs.com/trusted-publishers)
 - [Workflow triggers][workflow-triggers]: _any_
 
+> [!NOTE]
+> In your repository settings, in `Actions > General`, also ensure the `Allow GitHub Actions to create and approve pull requests` option is enabled
+
 ### Usage
 
 > [!TIP]
