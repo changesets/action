@@ -67,6 +67,19 @@ function getHttpUrl(remoteUrl: string): string | undefined {
   }
 }
 
+function isAlreadyExistingRefError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    "message" in error &&
+    typeof error.status === "number" &&
+    typeof error.message === "string" &&
+    error.status === 422 &&
+    error.message.includes("Reference already exists")
+  );
+}
+
 export class GitHub {
   readonly #githubToken: string;
   readonly octokit: Octokit;
@@ -214,16 +227,28 @@ export class GitHub {
 
   async pushTag(tag: string) {
     if (!this.pushWithGitCli) {
-      return this.octokit.rest.git
-        .createRef({
+      try {
+        const { data: tagObject } = await this.octokit.rest.git.createTag({
+          ...context.repo,
+          tag,
+          message: tag,
+          object: context.sha,
+          type: "commit",
+        });
+        await this.octokit.rest.git.createRef({
           ...context.repo,
           ref: `refs/tags/${tag}`,
-          sha: context.sha,
-        })
-        .catch((err) => {
-          // Assuming tag was manually pushed in custom publish script
-          core.warning(`Failed to create tag ${tag}: ${err.message}`);
+          sha: tagObject.sha,
         });
+      } catch (err) {
+        if (isAlreadyExistingRefError(err)) {
+          // The tag was likely pushed by a custom publish script.
+          core.info(`Tag ${tag} already exists`);
+          return;
+        }
+        throw err;
+      }
+      return;
     }
     await exec("git", ["push", "origin", tag], {
       cwd: this.cwd,
