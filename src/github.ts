@@ -97,18 +97,29 @@ export class GitHub {
   }
 
   async #getCliAuthEnv(): Promise<Record<string, string>> {
+    // Make `github-token` authoritative for CLI pushes without changing the
+    // repository config. Git may otherwise use checkout's persisted header or
+    // credentials embedded in a remote URL, so we need to install command-scoped
+    // `http.extraHeader` overrides for every push destination.
+    //
+    // Historical context: v1 put `github-token` in ~/.netrc, where checkout's
+    // extraheader took precedence. This setup with reset + authHeader
+    // deliberately makes `github-token` win for pushes.
     const basic = Buffer.from(`x-access-token:${this.#githubToken}`).toString(
       "base64",
     );
+
+    // The environment may already contain command-scoped Git config. Append
+    // our KEY_n/VALUE_n entries so those existing settings stay active.
     const gitConfigCount = Number(process.env.GIT_CONFIG_COUNT ?? 0);
     if (!Number.isInteger(gitConfigCount) || gitConfigCount < 0) {
       throw new Error(
         `Invalid GIT_CONFIG_COUNT value: ${process.env.GIT_CONFIG_COUNT}`,
       );
     }
-    // `git push origin` may use remote.origin.pushurl instead of the fetch URL,
-    // and Git supports multiple push URLs. Ask Git for the effective targets so
-    // the URL-specific auth below applies to every HTTP destination.
+
+    // `git push origin` prefers remote.origin.pushurl over the fetch URL and
+    // supports more than one push URL, so inspect every effective destination.
     const { stdout } = await getExecOutput(
       "git",
       ["remote", "get-url", "--push", "--all", "origin"],
@@ -120,10 +131,10 @@ export class GitHub {
       },
     );
 
-    // Git chooses HTTP config by URL specificity. The host key handles the
-    // extraheader normally installed by actions/checkout, while an exact push
-    // URL also outranks any inherited path-specific extraheader. Only the most
-    // specific matching subsection contributes, so these do not duplicate it.
+    // Git reads `http.extraHeader` from the most specific matching URL section.
+    // The host key replaces checkout's usual persisted header; an exact key for
+    // each destination outranks path- or username-specific inherited config.
+    // Git selects only one URL section, so these keys do not duplicate headers.
     const extraHeaderKeys = new Set([`http.${this.serverUrl}/.extraheader`]);
     for (const remoteUrl of stdout.split(/\r?\n/)) {
       const httpUrl = getHttpUrl(remoteUrl);
@@ -132,19 +143,16 @@ export class GitHub {
       }
     }
     const authHeader = `AUTHORIZATION: basic ${basic}`;
+
+    // Each URL key needs two new command-scoped config entries: one to reset
+    // the inherited header list and one to install our Authorization header.
     const env: Record<string, string> = {
       GIT_CONFIG_COUNT: String(gitConfigCount + extraHeaderKeys.size * 2),
     };
 
-    // GIT_CONFIG_COUNT/KEY_n/VALUE_n add command-scoped config. Preserve any
-    // existing entries and append ours. `http.extraHeader` is multi-valued, so
-    // merely adding our Authorization header would make Git send both tokens.
-    // An empty value resets the list; the following value adds only our token.
-    //
-    // In v1, `github-token` lived in ~/.netrc. When checkout had already
-    // supplied Authorization through an extraheader, that header took
-    // precedence and ~/.netrc was effectively a fallback. These entries
-    // intentionally make `github-token` win for pushes.
+    // `http.extraHeader` is multi-valued, so merely appending our header could
+    // make Git send both tokens. An empty value resets inherited values; the
+    // following value adds only ours.
     let index = 0;
     for (const extraHeaderKey of extraHeaderKeys) {
       const resetIndex = gitConfigCount + index * 2;
