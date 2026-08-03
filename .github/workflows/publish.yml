@@ -24,12 +24,7 @@ jobs:
     permissions:
       contents: read # to check out repo (actions/checkout)
     steps:
-      - name: Check out repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/ci-setup
+      - uses: $/.github/actions/ci-setup
         with:
           skip-cache: true # avoid cache poisoning attacks
 
@@ -50,19 +45,14 @@ jobs:
     permissions:
       contents: read # to check out repo (actions/checkout)
     steps:
-      - name: Check out repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/ci-setup
+      - uses: $/.github/actions/ci-setup
         with:
           skip-cache: true # avoid cache poisoning attacks
 
       - name: Build
         run: pnpm build
 
-      - uses: ./.github/actions/setup-bot-auth
+      - uses: $/.github/actions/setup-bot-auth
         id: bot-auth
         with:
           client-id: ${{ vars.APP_CLIENT_ID }}
@@ -87,19 +77,14 @@ jobs:
     permissions:
       contents: write # to create release and have it authored by github-actions (changesets/action)
     steps:
-      - name: Check out repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/ci-setup
+      - uses: $/.github/actions/ci-setup
         with:
           skip-cache: true # avoid cache poisoning attacks
 
       - name: Build
         run: pnpm build
 
-      - uses: ./.github/actions/setup-bot-auth
+      - uses: $/.github/actions/setup-bot-auth
         id: bot-auth
         with:
           client-id: ${{ vars.APP_CLIENT_ID }}
