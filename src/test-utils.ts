@@ -106,6 +106,8 @@ async function runGitHttpBackend(
   request: IncomingMessage,
   response: ServerResponse,
 ) {
+  // `git http-backend` speaks CGI: request metadata goes through environment
+  // variables, the request body through stdin, and the response through stdout.
   const requestUrl = new URL(
     request.url ?? "/",
     `http://${request.headers.host ?? "localhost"}`,
@@ -132,6 +134,8 @@ async function runGitHttpBackend(
   });
   request.pipe(backend.stdin);
 
+  // Buffer stdout so the CGI headers can be separated from the response body.
+  // Keep stderr only to explain a backend failure.
   const stdout: Buffer[] = [];
   const stderr: Buffer[] = [];
   backend.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
@@ -148,6 +152,7 @@ async function runGitHttpBackend(
   }
 
   const output = Buffer.concat(stdout);
+  // CGI ends its response headers with a blank line; accept CRLF and LF output.
   let separator = Buffer.from("\r\n\r\n");
   let headerEnd = output.indexOf(separator);
   if (headerEnd === -1) {
@@ -158,6 +163,7 @@ async function runGitHttpBackend(
     throw new Error("git http-backend returned an invalid CGI response");
   }
 
+  // Translate CGI status and headers, then forward the remaining bytes as body.
   let status = 200;
   const headers = output.subarray(0, headerEnd).toString("utf8").split(/\r?\n/);
   for (const header of headers) {
