@@ -101,20 +101,6 @@ export async function shallowClone(cwd: string, depth = 1) {
   return moveDisposable(stack, fixture);
 }
 
-type RecordedRequest = {
-  method: string;
-  url: string;
-  headers: NodeJS.Dict<string[]>;
-};
-
-function recordRequest(request: IncomingMessage): RecordedRequest {
-  return {
-    method: request.method ?? "GET",
-    url: request.url ?? "/",
-    headers: request.headersDistinct,
-  };
-}
-
 async function runGitHttpBackend(
   cwd: string,
   request: IncomingMessage,
@@ -206,6 +192,20 @@ async function listen(server: http.Server) {
     server.off("listening", waiter.resolve);
     server.off("error", waiter.reject);
   }
+}
+
+type RecordedRequest = {
+  method: string;
+  url: string;
+  headers: NodeJS.Dict<string[]>;
+};
+
+function recordRequest(request: IncomingMessage): RecordedRequest {
+  return {
+    method: request.method ?? "GET",
+    url: request.url ?? "/",
+    headers: request.headersDistinct,
+  };
 }
 
 async function createGitHttpServer(cwd: string) {
