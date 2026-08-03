@@ -5,7 +5,9 @@ runs:
   main: ../dist/version.js
 inputs:
   github-token:
-    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    description: >
+      The GitHub token to use for authentication. Defaults to the GitHub-provided token.
+      To use a custom token, pass it explicitly to this input.
     required: false
     default: ${{ github.token }}
   script:
