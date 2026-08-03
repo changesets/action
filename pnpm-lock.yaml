@@ -29,8 +29,8 @@ importers:
         specifier: ^5.0.0-next.7
         version: 5.0.0-next.7
       '@changesets/ghcommit':
-        specifier: ^3.0.0-next.1
-        version: 3.0.0-next.1
+        specifier: ^3.0.0
+        version: 3.0.0
       '@changesets/git':
         specifier: ^4.0.0-next.6
         version: 4.0.0-next.6
@@ -231,8 +231,8 @@ packages:
     resolution: {integrity: sha512-ek+tXy+SHshWQD5V4uL6pciazjhm/Yt+KxIQEW0W6vIyyjWvFBY6t0xfsv/hCc/+u11riHcoWGwHkGYqC869EQ==}
     engines: {node: ^22.11 || ^24 || >=26}
 
-  '@changesets/ghcommit@3.0.0-next.1':
-    resolution: {integrity: sha512-wWhc316LkE64P0fbNoKxEyUk5vpkQEF52m1XUBF2xJrE++cGq0PZSu9ZeXLKExOdXKVkAOGokmnXlfnYzCt1NQ==}
+  '@changesets/ghcommit@3.0.0':
+    resolution: {integrity: sha512-od3Y0BhzH+zg8ysSiXFiwj1g85g98mt/WDoGdl2EIjRY8TXxsr8JuaRvHafB2kNGqm9qONBQbPX9UOa4uet+6Q==}
     engines: {node: ^22.11 || ^24 || >=26}
 
   '@changesets/git@4.0.0-next.6':
@@ -1601,7 +1601,7 @@ snapshots:
       '@changesets/types': 7.0.0-next.6
       '@manypkg/get-packages': 3.1.0
 
-  '@changesets/ghcommit@3.0.0-next.1':
+  '@changesets/ghcommit@3.0.0':
     dependencies:
       tinyexec: 1.2.4
 

@@ -12,7 +12,6 @@ minimumReleaseAgeExclude:
   - "@changesets/get-dependents-graph@3.0.0-next.6"
   - "@changesets/get-github-info@1.0.0-next.3"
   - "@changesets/get-release-plan@5.0.0-next.7"
-  - "@changesets/ghcommit@3.0.0-next.1"
   - "@changesets/git@4.0.0-next.6"
   - "@changesets/parse@1.0.0-next.7"
   - "@changesets/pre@3.0.0-next.6"
