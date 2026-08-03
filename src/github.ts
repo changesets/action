@@ -253,6 +253,7 @@ export class GitHub {
         base: {
           commit: context.sha,
         },
+        force: true,
         cwd: this.cwd,
       });
       return;
