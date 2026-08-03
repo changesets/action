@@ -1,9 +1,10 @@
 import { createFixture } from "fs-fixture";
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import {
   BumpLevels,
   getChangelogEntry,
   sortTheThings,
+  throwOnRemovedCommitModeInput,
   validateChangesetsCliVersion,
 } from "./utils.ts";
 
@@ -74,6 +75,10 @@ let changelog = `# @keystone-alpha/email
   - Update mjml-dependency
 `;
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 test("it works", () => {
   let entry = getChangelogEntry(changelog, "3.0.0");
   expect(entry.content).toMatchSnapshot();
@@ -106,6 +111,19 @@ test("it sorts the things right", () => {
   ];
   expect(things.sort(sortTheThings)).toMatchSnapshot();
 });
+
+test.each([
+  ["commit-mode", "git-cli", "push-with-git-cli: true"],
+  ["commit-mode", "github-api", "push-with-git-cli: false"],
+  ["commitMode", "git-cli", "push-with-git-cli: true"],
+  ["commitMode", "github-api", "push-with-git-cli: false"],
+])(
+  "explains how to migrate the removed %s input from %s",
+  (inputName, value, replacement) => {
+    vi.stubEnv(`INPUT_${inputName.toUpperCase()}`, value);
+    expect(() => throwOnRemovedCommitModeInput()).toThrow(replacement);
+  },
+);
 
 test("throws when the project declares Changesets CLI v2", async () => {
   await using fixture = await createFixture({

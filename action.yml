@@ -5,7 +5,9 @@ runs:
   main: "dist/index.js"
 inputs:
   github-token:
-    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    description: >
+      The GitHub token to use for authentication. Defaults to the GitHub-provided token.
+      To use a custom token, pass it explicitly to this input.
     required: false
     default: ${{ github.token }}
   publish-script:
@@ -41,6 +43,8 @@ inputs:
   push-with-git-cli:
     description: >
       Whether to use the Git CLI instead of the GitHub API to push release commits and tags.
+      Defaults to `false`. When using the GitHub API, commits and tags are signed using
+      GitHub's GPG key and attributed to the user or app that owns the `github-token`.
     required: false
     default: false
 outputs:

@@ -28,6 +28,8 @@ inputs:
   push-with-git-cli:
     description: >
       Whether to use the Git CLI instead of the GitHub API to push release commits.
+      Defaults to `false`. When using the GitHub API, commits are signed using GitHub's
+      GPG key and attributed to the user or app that owns the `github-token`.
     required: false
     default: false
 outputs:

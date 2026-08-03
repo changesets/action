@@ -4,6 +4,7 @@ import { runVersion } from "../run.ts";
 import {
   getOptionalInput,
   getRequiredInput,
+  throwOnRemovedCommitModeInput,
   validateChangesetsCliVersion,
 } from "../utils.ts";
 
@@ -17,6 +18,7 @@ async function main() {
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
   await validateChangesetsCliVersion(cwd);
+  throwOnRemovedCommitModeInput();
 
   const githubToken = getRequiredInput("github-token");
   const script = getOptionalInput("script");

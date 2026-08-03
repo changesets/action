@@ -5,6 +5,7 @@ import { runPublish, runVersion } from "./run.ts";
 import {
   getOptionalInput,
   getRequiredInput,
+  throwOnRemovedCommitModeInput,
   throwOnRenamedInputs,
   validateChangesetsCliVersion,
 } from "./utils.ts";
@@ -22,8 +23,8 @@ import {
     branch: "pr-base-branch",
     prDraft: "pr-draft",
     createGithubReleases: "create-github-releases",
-    commitMode: "push-with-git-cli",
   });
+  throwOnRemovedCommitModeInput();
 
   const githubToken = getRequiredInput("github-token");
   if (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN !== githubToken) {

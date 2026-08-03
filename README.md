@@ -36,23 +36,32 @@ If using [trusted publishing](https://docs.npmjs.com/trusted-publishers), it's r
 > [!TIP]
 > Check out [the docs](https://changesets.dev/guide/automating#how-do-i-run-the-version-and-publish-commands) to learn how to set up the version and publish workflow.
 
+> [!IMPORTANT]
+> To use a custom GitHub token, pass it explicitly through the `github-token` input:
+>
+> ```yaml
+> with:
+>   github-token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+> ```
+>
+> Setting the `GITHUB_TOKEN` environment variable does not configure the action. This applies whether release changes are pushed using the GitHub API or the Git CLI.
+
 ### API
 
 <!-- api-start -->
 
-| Inputs                   | Description                                                                                                                                                                                                                                                                           |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `github-token`           | The GitHub token to use for authentication. Defaults to the GitHub-provided token.                                                                                                                                                                                                    |
-| `publish-script`         | The command to use to build and publish packages                                                                                                                                                                                                                                      |
-| `version-script`         | The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided                                                                                                                                                             |
-| `commit-message`         | The commit message. Default to `Version Packages`                                                                                                                                                                                                                                     |
-| `pr-title`               | The pull request title. Default to `Version Packages`                                                                                                                                                                                                                                 |
-| `pr-draft`               | Controls draft PR behavior. Use 'create' to create new version PRs as draft, or 'always' to also convert existing version PRs back to draft when updating them.                                                                                                                       |
-| `pr-base-branch`         | Sets the base branch of the PR. Defaults to `github.ref_name`.                                                                                                                                                                                                                        |
-| `create-github-releases` | Whether to create Github releases after publish                                                                                                                                                                                                                                       |
-| `push-git-tags`          | Whether to create git tags after publish. If `create-github-releases` is set to `true`, this option will also always be `true`.                                                                                                                                                       |
-| `push-with-git-cli`      | Whether to use the Git CLI instead of the GitHub API to push release commits and tags. Default to `false`.                                                                                                                                                                            |
-| `commit-mode`            | An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI, or "github-api" to push changes via the GitHub API. When using "github-api", all commits and tags are signed using GitHub's GPG key and attributed to the user or app who owns the GITHUB_TOKEN. |
+| Inputs                   | Description                                                                                                                                                                                                                                               |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-token`           | The GitHub token to use for authentication. Defaults to the GitHub-provided token. To use a custom token, pass it explicitly to this input.                                                                                                               |
+| `publish-script`         | The command to use to build and publish packages                                                                                                                                                                                                          |
+| `version-script`         | The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided                                                                                                                                 |
+| `commit-message`         | The commit message. Default to `Version Packages`                                                                                                                                                                                                         |
+| `pr-title`               | The pull request title. Default to `Version Packages`                                                                                                                                                                                                     |
+| `pr-draft`               | Controls draft PR behavior. Use 'create' to create new version PRs as draft, or 'always' to also convert existing version PRs back to draft when updating them.                                                                                           |
+| `pr-base-branch`         | Sets the base branch of the PR. Defaults to `github.ref_name`.                                                                                                                                                                                            |
+| `create-github-releases` | Whether to create Github releases after publish                                                                                                                                                                                                           |
+| `push-git-tags`          | Whether to create git tags after publish. If `create-github-releases` is set to `true`, this option will also always be `true`.                                                                                                                           |
+| `push-with-git-cli`      | Whether to use the Git CLI instead of the GitHub API to push release commits and tags. Defaults to `false`. When using the GitHub API, commits and tags are signed using GitHub's GPG key and attributed to the user or app that owns the `github-token`. |
 
 | Outputs              | Description                                                                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |

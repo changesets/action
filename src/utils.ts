@@ -146,6 +146,23 @@ export function getRequiredInput(name: string) {
   return core.getInput(name, { required: true });
 }
 
+export function throwOnRemovedCommitModeInput() {
+  for (const inputName of ["commit-mode", "commitMode"]) {
+    const value = getOptionalInput(inputName);
+    if (value === undefined) continue;
+
+    const migration =
+      value === "git-cli"
+        ? 'Replace it with "push-with-git-cli: true".'
+        : value === "github-api"
+          ? 'Remove it or replace it with "push-with-git-cli: false"; GitHub API pushes are now the default.'
+          : 'Set "push-with-git-cli" to true for Git CLI pushes or false for GitHub API pushes.';
+    throw new Error(
+      `The "${inputName}" input has been replaced by the boolean "push-with-git-cli" input. ${migration}`,
+    );
+  }
+}
+
 export function throwOnRenamedInputs(renames: Record<string, string>) {
   const references: Record<string, string> = {};
 
