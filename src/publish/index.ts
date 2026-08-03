@@ -35,8 +35,8 @@ async function main() {
     );
   }
 
-  // NOTE: Always use API mode here as publish does not need a commit-mode.
-  const github = new GitHub({ cwd, githubToken, commitMode: "github-api" });
+  // The publish sub-action always uses the GitHub API for tag pushes.
+  const github = new GitHub({ cwd, githubToken });
 
   const fromPackDir = packDirArtifactId
     ? await downloadArtifact(

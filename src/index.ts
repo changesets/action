@@ -5,6 +5,7 @@ import { runPublish, runVersion } from "./run.ts";
 import {
   getOptionalInput,
   getRequiredInput,
+  throwOnRemovedCommitModeInput,
   throwOnRenamedInputs,
   validateChangesetsCliVersion,
 } from "./utils.ts";
@@ -22,8 +23,8 @@ import {
     branch: "pr-base-branch",
     prDraft: "pr-draft",
     createGithubReleases: "create-github-releases",
-    commitMode: "commit-mode",
   });
+  throwOnRemovedCommitModeInput();
 
   const githubToken = getRequiredInput("github-token");
   if (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN !== githubToken) {
@@ -34,12 +35,8 @@ import {
     );
   }
 
-  const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
+  const pushWithGitCli = core.getBooleanInput("push-with-git-cli");
   const prDraft = getOptionalInput("pr-draft");
-  if (commitMode !== "git-cli" && commitMode !== "github-api") {
-    core.setFailed(`Invalid commit mode: ${commitMode}`);
-    return;
-  }
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
     core.setFailed(`Invalid pr-draft: ${prDraft}`);
     return;
@@ -47,7 +44,7 @@ import {
   const github = new GitHub({
     cwd,
     githubToken,
-    commitMode,
+    pushWithGitCli,
   });
 
   let { changesets } = await readChangesetState(cwd);

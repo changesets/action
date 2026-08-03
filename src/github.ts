@@ -5,8 +5,6 @@ import { context } from "@actions/github";
 import { commitChangesSinceBase } from "@changesets/ghcommit";
 import { setupOctokit, type Octokit } from "./octokit.ts";
 
-export type CommitMode = "git-cli" | "github-api";
-
 type GitOptions = {
   cwd: string;
   env?: Record<string, string>;
@@ -50,20 +48,47 @@ const checkIfClean = async (options: GitOptions): Promise<boolean> => {
   return !stdout.length;
 };
 
+function getHttpUrl(remoteUrl: string): string | undefined {
+  try {
+    const url = new URL(remoteUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return;
+    }
+
+    // Git includes the username when deciding which URL-specific config is
+    // most specific, so retain it. Password, query, and fragment do not
+    // participate in matching; strip them before copying the URL into the env.
+    url.password = "";
+    url.search = "";
+    url.hash = "";
+    return url.href;
+  } catch {
+    return;
+  }
+}
+
 export class GitHub {
   readonly #githubToken: string;
   readonly octokit: Octokit;
   readonly cwd: string;
-  readonly commitMode: CommitMode;
+  readonly pushWithGitCli: boolean;
+  readonly serverUrl: string;
 
   constructor(options: {
     githubToken: string;
     cwd: string;
-    commitMode?: CommitMode;
+    pushWithGitCli?: boolean;
+    serverUrl?: string;
   }) {
     this.#githubToken = options.githubToken;
     this.cwd = options.cwd;
-    this.commitMode = options.commitMode ?? "git-cli";
+    this.pushWithGitCli = options.pushWithGitCli ?? false;
+    this.serverUrl = (
+      options.serverUrl ??
+      context.serverUrl ??
+      process.env.GITHUB_SERVER_URL ??
+      "https://github.com"
+    ).replace(/\/+$/, "");
     this.octokit = setupOctokit(options.githubToken);
   }
 
@@ -71,26 +96,75 @@ export class GitHub {
     return this.#githubToken;
   }
 
-  #getCliAuthEnv(): Record<string, string> {
+  async #getCliAuthEnv(): Promise<Record<string, string>> {
+    // Make `github-token` authoritative for CLI pushes without changing the
+    // repository config. Git may otherwise use checkout's persisted header or
+    // credentials embedded in a remote URL, so we need to install command-scoped
+    // `http.extraHeader` overrides for every push destination.
+    //
+    // Historical context: v1 put `github-token` in ~/.netrc, where checkout's
+    // extraheader took precedence. This setup with reset + authHeader
+    // deliberately makes `github-token` win for pushes.
     const basic = Buffer.from(`x-access-token:${this.#githubToken}`).toString(
       "base64",
     );
-    const serverUrl = (
-      context.serverUrl ??
-      process.env.GITHUB_SERVER_URL ??
-      "https://github.com"
-    ).replace(/\/+$/, "");
+
+    // The environment may already contain command-scoped Git config. Append
+    // our KEY_n/VALUE_n entries so those existing settings stay active.
     const gitConfigCount = Number(process.env.GIT_CONFIG_COUNT ?? 0);
     if (!Number.isInteger(gitConfigCount) || gitConfigCount < 0) {
       throw new Error(
         `Invalid GIT_CONFIG_COUNT value: ${process.env.GIT_CONFIG_COUNT}`,
       );
     }
-    return {
-      GIT_CONFIG_COUNT: String(gitConfigCount + 1),
-      [`GIT_CONFIG_KEY_${gitConfigCount}`]: `http.${serverUrl}/.extraheader`,
-      [`GIT_CONFIG_VALUE_${gitConfigCount}`]: `AUTHORIZATION: basic ${basic}`,
+
+    // `git push origin` prefers remote.origin.pushurl over the fetch URL and
+    // supports more than one push URL, so inspect every effective destination.
+    const { stdout } = await getExecOutput(
+      "git",
+      ["remote", "get-url", "--push", "--all", "origin"],
+      {
+        cwd: this.cwd,
+        ignoreReturnCode: true,
+        // A user-configured remote can contain credentials.
+        silent: true,
+      },
+    );
+
+    // Git reads `http.extraHeader` from the most specific matching URL section.
+    // The host key replaces checkout's usual persisted header; an exact key for
+    // each destination outranks path- or username-specific inherited config.
+    // Git selects only one URL section, so these keys do not duplicate headers.
+    const extraHeaderKeys = new Set([`http.${this.serverUrl}/.extraheader`]);
+    for (const remoteUrl of stdout.split(/\r?\n/)) {
+      const httpUrl = getHttpUrl(remoteUrl);
+      if (httpUrl !== undefined) {
+        extraHeaderKeys.add(`http.${httpUrl}.extraheader`);
+      }
+    }
+    const authHeader = `AUTHORIZATION: basic ${basic}`;
+
+    // Each URL key needs two new command-scoped config entries: one to reset
+    // the inherited header list and one to install our Authorization header.
+    const env: Record<string, string> = {
+      GIT_CONFIG_COUNT: String(gitConfigCount + extraHeaderKeys.size * 2),
     };
+
+    // `http.extraHeader` is multi-valued, so merely appending our header could
+    // make Git send both tokens. An empty value resets inherited values; the
+    // following value adds only ours.
+    let index = 0;
+    for (const extraHeaderKey of extraHeaderKeys) {
+      const resetIndex = gitConfigCount + index * 2;
+      const authIndex = resetIndex + 1;
+      env[`GIT_CONFIG_KEY_${resetIndex}`] = extraHeaderKey;
+      env[`GIT_CONFIG_VALUE_${resetIndex}`] = "";
+      env[`GIT_CONFIG_KEY_${authIndex}`] = extraHeaderKey;
+      env[`GIT_CONFIG_VALUE_${authIndex}`] = authHeader;
+      index++;
+    }
+
+    return env;
   }
 
   async ensureGitUser() {
@@ -139,7 +213,7 @@ export class GitHub {
   }
 
   async pushTag(tag: string) {
-    if (this.commitMode === "github-api") {
+    if (!this.pushWithGitCli) {
       return this.octokit.rest.git
         .createRef({
           ...context.repo,
@@ -155,13 +229,13 @@ export class GitHub {
       cwd: this.cwd,
       env: {
         ...process.env,
-        ...this.#getCliAuthEnv(),
+        ...(await this.#getCliAuthEnv()),
       } as Record<string, string>,
     });
   }
 
   async prepareBranch(branch: string) {
-    if (this.commitMode === "github-api") {
+    if (!this.pushWithGitCli) {
       // Preparing a new local branch is not necessary when using the API
       return;
     }
@@ -170,7 +244,7 @@ export class GitHub {
   }
 
   async pushChanges({ branch, message }: { branch: string; message: string }) {
-    if (this.commitMode === "github-api") {
+    if (!this.pushWithGitCli) {
       await commitChangesSinceBase({
         octokit: this.octokit,
         ...context.repo,
@@ -191,7 +265,7 @@ export class GitHub {
       cwd: this.cwd,
       env: {
         ...process.env,
-        ...this.#getCliAuthEnv(),
+        ...(await this.#getCliAuthEnv()),
       } as Record<string, string>,
     });
   }

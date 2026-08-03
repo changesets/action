@@ -4,6 +4,7 @@ import { runVersion } from "../run.ts";
 import {
   getOptionalInput,
   getRequiredInput,
+  throwOnRemovedCommitModeInput,
   validateChangesetsCliVersion,
 } from "../utils.ts";
 
@@ -17,6 +18,7 @@ async function main() {
   // If the user needs to change the cwd, set `working-directory` in the step instead
   const cwd = process.cwd();
   await validateChangesetsCliVersion(cwd);
+  throwOnRemovedCommitModeInput();
 
   const githubToken = getRequiredInput("github-token");
   const script = getOptionalInput("script");
@@ -24,20 +26,16 @@ async function main() {
   const prTitle = getRequiredInput("pr-title");
   const prDraft = getOptionalInput("pr-draft");
   const prBaseBranch = getOptionalInput("pr-base-branch");
-  const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
+  const pushWithGitCli = core.getBooleanInput("push-with-git-cli");
 
   // Validations
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
     throw new Error(`Invalid pr-draft input: ${prDraft}`);
   }
-  if (commitMode !== "git-cli" && commitMode !== "github-api") {
-    throw new Error(`Invalid commit-mode input: ${commitMode}`);
-  }
-
   const github = new GitHub({
     cwd,
     githubToken,
-    commitMode,
+    pushWithGitCli,
   });
 
   const { pullRequestNumber } = await runVersion({

@@ -73,7 +73,7 @@ jobs:
 
 | Inputs         | Description                                                                                                                                                                         |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `github-token` | The GitHub token to use for authentication. Defaults to the GitHub-provided token.                                                                                                  |
+| `github-token` | The GitHub token to use for authentication. Defaults to the GitHub-provided token. To use a custom token, pass it explicitly to this input.                                         |
 | `body`         | **Required.** The comment body to post on the PR.                                                                                                                                   |
 | `update-id`    | By default, the action will create and update a comment with this id. Pass a different id to create and update a new comment, or pass an empty string to disable updating comments. |
 
