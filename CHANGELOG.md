@@ -1,5 +1,29 @@
 # @changesets/action
 
+## 2.0.0-next.4
+
+### Major Changes
+
+- [#692](https://github.com/changesets/action/pull/692) [`cb3f011`](https://github.com/changesets/action/commit/cb3f0110d7423cd340b1c5d63584c0ea6ee63959) Thanks [@Andarist](https://github.com/Andarist)! - Release commits and tags are now pushed using the GitHub API by default.
+
+  Replace the `commit-mode` input with the boolean `push-with-git-cli` input. Set `push-with-git-cli: true` to continue using the Git CLI.
+
+  Regardless of the push mode, custom GitHub tokens must be passed explicitly through the `github-token` input. The `GITHUB_TOKEN` environment variable and credentials configured by `actions/checkout` or embedded in remote URLs are not substitutes for this input. When the Git CLI is enabled, `github-token` takes precedence over those repository credentials.
+
+- [#695](https://github.com/changesets/action/pull/695) [`469993c`](https://github.com/changesets/action/commit/469993ce5783c6a38e72541d4ba0d25588702b9a) Thanks [@bluwy](https://github.com/bluwy)! - Removed `.npmrc` handling when the `NPM_TOKEN` environment variable is set.
+
+  Authentication should be handled via Trusted Publishing instead. If a token is still needed, use `actions/setup-node` to set it up instead via the `registry-url` option. Check out the updated action README for more information of setting up npm authentication in GitHub Actions.
+
+### Patch Changes
+
+- [#699](https://github.com/changesets/action/pull/699) [`5b307d3`](https://github.com/changesets/action/commit/5b307d3df25daf51c41dff70d2f66df1579ae9fa) Thanks [@Andarist](https://github.com/Andarist)! - Validate that projects use Changesets CLI v3 and direct Changesets CLI v2 users to `changesets/action@v1`.
+
+- [#697](https://github.com/changesets/action/pull/697) [`84d78c6`](https://github.com/changesets/action/commit/84d78c68f98f20e24dfff22b22193e7b4f326ad9) Thanks [@Andarist](https://github.com/Andarist)! - Allow custom publish scripts to complete without a Changesets output file, warning that GitHub releases and git tags cannot be created when that file is missing.
+
+- [#705](https://github.com/changesets/action/pull/705) [`77be81b`](https://github.com/changesets/action/commit/77be81bcb9d2d1007c53c4f98bffe51da428d6a5) Thanks [@Andarist](https://github.com/Andarist)! - Fixed a regression making it impossible to sync new versions of versioning pull requests with base branch updates when using GitHub API pushes.
+
+- [#688](https://github.com/changesets/action/pull/688) [`219ea82`](https://github.com/changesets/action/commit/219ea82e52caaff2a10a5e34d3455093cf958238) Thanks [@Andarist](https://github.com/Andarist)! - Remove the `setup-git-user` input. Complete custom Git identities are now preserved automatically, while `github-actions[bot]` is configured as a fallback before creating local release commits or tags.
+
 ## 2.0.0-next.3
 
 ### Major Changes
