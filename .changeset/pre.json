@@ -3,6 +3,9 @@
   "tag": "next",
   "changesets": [
     "all-cars-grin",
+    "brave-pandas-commit",
+    "bright-lions-check",
+    "calm-files-warn",
     "chubby-geese-sink",
     "eight-clocks-pull",
     "eighty-doors-swim",
@@ -10,11 +13,14 @@
     "fiery-toes-vanish",
     "git-cli-auth-header",
     "git-cli-server-url",
+    "green-birds-push",
     "lemon-turtles-itch",
     "ready-mangos-boil",
     "shaky-rings-type",
     "shy-months-crash",
     "silent-tips-dance",
+    "strict-hotels-laugh",
+    "tidy-bots-smile",
     "yellow-roses-fix"
   ]
 }
