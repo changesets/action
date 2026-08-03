@@ -1,218 +1,67 @@
-# Changesets Release Action
+# Changesets GitHub Action
 
 > [!IMPORTANT]
 > This is the development branch for `changesets/action` v2 compatible with Changesets v3. For the v1 code compatible with Changesets v2, check out the [`maintenance/v1`](https://github.com/changesets/action/tree/maintenance/v1) branch.
 
-This action for [Changesets](https://github.com/changesets/changesets) creates a pull request with all of the package versions updated and changelogs updated and when there are new changesets on [your configured `baseBranch`](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md#basebranch-git-branch-name), the PR will be updated. When you're ready, you can merge the pull request and you can either publish the packages to npm manually or setup the action to do it for you.
+This repo contains a collection of GitHub Actions for [Changesets](https://changesets.dev). Check out the [Automating Changesets](https://changesets.dev/guide/automating) guide to learn how to use these actions to automate your workflow.
 
-There are also sub-actions hosted in this repository. Check out their respective READMEs for more details:
+- [changesets/action](./README.md): (This README. See below for details.)
+- [changesets/action/select-mode](./select-mode/README.md): Select the mode to run a Changesets workflow.
+- [changesets/action/version](./version/README.md): Version packages and create or update a pull request with the changes.
+- [changesets/action/pack](./pack/README.md): Pack publishable packages into tarballs.
+- [changesets/action/publish](./publish/README.md): Publish packages to npm.
+- [changesets/action/pr-status](./pr-status/README.md): Generate changeset status in PRs.
+- [changesets/action/pr-comment](./pr-comment/README.md): Create or update comments on PRs.
 
-- [pr-status](./pr-status/README.md): Generate changeset status in PRs.
-- [pr-comment](./pr-comment/README.md): Comment on PRs.
+## changesets/action
 
-## Usage
+This action handles versioning and publishing of packages. It's the equivalent of setting up the `changesets/action/select-mode`, `changesets/action/version`, and `changesets/action/publish` actions in a workflow, but with the required permissions combined.
 
-### Inputs
+If using [trusted publishing](https://docs.npmjs.com/trusted-publishers), it's recommended to set up the individual sub-actions instead to tighten publish permissions.
 
-- publish-script - The command to use to build and publish packages
-- version-script - The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided
-- commit-message - The commit message to use. Default to `Version Packages`
-- pr-title - The pull request title. Default to `Version Packages`
-- create-github-releases - A boolean value to indicate whether to create Github releases after `publish` or not. Default to `true`
-- push-git-tags - A boolean value to indicate whether to create git tags after `publish` or not. Default to `true`
-- push-with-git-cli - Whether to use the Git CLI instead of the GitHub API to push release commits and tags. Default to `false`
-- cwd - Changes node's `process.cwd()` if the project is not located on the root. Default to `process.cwd()`
-- pr-draft - Controls draft PR behavior. Use `create` to create new version PRs as draft, or `always` to also convert existing version PRs back to draft when updating them. By default, version PRs are not forced into draft mode
-- github-token - Passes a custom GitHub token
+### Requirements
 
-Before creating local commits or annotated tags, the action preserves complete
-Git author and committer identities configured through the environment or Git
-configuration. If either identity is unavailable, it configures
-`github-actions[bot]` as a fallback.
+- Needs repo checked out and `@changesets/cli` installed
+- [Job permissions][job-permissions]:
+  - `contents: write`: to commit version changes
+  - `pull-requests: write`: to create pull request
+  - `id-token: write`: if using [trusted publishing](https://docs.npmjs.com/trusted-publishers)
+- [Workflow triggers][workflow-triggers]: _any_
 
-### Outputs
+> [!NOTE]
+> In your repository settings, in `Actions > General`, also ensure the `Allow GitHub Actions to create and approve pull requests` option is enabled
 
-- published - A boolean value to indicate whether a publishing has happened or not
-- published-packages - A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
+### Usage
 
-### Example workflow
+> [!TIP]
+> Check out [the docs](https://changesets.dev/guide/automating#how-do-i-run-the-version-and-publish-commands) to learn how to set up the version and publish workflow.
 
-#### Without Publishing
+### API
 
-Create a file at `.github/workflows/release.yml` with the following content.
+<!-- api-start -->
 
-```yml
-name: Release
+| Inputs                   | Description                                                                                                                                                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-token`           | The GitHub token to use for authentication. Defaults to the GitHub-provided token.                                                                                                                                                                                                    |
+| `publish-script`         | The command to use to build and publish packages                                                                                                                                                                                                                                      |
+| `version-script`         | The command to update version, edit CHANGELOG, read and delete changesets. Default to `changeset version` if not provided                                                                                                                                                             |
+| `commit-message`         | The commit message. Default to `Version Packages`                                                                                                                                                                                                                                     |
+| `pr-title`               | The pull request title. Default to `Version Packages`                                                                                                                                                                                                                                 |
+| `pr-draft`               | Controls draft PR behavior. Use 'create' to create new version PRs as draft, or 'always' to also convert existing version PRs back to draft when updating them.                                                                                                                       |
+| `pr-base-branch`         | Sets the base branch of the PR. Defaults to `github.ref_name`.                                                                                                                                                                                                                        |
+| `create-github-releases` | Whether to create Github releases after publish                                                                                                                                                                                                                                       |
+| `push-git-tags`          | Whether to create git tags after publish. If `create-github-releases` is set to `true`, this option will also always be `true`.                                                                                                                                                       |
+| `push-with-git-cli`      | Whether to use the Git CLI instead of the GitHub API to push release commits and tags. Default to `false`.                                                                                                                                                                            |
+| `commit-mode`            | An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI, or "github-api" to push changes via the GitHub API. When using "github-api", all commits and tags are signed using GitHub's GPG key and attributed to the user or app who owns the GITHUB_TOKEN. |
 
-on:
-  push:
-    branches:
-      - main
+| Outputs              | Description                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `published`          | A "true" or "false" string value to indicate whether a publishing is happened or not                                                             |
+| `published-packages` | A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]` |
+| `has-changesets`     | A "true" or "false" string value about whether there were changesets. Useful if you want to create your own publishing functionality.            |
+| `pr-number`          | The pull request number that was created or updated                                                                                              |
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+<!-- api-end -->
 
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js 26
-        uses: actions/setup-node@v6
-        with:
-          node-version: 26
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Create Release Pull Request
-        uses: changesets/action@v2
-```
-
-#### With Publishing
-
-Check the [npm authentication guide](./docs/set-up-npm-auth.md) to set up publishing to npm. After that, an example workflow with publishing may look like this:
-
-```yml
-name: Release
-
-on:
-  push:
-    branches:
-      - main
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js 26
-        uses: actions/setup-node@v6
-        with:
-          node-version: 26
-          registry-url: https://registry.npmjs.org/ # makes the action set up npm authentication
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v2
-        with:
-          # This expects you to have a script called release which does a build for your packages and calls changeset publish
-          publish-script: pnpm release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-```
-
-#### Custom Publishing
-
-If you want to hook into when publishing should occur but have your own publishing functionality, you can utilize the `hasChangesets` output.
-
-Note that you might need to account for things already being published in your script because a commit without any new changesets can always land on your base branch after a successful publish. In such a case you need to figure out on your own how to skip over the actual publishing logic or handle errors gracefully as most package registries won't allow you to publish over already published version.
-
-```yml
-name: Release
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js 26
-        uses: actions/setup-node@v6
-        with:
-          node-version: 26
-          registry-url: https://registry.npmjs.org/ # makes the action set up npm authentication
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v2
-
-      - name: Publish
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        # You can do something when a publish should happen.
-        run: pnpm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-```
-
-#### With version script
-
-If you need to add additional logic to the version command, you can do so by using a version script.
-
-If the version script is present, this action will run that script instead of `changeset version`, so please make sure that your script calls `changeset version` at some point. All the changes made by the script will be included in the PR.
-
-```yml
-name: Release
-
-on:
-  push:
-    branches:
-      - main
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js 26
-        uses: actions/setup-node@v6
-        with:
-          node-version: 26
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Create Release Pull Request
-        uses: changesets/action@v2
-        with:
-          # this expects you to have a npm script called version that runs some logic and then calls `changeset version`.
-          version-script: pnpm version
-```
-
-#### With Yarn 2 / Plug'n'Play
-
-If you are using [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp), you should use a custom `version` command so that the action can resolve the `changeset` CLI:
-
-```yaml
-- uses: changesets/action@v2
-  with:
-    version-script: yarn changeset version
-    # ...
-```
+[job-permissions]: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idpermissions
+[workflow-triggers]: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
