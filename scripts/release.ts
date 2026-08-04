@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import path from "node:path";
-import { exec } from "@actions/exec";
+import { exec, getExecOutput } from "@actions/exec";
 import major from "semver/functions/major.js";
 import prerelease from "semver/functions/prerelease.js";
 import pkgJson from "../package.json" with { type: "json" };
@@ -25,8 +25,22 @@ const gitEnv = {
 process.chdir(path.join(import.meta.dirname, ".."));
 
 await exec("git", ["checkout", "--detach"]);
+// Stable timestamps make retries produce the same commit when dist is unchanged.
+const { stdout } = await getExecOutput("git", [
+  "show",
+  "--no-patch",
+  "--format=%cI",
+  "HEAD",
+]);
+const commitDate = stdout.trim();
 await exec("git", ["add", "--force", "dist"]);
-await exec("git", ["commit", "-m", tag]);
+await exec("git", ["commit", "-m", tag], {
+  env: {
+    ...process.env,
+    GIT_AUTHOR_DATE: commitDate,
+    GIT_COMMITTER_DATE: commitDate,
+  },
+});
 
 await exec("changeset", ["git-tag"]);
 
@@ -35,6 +49,7 @@ await exec(
   [
     "push",
     "--force",
+    // The action pushes tags through the API; override any push.followTags config.
     "--no-follow-tags",
     "origin",
     `HEAD:refs/heads/${releaseLine}`,
