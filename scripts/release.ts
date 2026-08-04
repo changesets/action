@@ -33,13 +33,7 @@ if (isPrerelease) {
 } else {
   await exec(
     "git",
-    [
-      "push",
-      "--force",
-      "--follow-tags",
-      "origin",
-      `HEAD:refs/heads/${releaseLine}`,
-    ],
+    ["push", "--force", "origin", `HEAD:refs/heads/${releaseLine}`],
     {
       env: gitEnv,
     },
