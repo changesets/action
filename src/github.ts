@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 import * as core from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
@@ -225,6 +226,27 @@ export class GitHub {
     );
   }
 
+  async #getRemoteTagCommit(tag: string) {
+    const { data: ref } = await this.octokit.rest.git.getRef({
+      ...context.repo,
+      ref: `tags/${tag}`,
+    });
+    let target: { type: string; sha: string } = ref.object;
+    while (target.type === "tag") {
+      const { data: tagObject } = await this.octokit.rest.git.getTag({
+        ...context.repo,
+        tag_sha: target.sha,
+      });
+      target = tagObject.object;
+    }
+    assert.equal(
+      target.type,
+      "commit",
+      `Tag ${tag} points to a ${target.type}, not a commit`,
+    );
+    return target.sha;
+  }
+
   async pushTag(tag: string, commit = context.sha) {
     if (!this.pushWithGitCli) {
       try {
@@ -242,6 +264,12 @@ export class GitHub {
         });
       } catch (err) {
         if (isAlreadyExistingRefError(err)) {
+          const remoteCommit = await this.#getRemoteTagCommit(tag);
+          assert.equal(
+            remoteCommit,
+            commit,
+            `Tag ${tag} points to commit ${remoteCommit}, expected ${commit}`,
+          );
           // The tag was likely pushed by a custom publish script.
           core.info(`Tag ${tag} already exists`);
           return;
