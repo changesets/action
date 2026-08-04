@@ -32,7 +32,13 @@ await exec("changeset", ["git-tag"]);
 
 await exec(
   "git",
-  ["push", "--force", "origin", `HEAD:refs/heads/${releaseLine}`],
+  [
+    "push",
+    "--force",
+    "--no-follow-tags",
+    "origin",
+    `HEAD:refs/heads/${releaseLine}`,
+  ],
   {
     env: gitEnv,
   },

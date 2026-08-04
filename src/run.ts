@@ -167,7 +167,7 @@ async function getTagCommits(cwd: string, tags: string[]) {
   if (tags.length === 0) {
     return [];
   }
-  const refs = tags.map((tag) => `refs/tags/${tag}^{commit}`);
+  const refs = tags.map((tag) => `refs/tags/${tag}^{}`);
   const { stdout } = await getExecOutput(
     "git",
     ["cat-file", "--batch-check=%(objectname) %(objecttype)"],
