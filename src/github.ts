@@ -225,14 +225,14 @@ export class GitHub {
     );
   }
 
-  async pushTag(tag: string) {
+  async pushTag(tag: string, commit = context.sha) {
     if (!this.pushWithGitCli) {
       try {
         const { data: tagObject } = await this.octokit.rest.git.createTag({
           ...context.repo,
           tag,
           message: tag,
-          object: context.sha,
+          object: commit,
           type: "commit",
         });
         await this.octokit.rest.git.createRef({
