@@ -1,11 +1,15 @@
 import { Buffer } from "node:buffer";
 import path from "node:path";
 import { exec } from "@actions/exec";
+import major from "semver/functions/major.js";
+import prerelease from "semver/functions/prerelease.js";
 import pkgJson from "../package.json" with { type: "json" };
 
 const tag = `v${pkgJson.version}`;
-const releaseLine = `v${pkgJson.version.split(".")[0]}`;
-const isPrerelease = pkgJson.version.includes("-");
+const prereleaseTag = prerelease(pkgJson.version)?.[0];
+const releaseLine = `v${major(pkgJson.version)}${
+  prereleaseTag === undefined ? "" : `-${prereleaseTag}`
+}`;
 const githubToken = process.env.GITHUB_TOKEN;
 if (!githubToken) {
   throw new Error("GITHUB_TOKEN is required");
@@ -26,16 +30,10 @@ await exec("git", ["commit", "-m", tag]);
 
 await exec("changeset", ["git-tag"]);
 
-if (isPrerelease) {
-  await exec("git", ["push", "origin", `refs/tags/${tag}`], {
+await exec(
+  "git",
+  ["push", "--force", "origin", `HEAD:refs/heads/${releaseLine}`],
+  {
     env: gitEnv,
-  });
-} else {
-  await exec(
-    "git",
-    ["push", "--force", "origin", `HEAD:refs/heads/${releaseLine}`],
-    {
-      env: gitEnv,
-    },
-  );
-}
+  },
+);
