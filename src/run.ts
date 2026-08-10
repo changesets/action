@@ -242,7 +242,11 @@ export async function runPublish({
           await github.pushTag(tag);
         }
         if (createGithubReleases) {
-          await createRelease(octokit, { pkg, tagName: tag });
+          await createRelease(octokit, {
+            pkg,
+            tagName: tag,
+            draft: githubReleasesDraft,
+          });
         }
       }),
     );
