@@ -1,5 +1,65 @@
 # @changesets/action
 
+## 2.0.0
+
+### Major Changes
+
+- [#692](https://github.com/changesets/action/pull/692) [`cb3f011`](https://github.com/changesets/action/commit/cb3f0110d7423cd340b1c5d63584c0ea6ee63959) Thanks [@Andarist](https://github.com/Andarist)! - Release commits and tags are now pushed using the GitHub API by default.
+
+  Replace the `commit-mode` input with the boolean `push-with-git-cli` input. Set `push-with-git-cli: true` to continue using the Git CLI.
+
+  Regardless of the push mode, custom GitHub tokens must be passed explicitly through the `github-token` input. The `GITHUB_TOKEN` environment variable and credentials configured by `actions/checkout` or embedded in remote URLs are not substitutes for this input. When the Git CLI is enabled, `github-token` takes precedence over those repository credentials.
+
+- [#680](https://github.com/changesets/action/pull/680) [`ca57073`](https://github.com/changesets/action/commit/ca57073900dc678254406a052a03c0c8824e319d) Thanks [@bluwy](https://github.com/bluwy)! - Add a new `push-git-tags` option that complements `create-github-releases` to control specifically if git tags should be created but not GitHub releases.
+
+  If `create-github-releases` was previously set to `false`, which also indirectly disabled git tag creation, git tags will now be created instead by default. If this is not desired, set `push-git-tags` to `false` explicitly.
+
+- [#657](https://github.com/changesets/action/pull/657) [`4f718b5`](https://github.com/changesets/action/commit/4f718b5921490b1efeb015a81abb6a4633892851) Thanks [@Andarist](https://github.com/Andarist)! - Removed compatibility support for old Changesets v1.
+
+- [#681](https://github.com/changesets/action/pull/681) [`7359107`](https://github.com/changesets/action/commit/73591071e61c7f61cf322dd7a6341dc29a8e1d4e) Thanks [@bluwy](https://github.com/bluwy)! - Rename the root action inputs and outputs to better match the sub-actions' conventions.
+
+  Inputs:
+
+  - `version` -> `version-script`
+  - `publish` -> `publish-script`
+  - `commit` -> `commit-message`
+  - `title` -> `pr-title`
+  - `branch` -> `pr-base-branch`
+
+  Outputs:
+
+  - `pull-request-number` -> `pr-number`
+
+- [#674](https://github.com/changesets/action/pull/674) [`164652b`](https://github.com/changesets/action/commit/164652bdd60525670d95291addb8c6f92833ac60) Thanks [@bluwy](https://github.com/bluwy)! - Remove support for passing custom GitHub token through the GITHUB_TOKEN environment variable. It should be passed to the `github-token` input instead.
+
+- [#659](https://github.com/changesets/action/pull/659) [`5649ff4`](https://github.com/changesets/action/commit/5649ff41b8eb1b7a281011e45df781c6d4628fd0) Thanks [@bluwy](https://github.com/bluwy)! - Remove `cwd` option for `changesets/action`. Use the step `working-directory` option instead to change the directory.
+
+- [#673](https://github.com/changesets/action/pull/673) [`823cf74`](https://github.com/changesets/action/commit/823cf741ca57c5e22652123d3a847dfafcd77ca0) Thanks [@bluwy](https://github.com/bluwy)! - Update to Changesets v3 packages
+
+- [#695](https://github.com/changesets/action/pull/695) [`469993c`](https://github.com/changesets/action/commit/469993ce5783c6a38e72541d4ba0d25588702b9a) Thanks [@bluwy](https://github.com/bluwy)! - Removed `.npmrc` handling when the `NPM_TOKEN` environment variable is set.
+
+  Authentication should be handled via Trusted Publishing instead. If a token is still needed, use `actions/setup-node` to set it up instead via the `registry-url` option. Check out the updated action README for more information of setting up npm authentication in GitHub Actions.
+
+- [#668](https://github.com/changesets/action/pull/668) [`0eae789`](https://github.com/changesets/action/commit/0eae789230defbc4ad287e9b476aba7e842e34e0) Thanks [@bluwy](https://github.com/bluwy)! - Rename the input and output names to kebab-case instead of camelCase to match the official GitHub actions pattern
+
+### Minor Changes
+
+- [#656](https://github.com/changesets/action/pull/656) [`a12d90d`](https://github.com/changesets/action/commit/a12d90de8394e63c952622b2fd3f98c8729c48b0) Thanks [@bluwy](https://github.com/bluwy)! - Add new `/select-mode`, `/version`, and `/publish` sub-actions to better control version and publish steps
+
+- [#678](https://github.com/changesets/action/pull/678) [`f71ae04`](https://github.com/changesets/action/commit/f71ae043ed5deb17952900091e009a60edef9507) Thanks [@Andarist](https://github.com/Andarist)! - Published packages detection done through stdout parsing was replaced with one based on the shared output file using `CHANGESETS_OUTPUT` environment variable. When using custom scripts this environment variable should always be passed down to the Changesets CLI invocations.
+
+### Patch Changes
+
+- [#699](https://github.com/changesets/action/pull/699) [`5b307d3`](https://github.com/changesets/action/commit/5b307d3df25daf51c41dff70d2f66df1579ae9fa) Thanks [@Andarist](https://github.com/Andarist)! - Validate that projects use Changesets CLI v3 and direct Changesets CLI v2 users to `changesets/action@v1`.
+
+- [#697](https://github.com/changesets/action/pull/697) [`84d78c6`](https://github.com/changesets/action/commit/84d78c68f98f20e24dfff22b22193e7b4f326ad9) Thanks [@Andarist](https://github.com/Andarist)! - Allow custom publish scripts to complete without a Changesets output file, warning that GitHub releases and git tags cannot be created when that file is missing.
+
+- [#670](https://github.com/changesets/action/pull/670) [`5a8b9b7`](https://github.com/changesets/action/commit/5a8b9b721bf683e3bf9bd72ea92a685dc024147b) Thanks [@Andarist](https://github.com/Andarist)! - Authenticate git CLI pushes with the configured GitHub token using Git extra headers instead of writing to a global `.netrc` file.
+
+- [#670](https://github.com/changesets/action/pull/670) [`5a8b9b7`](https://github.com/changesets/action/commit/5a8b9b721bf683e3bf9bd72ea92a685dc024147b) Thanks [@Andarist](https://github.com/Andarist)! - Derive the Git server URL from the GitHub Actions context when configuring git CLI authentication to support GitHub Enterprise Server setups.
+
+- [#688](https://github.com/changesets/action/pull/688) [`219ea82`](https://github.com/changesets/action/commit/219ea82e52caaff2a10a5e34d3455093cf958238) Thanks [@Andarist](https://github.com/Andarist)! - Remove the `setup-git-user` input. Complete custom Git identities are now preserved automatically, while `github-actions[bot]` is configured as a fallback before creating local release commits or tags.
+
 ## 2.0.0-next.5
 
 ### Patch Changes
