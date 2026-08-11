@@ -1,0 +1,1 @@
+import{i as e,t}from"./dist-DlzQ-3f_.js";async function n(n=process.cwd()){let r=await e(n),i=await t(n);return r!==void 0&&r.mode===`pre`?{preState:r,changesets:i.filter(e=>!e.id.startsWith(`pre/`))}:{preState:void 0,changesets:i}}export{n as t};
