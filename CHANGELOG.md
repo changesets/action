@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.0.0-next.5
+
+### Patch Changes
+
+- [#711](https://github.com/changesets/action/pull/711) [`5fa6767`](https://github.com/changesets/action/commit/5fa67671df41b7a8a9d8123e8e446b1a8ad423db) Thanks [@Andarist](https://github.com/Andarist)! - Fix support for prerelease exits using the new `.changeset/pre` layout.
+
 ## 2.0.0-next.4
 
 ### Major Changes

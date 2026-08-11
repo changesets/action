@@ -16,7 +16,9 @@ export default async function readChangesetState(
   if (preState !== undefined && preState.mode === "pre") {
     return {
       preState,
-      changesets: changesets.filter((x) => !x.id.startsWith("pre/")),
+      changesets: changesets.filter(
+        (changeset) => !changeset.id.startsWith("pre/"),
+      ),
     };
   }
 
