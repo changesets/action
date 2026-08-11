@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.0.0-next.6
+
+### Patch Changes
+
+- [#709](https://github.com/changesets/action/pull/709) [`187a104`](https://github.com/changesets/action/commit/187a104ea060c8ea199979460bf91705980c64da) Thanks [@bluwy](https://github.com/bluwy)! - Updated `@changesets/*` dependencies
+
 ## 2.0.0-next.5
 
 ### Patch Changes
