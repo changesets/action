@@ -3,7 +3,10 @@ description: Whether to version or publish in the current repo state
 runs:
   using: node24
   main: ../dist/select-mode.js
-inputs: {}
+inputs:
+  cwd:
+    description: "The working directory to execute Changesets in. Defaults to the root of the repository."
+    required: false
 outputs:
   mode:
     description: "The mode to use for the current repo state: 'version', 'publish', or 'none'."

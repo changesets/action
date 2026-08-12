@@ -20,7 +20,9 @@ This action selects the mode to run a Changesets workflow:
 
 <!-- api-start -->
 
-Inputs: _none_
+| Inputs | Description                                                                             |
+| ------ | --------------------------------------------------------------------------------------- |
+| `cwd`  | The working directory to execute Changesets in. Defaults to the root of the repository. |
 
 | Outputs                    | Description                                                                  |
 | -------------------------- | ---------------------------------------------------------------------------- |

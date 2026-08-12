@@ -34,6 +34,9 @@ inputs:
       GPG key and attributed to the user or app that owns the `github-token`.
     required: false
     default: false
+  cwd:
+    description: "The working directory to execute Changesets in. Defaults to the root of the repository."
+    required: false
 outputs:
   pr-number:
     description: The pull request number that was created or updated
