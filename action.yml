@@ -47,6 +47,9 @@ inputs:
       GitHub's GPG key and attributed to the user or app that owns the `github-token`.
     required: false
     default: false
+  cwd:
+    description: "The working directory to execute Changesets in. Defaults to the root of the repository."
+    required: false
 outputs:
   published:
     description: A "true" or "false" string value to indicate whether a publishing is happened or not

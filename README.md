@@ -62,6 +62,7 @@ If using [trusted publishing](https://docs.npmjs.com/trusted-publishers), it's r
 | `create-github-releases` | Whether to create Github releases after publish                                                                                                                                                                                                           |
 | `push-git-tags`          | Whether to create git tags after publish. If `create-github-releases` is set to `true`, this option will also always be `true`.                                                                                                                           |
 | `push-with-git-cli`      | Whether to use the Git CLI instead of the GitHub API to push release commits and tags. Defaults to `false`. When using the GitHub API, commits and tags are signed using GitHub's GPG key and attributed to the user or app that owns the `github-token`. |
+| `cwd`                    | The working directory to execute Changesets in. Defaults to the root of the repository.                                                                                                                                                                   |
 
 | Outputs              | Description                                                                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |

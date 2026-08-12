@@ -31,6 +31,7 @@ This action versions packages and creates or updates a pull request with the cha
 | `pr-draft`          | Controls draft PR behavior. Use 'create' to create new version PRs as draft, or 'always' to also convert existing version PRs back to draft when updating them.                                                                         |
 | `pr-base-branch`    | Sets the base branch of the PR. Defaults to `github.ref_name`.                                                                                                                                                                          |
 | `push-with-git-cli` | Whether to use the Git CLI instead of the GitHub API to push release commits. Defaults to `false`. When using the GitHub API, commits are signed using GitHub's GPG key and attributed to the user or app that owns the `github-token`. |
+| `cwd`               | The working directory to execute Changesets in. Defaults to the root of the repository.                                                                                                                                                 |
 
 | Outputs     | Description                                         |
 | ----------- | --------------------------------------------------- |
