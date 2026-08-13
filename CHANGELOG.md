@@ -1,5 +1,15 @@
 # @changesets/action
 
+## 2.1.0
+
+### Minor Changes
+
+- [#718](https://github.com/changesets/action/pull/718) [`3b7c71c`](https://github.com/changesets/action/commit/3b7c71c440e75fca5d335f779290425fc1117fe8) Thanks [@bluwy](https://github.com/bluwy)! - Add a `cwd` input to the root action, `/select-mode`, `/version`, `/pack`, and `/publish` sub-actions to set the current working directory to execute Changesets in. This input existed in v1 but was incorrectly removed.
+
+### Patch Changes
+
+- [#716](https://github.com/changesets/action/pull/716) [`6f58ba3`](https://github.com/changesets/action/commit/6f58ba35801ec075a1c87569277591f8ef1a3029) Thanks [@bluwy](https://github.com/bluwy)! - Update `pr-status` message to link to the new faq page
+
 ## 2.0.0
 
 ### Major Changes
