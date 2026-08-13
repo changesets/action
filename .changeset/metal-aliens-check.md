@@ -2,4 +2,4 @@
 "@changesets/action": patch
 ---
 
-Fixed typoo in renamed parameters from v1 to v2
+Fixed typo in renamed inputs from v1 to v2
