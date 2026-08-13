@@ -22,8 +22,12 @@ vi.mock("@actions/github", () => ({
     graphql: mockedGraphql,
   }),
 }));
-vi.mock("@actions/core", { spy: true });
-const mockedWarning = vi.mocked(core.warning);
+vi.mock("@actions/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@actions/core")>()),
+  error: vi.fn(),
+  notice: vi.fn(),
+  warning: vi.fn(),
+}));
 vi.mock("@changesets/ghcommit");
 
 let mockedGithubMethods = {
@@ -133,7 +137,7 @@ describe("publish", () => {
     });
 
     expect(result).toEqual({ published: false, exitCode: 0 });
-    expect(mockedWarning).toHaveBeenCalledWith(
+    expect(core.warning).toHaveBeenCalledWith(
       expect.stringContaining(
         "GitHub releases and git tags cannot be created without this output",
       ),
