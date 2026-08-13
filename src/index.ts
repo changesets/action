@@ -17,7 +17,7 @@ import {
   throwOnRenamedInputs({
     publish: "publish-script",
     version: "version-script",
-    commit: "commit-mesage",
+    commit: "commit-message",
     title: "pr-title",
     branch: "pr-base-branch",
     prDraft: "pr-draft",
