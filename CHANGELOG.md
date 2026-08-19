@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.1.1
+
+### Patch Changes
+
+- [#721](https://github.com/changesets/action/pull/721) [`da1ea29`](https://github.com/changesets/action/commit/da1ea291ef93203a08fad360eac36f4858dd0514) Thanks [@KEBABSELLER6](https://github.com/KEBABSELLER6)! - Fixed typo in renamed inputs from v1 to v2
+
 ## 2.1.0
 
 ### Minor Changes
