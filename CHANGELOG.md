@@ -1,5 +1,11 @@
 # @changesets/action
 
+## 2.1.2
+
+### Patch Changes
+
+- [#724](https://github.com/changesets/action/pull/724) [`36f529f`](https://github.com/changesets/action/commit/36f529f13ab58bbcf6331035cb950385586e8a89) Thanks [@bluwy](https://github.com/bluwy)! - Fix root action double error logs
+
 ## 2.1.1
 
 ### Patch Changes
