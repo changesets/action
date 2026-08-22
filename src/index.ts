@@ -10,7 +10,13 @@ import {
   validateChangesetsCliVersion,
 } from "./utils.ts";
 
-(async () => {
+try {
+  await main();
+} catch (err) {
+  core.setFailed((err as Error).message);
+}
+
+async function main() {
   const cwd = getOptionalInput("cwd") || process.cwd();
   await validateChangesetsCliVersion(cwd);
 
@@ -131,7 +137,4 @@ import {
       return;
     }
   }
-})().catch((err) => {
-  core.error(err);
-  core.setFailed(err.message);
-});
+}
