@@ -119,6 +119,22 @@ export function isErrorWithCode(err: unknown, code: string) {
   );
 }
 
+export type WithAsyncDispose<T> = T & {
+  [Symbol.asyncDispose](): Promise<void>;
+};
+
+export function moveDisposable<T extends object>(
+  stack: AsyncDisposableStack,
+  value: T,
+): WithAsyncDispose<T> {
+  const moved = stack.move();
+  return Object.assign(value, {
+    async [Symbol.asyncDispose]() {
+      await moved.disposeAsync();
+    },
+  });
+}
+
 export function getOptionalInput(name: string) {
   // normalize empty string default return value of `core.getInput` to undefined
   return core.getInput(name) || undefined;
@@ -128,6 +144,23 @@ export function getRequiredInput(name: string) {
   // it's just a small utility wrapper, mainly introduced for usage parity with our custom `getOptionalInput`
   // note: `core.getBooleanInput` gets used directly as it already normalizes the return value nicely
   return core.getInput(name, { required: true });
+}
+
+export function throwOnRemovedCommitModeInput() {
+  for (const inputName of ["commit-mode", "commitMode"]) {
+    const value = getOptionalInput(inputName);
+    if (value === undefined) continue;
+
+    const migration =
+      value === "git-cli"
+        ? 'Replace it with "push-with-git-cli: true".'
+        : value === "github-api"
+          ? 'Remove it or replace it with "push-with-git-cli: false"; GitHub API pushes are now the default.'
+          : 'Set "push-with-git-cli" to true for Git CLI pushes or false for GitHub API pushes.';
+    throw new Error(
+      `The "${inputName}" input has been replaced by the boolean "push-with-git-cli" input. ${migration}`,
+    );
+  }
 }
 
 export function throwOnRenamedInputs(renames: Record<string, string>) {

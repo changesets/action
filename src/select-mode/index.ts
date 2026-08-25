@@ -4,7 +4,11 @@ import path from "node:path";
 import artifact from "@actions/artifact";
 import * as core from "@actions/core";
 import readChangesetState from "../readChangesetState.ts";
-import { execChangesetsCli, validateChangesetsCliVersion } from "../utils.ts";
+import {
+  execChangesetsCli,
+  getOptionalInput,
+  validateChangesetsCliVersion,
+} from "../utils.ts";
 
 type ModeResult =
   | {
@@ -27,7 +31,7 @@ try {
 }
 
 async function main() {
-  const cwd = process.cwd();
+  const cwd = getOptionalInput("cwd") || process.cwd();
   await validateChangesetsCliVersion(cwd);
 
   const result = await getMode(cwd);

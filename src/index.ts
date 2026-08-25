@@ -5,26 +5,31 @@ import { runPublish, runVersion } from "./run.ts";
 import {
   getOptionalInput,
   getRequiredInput,
+  throwOnRemovedCommitModeInput,
   throwOnRenamedInputs,
   validateChangesetsCliVersion,
 } from "./utils.ts";
 
-(async () => {
-  // If the user needs to change the cwd, set `working-directory` in the step instead
-  const cwd = process.cwd();
+try {
+  await main();
+} catch (err) {
+  core.setFailed((err as Error).message);
+}
+
+async function main() {
+  const cwd = getOptionalInput("cwd") || process.cwd();
   await validateChangesetsCliVersion(cwd);
 
   throwOnRenamedInputs({
     publish: "publish-script",
     version: "version-script",
-    commit: "commit-mesage",
+    commit: "commit-message",
     title: "pr-title",
     branch: "pr-base-branch",
     prDraft: "pr-draft",
     createGithubReleases: "create-github-releases",
-    commitMode: "commit-mode",
-    setupGitUser: "setup-git-user",
   });
+  throwOnRemovedCommitModeInput();
 
   const githubToken = getRequiredInput("github-token");
   if (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN !== githubToken) {
@@ -35,12 +40,8 @@ import {
     );
   }
 
-  const commitMode = getOptionalInput("commit-mode") ?? "git-cli";
+  const pushWithGitCli = core.getBooleanInput("push-with-git-cli");
   const prDraft = getOptionalInput("pr-draft");
-  if (commitMode !== "git-cli" && commitMode !== "github-api") {
-    core.setFailed(`Invalid commit mode: ${commitMode}`);
-    return;
-  }
   if (prDraft !== undefined && prDraft !== "always" && prDraft !== "create") {
     core.setFailed(`Invalid pr-draft: ${prDraft}`);
     return;
@@ -48,15 +49,8 @@ import {
   const github = new GitHub({
     cwd,
     githubToken,
-    commitMode,
+    pushWithGitCli,
   });
-
-  let setupGitUser = core.getBooleanInput("setup-git-user");
-
-  if (setupGitUser) {
-    core.info("setting git user");
-    await github.setupUser();
-  }
 
   let { changesets } = await readChangesetState(cwd);
 
@@ -143,7 +137,4 @@ import {
       return;
     }
   }
-})().catch((err) => {
-  core.error(err);
-  core.setFailed(err.message);
-});
+}

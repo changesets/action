@@ -5,7 +5,9 @@ runs:
   main: "dist/index.js"
 inputs:
   github-token:
-    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    description: >
+      The GitHub token to use for authentication. Defaults to the GitHub-provided token.
+      To use a custom token, pass it explicitly to this input.
     required: false
     default: ${{ github.token }}
   publish-script:
@@ -38,26 +40,24 @@ inputs:
       this option will also always be `true`.
     required: false
     default: true
-  commit-mode:
+  push-with-git-cli:
     description: >
-      An enum to specify the commit mode. Use "git-cli" to push changes using the Git CLI,
-      or "github-api" to push changes via the GitHub API. When using "github-api",
-      all commits and tags are signed using GitHub's GPG key and attributed to the user
-      or app who owns the GITHUB_TOKEN.
+      Whether to use the Git CLI instead of the GitHub API to push release commits and tags.
+      Defaults to `false`. When using the GitHub API, commits and tags are signed using
+      GitHub's GPG key and attributed to the user or app that owns the `github-token`.
     required: false
-    default: "git-cli"
-  setup-git-user:
-    description: Sets up the git user for commits as `"github-actions[bot]"`. Default to `true`
+    default: false
+  cwd:
+    description: "The working directory to execute Changesets in. Defaults to the root of the repository."
     required: false
-    default: true
 outputs:
   published:
-    description: A boolean value to indicate whether a publishing is happened or not
+    description: A "true" or "false" string value to indicate whether a publishing is happened or not
   published-packages:
     description: >
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
   has-changesets:
-    description: A boolean about whether there were changesets. Useful if you want to create your own publishing functionality.
+    description: A "true" or "false" string value about whether there were changesets. Useful if you want to create your own publishing functionality.
   pr-number:
     description: The pull request number that was created or updated
 branding:

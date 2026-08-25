@@ -3,6 +3,7 @@ import * as core from "@actions/core";
 import type { Changeset } from "@changesets/types";
 import { writeChangeset } from "@changesets/write";
 import { createFixture } from "fs-fixture";
+import { exec } from "tinyexec";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
 import { runPublish, runVersion } from "./run.ts";
@@ -21,8 +22,12 @@ vi.mock("@actions/github", () => ({
     graphql: mockedGraphql,
   }),
 }));
-vi.mock("@actions/core", { spy: true });
-const mockedWarning = vi.mocked(core.warning);
+vi.mock("@actions/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@actions/core")>()),
+  error: vi.fn(),
+  notice: vi.fn(),
+  warning: vi.fn(),
+}));
 vi.mock("@changesets/ghcommit");
 
 let mockedGithubMethods = {
@@ -98,8 +103,15 @@ const createGithub = (cwd: string) =>
   new GitHub({
     cwd,
     githubToken: "@@GITHUB_TOKEN",
-    commitMode: "github-api",
+    pushWithGitCli: false,
   });
+
+async function initializeGitRepository(cwd: string) {
+  await exec("git", ["init"], {
+    nodeOptions: { cwd },
+    throwOnError: true,
+  });
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -113,6 +125,7 @@ describe("publish", () => {
   it("warns when a custom publish script does not create the output file", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await initializeGitRepository(cwd);
     vi.stubEnv("RUNNER_TEMP", cwd);
 
     const result = await runPublish({
@@ -124,7 +137,7 @@ describe("publish", () => {
     });
 
     expect(result).toEqual({ published: false, exitCode: 0 });
-    expect(mockedWarning).toHaveBeenCalledWith(
+    expect(core.warning).toHaveBeenCalledWith(
       expect.stringContaining(
         "GitHub releases and git tags cannot be created without this output",
       ),
@@ -145,6 +158,7 @@ describe("publish", () => {
       "package-lock.json": "",
     });
     const cwd = fixture.path;
+    await initializeGitRepository(cwd);
     vi.stubEnv("RUNNER_TEMP", cwd);
 
     await expect(

@@ -5,7 +5,9 @@ runs:
   main: ../dist/publish.js
 inputs:
   github-token:
-    description: "The GitHub token to use for authentication. Defaults to the GitHub-provided token."
+    description: >
+      The GitHub token to use for authentication. Defaults to the GitHub-provided token.
+      To use a custom token, pass it explicitly to this input.
     required: false
     default: ${{ github.token }}
   script:
@@ -24,9 +26,12 @@ inputs:
       this option will also always be `true`.
     required: false
     default: true
+  cwd:
+    description: "The working directory to execute Changesets in. Defaults to the root of the repository."
+    required: false
 outputs:
   published:
-    description: "A boolean value to indicate whether a publishing has happened or not"
+    description: A "true" or "false" string value to indicate whether a publishing has happened or not
   published-packages:
     description: >
       A JSON array to present the published packages. The format is `[{"name": "@xx/xx", "version": "1.2.0"}, {"name": "@xx/xy", "version": "0.8.9"}]`
