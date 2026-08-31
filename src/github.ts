@@ -235,10 +235,6 @@ export class GitHub {
   }
 
   async prepareBranch(branch: string) {
-    if (!this.pushWithGitCli) {
-      // Preparing a new local branch is not necessary when using the API
-      return;
-    }
     await switchToMaybeExistingBranch(branch, { cwd: this.cwd });
     await reset(context.sha, { cwd: this.cwd });
   }
