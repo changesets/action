@@ -501,4 +501,70 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
 
     expect(mockedGraphql.mock.calls[0]).toMatchSnapshot();
   });
+
+  it.each([true, false])(
+    'uses consumer given PR Body instead of default, also respects to PacakgesInfo included "%s"',
+    async (hasPacakgesInfo) => {
+      await using fixture = await createSimpleProjectFixture();
+      const cwd = fixture.path;
+
+      mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({
+        data: [],
+      }));
+
+      mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+        data: { number: 123 },
+      }));
+
+      await writeChangesets(
+        [
+          {
+            releases: [
+              {
+                name: "changesets-dev-simple-project-pkg-a",
+                type: "minor",
+              },
+              {
+                name: "changesets-dev-simple-project-pkg-b",
+                type: "minor",
+              },
+            ],
+            summary: "Awesome feature",
+          },
+        ],
+        cwd,
+      );
+
+      await runVersion({
+        github: createGithub(cwd),
+        prBody: hasPacakgesInfo
+          ? "THIS_AND_THAT \n{PACKAGES_INFO}"
+          : "THIS_AND_THAT",
+        cwd,
+      });
+
+      if (hasPacakgesInfo) {
+        const prBody: string = mockedGithubMethods.pulls.create.mock.calls
+          .at(0)
+          ?.at(0).body;
+
+        expect(prBody.startsWith("THIS_AND_THAT \n")).toBe(true);
+        expect(prBody).toContain("changesets-dev-simple-project-pkg-a");
+        expect(prBody).toContain("changesets-dev-simple-project-pkg-b");
+        expect(prBody).toContain("Awesome feature");
+      } else {
+        expect(
+          mockedGithubMethods.pulls.create.mock.calls.at(0)?.at(0),
+        ).toStrictEqual({
+          base: "some-branch",
+          body: "THIS_AND_THAT",
+          draft: false,
+          head: "changeset-release/some-branch",
+          owner: "changesets",
+          repo: "action",
+          title: "Version Packages",
+        });
+      }
+    },
+  );
 });
