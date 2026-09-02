@@ -6,6 +6,7 @@ import type {
   VersionType,
 } from "@changesets/types";
 import { markdownTable } from "markdown-table";
+import { summarizeReleasePlan } from "./summary.ts";
 import {
   getNewChangesetTemplateContent,
   getNewChangesetUrl,
@@ -16,7 +17,7 @@ type PullRequestContext = NonNullable<
   typeof github.context.payload.pull_request
 >;
 
-export async function getCommentMessage(context: PullRequestContext) {
+export async function getPullRequestStatus(context: PullRequestContext) {
   await using worktree = await getPullRequestWorktree(context);
 
   const releasePlan = await getReleasePlan(worktree.cwd, worktree.baseRef);
@@ -32,11 +33,15 @@ export async function getCommentMessage(context: PullRequestContext) {
     templateContent,
   );
 
-  if (releasePlan.changesets.length > 0) {
-    return getApproveMessage(context.head.sha, newChangesetUrl, releasePlan);
-  } else {
-    return getAbsentMessage(context.head.sha, newChangesetUrl, releasePlan);
-  }
+  const commentBody =
+    releasePlan.changesets.length > 0
+      ? getApproveMessage(context.head.sha, newChangesetUrl, releasePlan)
+      : getAbsentMessage(context.head.sha, newChangesetUrl, releasePlan);
+
+  const { hasChangesets, maxBump, releases } =
+    summarizeReleasePlan(releasePlan);
+
+  return { commentBody, hasChangesets, maxBump, releases };
 }
 
 function getApproveMessage(

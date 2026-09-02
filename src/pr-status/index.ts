@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { getCommentMessage } from "./message.ts";
+import { getPullRequestStatus } from "./message.ts";
 
 try {
   await main();
@@ -17,7 +17,11 @@ async function main() {
   }
 
   core.info("Creating comment message...");
-  const commentBody = await getCommentMessage(context);
+  const { commentBody, hasChangesets, maxBump, releases } =
+    await getPullRequestStatus(context);
   core.setOutput("comment-body", commentBody);
+  core.setOutput("has-changesets", String(hasChangesets));
+  core.setOutput("max-bump", maxBump);
+  core.setOutput("releases", JSON.stringify(releases));
   core.info("Done!");
 }
