@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -155,6 +157,45 @@ async function readChangesetsOutput(outputPath: string) {
   return events;
 }
 
+type Release = {
+  pkg: Package;
+  tag: string;
+  commit?: string;
+};
+
+async function getTagCommits(cwd: string, tags: string[]) {
+  if (tags.length === 0) {
+    return [];
+  }
+  const refs = tags.map((tag) => `refs/tags/${tag}^{}`);
+  const { stdout } = await getExecOutput(
+    "git",
+    ["cat-file", "--batch-check=%(objectname) %(objecttype)"],
+    {
+      cwd,
+      input: Buffer.from(`${refs.join("\n")}\n`),
+    },
+  );
+  const lines = stdout.trim().split(/\r?\n/);
+  assert.equal(
+    lines.length,
+    tags.length,
+    "Git returned an unexpected number of tag targets",
+  );
+  return lines.map((line, index) => {
+    if (line === `${refs[index]} missing`) {
+      return undefined;
+    }
+    const [commit, type] = line.split(" ");
+    assert.equal(
+      type,
+      "commit",
+      `Tag ${tags[index]} does not point to a commit`,
+    );
+    return commit;
+  });
+}
+
 export async function runPublish({
   script,
   fromPackDir,
@@ -214,7 +255,7 @@ export async function runPublish({
     );
     output = [];
   }
-  let releases = output.map((event) => {
+  let releases: Release[] = output.map((event) => {
     let pkg = packagesByName.get(event.packageName);
     if (pkg === undefined) {
       throw new Error(
@@ -232,11 +273,22 @@ export async function runPublish({
     );
   }
 
+  if (pushGitTags) {
+    const commits = await getTagCommits(
+      cwd,
+      releases.map(({ tag }) => tag),
+    );
+    releases = releases.map((release, index) => ({
+      ...release,
+      commit: commits[index],
+    }));
+  }
+
   if (createGithubReleases || pushGitTags) {
     await Promise.all(
-      releases.map(async ({ pkg, tag }) => {
+      releases.map(async ({ pkg, tag, commit }) => {
         if (pushGitTags) {
-          await github.pushTag(tag);
+          await github.pushTag(tag, commit);
         }
         if (createGithubReleases) {
           await createRelease(octokit, { pkg, tagName: tag });
