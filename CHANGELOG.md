@@ -1,5 +1,15 @@
 # @changesets/action
 
+## 2.1.2
+
+### Patch Changes
+
+- [#724](https://github.com/changesets/action/pull/724) [`36f529f`](https://github.com/changesets/action/commit/36f529f13ab58bbcf6331035cb950385586e8a89) Thanks [@bluwy](https://github.com/bluwy)! - Improve log messages
+
+- [#724](https://github.com/changesets/action/pull/724) [`36f529f`](https://github.com/changesets/action/commit/36f529f13ab58bbcf6331035cb950385586e8a89) Thanks [@bluwy](https://github.com/bluwy)! - Fix root action double error logs
+
+- [#729](https://github.com/changesets/action/pull/729) [`ca85897`](https://github.com/changesets/action/commit/ca8589735af2ff6977a0f6474537d550040530d8) Thanks [@bluwy](https://github.com/bluwy)! - Always switch and reset branch when generating version commits, similar to if `push-with-git-cli` is enabled
+
 ## 2.1.1
 
 ### Patch Changes
