@@ -401,7 +401,7 @@ export async function runVersion({
     head: `${context.repo.owner}:${versionBranch}`,
     base: branch,
   });
-  core.info(
+  core.debug(
     `Existing pull requests: ${JSON.stringify(
       existingPullRequests.data,
       null,
@@ -427,7 +427,7 @@ export async function runVersion({
   });
 
   if (existingPullRequests.data.length === 0) {
-    core.info("creating pull request");
+    core.info("Creating pull request");
     const { data: newPullRequest } = await octokit.rest.pulls.create({
       base: branch,
       head: versionBranch,
@@ -443,7 +443,7 @@ export async function runVersion({
   } else {
     const [pullRequest] = existingPullRequests.data;
 
-    core.info(`updating found pull request #${pullRequest.number}`);
+    core.info(`Updating found pull request #${pullRequest.number}`);
     const convertPullRequestToDraftMutation =
       prDraft === "always"
         ? `

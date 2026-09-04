@@ -195,7 +195,7 @@ export class GitHub {
     if (authorIdentity.exitCode === 0 && committerIdentity.exitCode === 0) {
       return;
     }
-    core.info("Setting Git user to github-actions[bot]");
+    core.info("Setting git user to github-actions[bot]");
     await exec("git", ["config", "user.name", `"github-actions[bot]"`], {
       cwd: this.cwd,
     });
@@ -222,7 +222,7 @@ export class GitHub {
         })
         .catch((err) => {
           // Assuming tag was manually pushed in custom publish script
-          core.warning(`Failed to create tag ${tag}: ${err.message}`);
+          core.warning(`Failed to create git tag "${tag}": ${err.message}`);
         });
     }
     await exec("git", ["push", "origin", tag], {
