@@ -230,9 +230,8 @@ export class GitHub {
         });
       }
     } catch (err) {
-      // Assuming tag was manually pushed in custom publish script
       core.warning(
-        `Failed to create git tag "${tag}": ${(err as Error).message}`,
+        `Failed to create git tag "${tag}". Assuming it was manually pushed by the publish script: ${(err as Error).message}`,
       );
     }
   }
