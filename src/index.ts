@@ -79,6 +79,7 @@ async function main() {
       const createGithubReleases = core.getBooleanInput(
         "create-github-releases",
       );
+      const githubReleasesDraft = core.getBooleanInput("github-releases-draft");
       const pushGitTags = core.getBooleanInput("push-git-tags");
       if (createGithubReleases && !pushGitTags) {
         throw new Error(
@@ -91,6 +92,7 @@ async function main() {
         script: publishScript,
         github,
         createGithubReleases,
+        githubReleasesDraft,
         pushGitTags,
         cwd,
       });

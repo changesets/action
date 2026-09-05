@@ -34,6 +34,10 @@ inputs:
     description: "Whether to create Github releases after publish"
     required: false
     default: true
+  github-releases-draft:
+    description: "Controls draft Release behavior."
+    required: false
+    default: false
   push-git-tags:
     description: >
       Whether to create git tags after publish. If `create-github-releases` is set to `true`,
