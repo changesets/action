@@ -23,6 +23,7 @@ async function main() {
   const script = getOptionalInput("script");
   const commitMessage = getRequiredInput("commit-message");
   const prTitle = getRequiredInput("pr-title");
+  const prBody = getOptionalInput("pr-body");
   const prDraft = getOptionalInput("pr-draft");
   const prBaseBranch = getOptionalInput("pr-base-branch");
   const pushWithGitCli = core.getBooleanInput("push-with-git-cli");
@@ -42,6 +43,7 @@ async function main() {
     github,
     cwd,
     prTitle,
+    prBody,
     commitMessage,
     // TODO: Use neutral message for PR description
     hasPublishScript: true,

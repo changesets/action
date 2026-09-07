@@ -6,6 +6,8 @@ import {
   sortTheThings,
   throwOnRemovedCommitModeInput,
   validateChangesetsCliVersion,
+  isObject,
+  isString,
 } from "./utils.ts";
 
 let changelog = `# @keystone-alpha/email
@@ -169,4 +171,74 @@ test("throws when the project has Changesets CLI v2 installed", async () => {
   await expect(validateChangesetsCliVersion(fixture.path)).rejects.toThrow(
     "This version of the Changesets action is designed to work with Changesets CLI v3. Changesets CLI v2 is not supported; use Changesets action v1 instead, which is compatible with CLI v2.",
   );
+});
+
+test.each([
+  {
+    input: null,
+    expected: false,
+  },
+  {
+    input: undefined,
+    expected: false,
+  },
+  {
+    input: "changesets",
+    expected: false,
+  },
+  {
+    input: 1,
+    expected: false,
+  },
+  {
+    input: true,
+    expected: false,
+  },
+  {
+    input: [],
+    expected: false,
+  },
+  {
+    input: {},
+    expected: true,
+  },
+])("isObject: $input should return $expected", ({ input, expected }) => {
+  expect(isObject(input)).toBe(expected);
+});
+
+test.each([
+  {
+    input: null,
+    expected: false,
+  },
+  {
+    input: undefined,
+    expected: false,
+  },
+  {
+    input: "changesets",
+    expected: true,
+  },
+  {
+    input: 1,
+    expected: false,
+  },
+  {
+    input: true,
+    expected: false,
+  },
+  {
+    input: [],
+    expected: false,
+  },
+  {
+    input: {},
+    expected: false,
+  },
+  {
+    input: () => "test",
+    expected: false,
+  },
+])("isString: $input should return $expected", ({ input, expected }) => {
+  expect(isString(input)).toBe(expected);
 });
