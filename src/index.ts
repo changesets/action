@@ -68,7 +68,7 @@ async function main() {
   switch (true) {
     case !hasChangesets && !hasPublishScript:
       core.info(
-        "No changesets present or were removed by merging release PR. Not publishing because no publish script found.",
+        "No changesets present or were removed by merging version PR. Not publishing because publish-script is not set.",
       );
       return;
     case !hasChangesets && hasPublishScript: {
@@ -104,7 +104,7 @@ async function main() {
       }
 
       if (result.exitCode !== 0) {
-        core.error(
+        throw new Error(
           `Publish command exited with code ${result.exitCode}${
             result.published
               ? `, but some packages were published: ${result.publishedPackages
@@ -113,12 +113,11 @@ async function main() {
               : ""
           }`,
         );
-        process.exit(result.exitCode);
       }
       return;
     }
     case hasChangesets && !hasNonEmptyChangesets:
-      core.info("All changesets are empty; not creating PR");
+      core.info("All changesets are empty. Not creating PR");
       return;
     case hasChangesets: {
       const { pullRequestNumber } = await runVersion({
