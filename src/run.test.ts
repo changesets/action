@@ -1,12 +1,13 @@
 import path from "node:path";
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 import type { Changeset } from "@changesets/types";
 import { writeChangeset } from "@changesets/write";
-import { createFixture } from "fs-fixture";
 import { exec } from "tinyexec";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GitHub } from "./github.ts";
 import { runPublish, runVersion } from "./run.ts";
+import { gitdir } from "./test-utils.ts";
 
 vi.mock("@actions/github", () => ({
   context: {
@@ -44,7 +45,7 @@ let mockedGraphql = vi.fn();
 const nodeModulesDir = path.join(import.meta.dirname, "..", "node_modules");
 
 function createSimpleProjectFixture() {
-  return createFixture({
+  return gitdir({
     node_modules: (api) => api.symlink(nodeModulesDir),
     ".changeset/config.json": JSON.stringify({}),
     "packages/pkg-a/package.json": JSON.stringify({
@@ -69,7 +70,7 @@ function createSimpleProjectFixture() {
 }
 
 function createIgnoredPackageFixture() {
-  return createFixture({
+  return gitdir({
     node_modules: (api) => api.symlink(nodeModulesDir),
     ".changeset/config.json": JSON.stringify({
       ignore: ["changesets-dev-ignored-package-pkg-a"],
@@ -106,15 +107,20 @@ const createGithub = (cwd: string) =>
     pushWithGitCli: false,
   });
 
-async function initializeGitRepository(cwd: string) {
-  await exec("git", ["init"], {
+async function updateGithubContext(cwd: string) {
+  const head = await exec("git", ["rev-parse", "HEAD"], {
     nodeOptions: { cwd },
-    throwOnError: true,
   });
+  github.context.sha = head.stdout.trim();
+}
+
+function resetGithubContext() {
+  github.context.sha = "xeac7";
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetGithubContext();
 });
 
 afterEach(() => {
@@ -125,7 +131,7 @@ describe("publish", () => {
   it("warns when a custom publish script does not create the output file", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
-    await initializeGitRepository(cwd);
+    await updateGithubContext(cwd);
     vi.stubEnv("RUNNER_TEMP", cwd);
 
     const result = await runPublish({
@@ -145,7 +151,7 @@ describe("publish", () => {
   });
 
   it("throws when the built-in publish command does not create the output file", async () => {
-    await using fixture = await createFixture({
+    await using fixture = await gitdir({
       "node_modules/@changesets/cli/package.json": JSON.stringify({
         name: "@changesets/cli",
         type: "module",
@@ -158,7 +164,7 @@ describe("publish", () => {
       "package-lock.json": "",
     });
     const cwd = fixture.path;
-    await initializeGitRepository(cwd);
+    await updateGithubContext(cwd);
     vi.stubEnv("RUNNER_TEMP", cwd);
 
     await expect(
@@ -176,6 +182,7 @@ describe("version", () => {
   it("creates simple PR", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -213,6 +220,7 @@ describe("version", () => {
   it('creates a draft PR when prDraft is "create"', async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -247,6 +255,7 @@ describe("version", () => {
   it("only includes bumped packages in the PR body", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -280,6 +289,7 @@ describe("version", () => {
   it("doesn't include ignored package that got a dependency update in the PR body", async () => {
     await using fixture = await createIgnoredPackageFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -313,6 +323,7 @@ describe("version", () => {
   it("does not include changelog entries if full message exceeds size limit", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -370,6 +381,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
   it("does not include any release information if a message with simplified release info exceeds size limit", async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
 
@@ -427,6 +439,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
   it('updates an existing PR via GraphQL without converting it to draft when prDraft is "create"', async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({
       data: [{ number: 123, node_id: "PR_kwDOA" }],
@@ -459,6 +472,7 @@ fluminis divesque vulnere aquis parce lapsis rabie si visa fulmineis.
   it('updates an existing PR via GraphQL and converts it to draft when prDraft is "always"', async () => {
     await using fixture = await createSimpleProjectFixture();
     const cwd = fixture.path;
+    await updateGithubContext(cwd);
 
     mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({
       data: [{ number: 123, node_id: "PR_kwDOA" }],
