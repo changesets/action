@@ -48,7 +48,7 @@
     "oxfmt": "^0.70.0",
     "rolldown": "^1.2.10",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.11",
+    "vitest": "^5.0.1",
     "yaml": "^2.9.1"
   },
   "engines": {
