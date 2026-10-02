@@ -10,11 +10,15 @@ import {
   type ExecOutput,
 } from "@actions/exec";
 import { context } from "@actions/github";
-import type { PreState } from "@changesets/types";
 import { type Package, getPackages } from "@manypkg/get-packages";
 import type { GitHub } from "./github.ts";
 import type { Octokit } from "./octokit.ts";
 import readChangesetState from "./readChangesetState.ts";
+import type {
+  GetVersionPrBodyProps,
+  RunVersionProps,
+  RunVersionResult,
+} from "./run.types.ts";
 import {
   execChangesetsCli,
   getChangedPackages,
@@ -23,6 +27,8 @@ import {
   getVersionsByDirectory,
   isErrorWithCode,
   sortTheThings,
+  isObject,
+  isString,
 } from "./utils.ts";
 
 // GitHub Issues/PRs messages have a max size limit on the
@@ -91,10 +97,6 @@ type PublishResult =
       published: false;
       exitCode: number;
     };
-
-function isObject(value: unknown) {
-  return typeof value === "object" && value !== null;
-}
 
 function isChangesetsOutputEvent(
   value: unknown,
@@ -259,33 +261,33 @@ export async function runPublish({
   return { published: false, exitCode: changesetPublishOutput.exitCode };
 }
 
-type GetMessageOptions = {
-  hasPublishScript: boolean;
-  branch: string;
-  changedPackagesInfo: {
-    highestLevel: number;
-    private: boolean;
-    content: string;
-    header: string;
-  }[];
-  prBodyMaxCharacters: number;
-  preState?: PreState;
-};
-
 export async function getVersionPrBody({
   hasPublishScript,
   preState,
   changedPackagesInfo,
+  prBody,
   prBodyMaxCharacters,
   branch,
-}: GetMessageOptions) {
+}: GetVersionPrBodyProps): Promise<string> {
+  if (isString(prBody)) {
+    const packagesInfo: string = changedPackagesInfo
+      .map(({ header, content }) => `${header}\n\n${content}`)
+      .join("\n");
+
+    const prBodyText = prBody.replace("{PACKAGES_INFO}", packagesInfo);
+
+    return prBodyText.length > prBodyMaxCharacters
+      ? "This PR Body content exceeds the size limit."
+      : prBodyText;
+  }
+
   let messageHeader = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action. When you're ready to do a release, you can merge this and ${
     hasPublishScript
       ? `the packages will be published to npm automatically`
       : `publish to npm yourself or [setup this action to publish automatically](https://github.com/changesets/action#with-publishing)`
   }. If you're not ready to do a release yet, that's fine, whenever you add more changesets to ${branch}, this PR will be updated.
 `;
-  let messagePrestate = !!preState
+  let messagePrestate = isObject(preState)
     ? `⚠️⚠️⚠️⚠️⚠️⚠️
 
 \`${branch}\` is currently in **pre mode** so this branch has prereleases rather than normal releases. If you want to exit prereleases, run \`changeset pre exit\` on \`${branch}\`.
@@ -328,41 +330,26 @@ export async function getVersionPrBody({
   return fullMessage;
 }
 
-type VersionOptions = {
-  script?: string;
-  github: GitHub;
-  cwd?: string;
-  prTitle?: string;
-  commitMessage?: string;
-  hasPublishScript?: boolean;
-  prBodyMaxCharacters?: number;
-  prDraft?: "always" | "create";
-  branch?: string;
-};
-
-type RunVersionResult = {
-  pullRequestNumber: number;
-};
-
 export async function runVersion({
   script,
   github,
   cwd = process.cwd(),
   prTitle = "Version Packages",
+  prBody = undefined,
   commitMessage = "Version Packages",
   hasPublishScript = false,
   prBodyMaxCharacters = MAX_CHARACTERS_PER_MESSAGE,
   branch = context.ref.replace("refs/heads/", ""),
   prDraft,
-}: VersionOptions): Promise<RunVersionResult> {
+}: RunVersionProps): Promise<RunVersionResult> {
   const { octokit } = github;
-  let versionBranch = `changeset-release/${branch}`;
+  const versionBranch = `changeset-release/${branch}`;
 
-  let { preState } = await readChangesetState(cwd);
+  const { preState } = await readChangesetState(cwd);
 
   await github.prepareBranch(versionBranch);
 
-  let versionsByDirectory = await getVersionsByDirectory(cwd);
+  const versionsByDirectory = await getVersionsByDirectory(cwd);
 
   const env = { ...process.env, GITHUB_TOKEN: github.getToken() };
 
@@ -372,15 +359,18 @@ export async function runVersion({
     await execChangesetsCli(["version"], { cwd, env });
   }
 
-  let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
-  let changedPackagesInfoPromises = Promise.all(
+  const changedPackages = await getChangedPackages(cwd, versionsByDirectory);
+  const changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
-      let changelogContents = await fs.readFile(
+      const changelogContents = await fs.readFile(
         path.join(pkg.dir, "CHANGELOG.md"),
         "utf8",
       );
 
-      let entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
+      const entry = getChangelogEntry(
+        changelogContents,
+        pkg.packageJson.version,
+      );
       return {
         highestLevel: entry.highestLevel,
         private: !!pkg.packageJson.private,
@@ -390,10 +380,10 @@ export async function runVersion({
     }),
   );
 
-  const finalPrTitle = `${prTitle}${!!preState ? ` (${preState.tag})` : ""}`;
-  const finalCommitMessage = `${commitMessage}${
-    !!preState ? ` (${preState.tag})` : ""
-  }`;
+  const isPreState = isObject(preState);
+  const finalPreState = isPreState ? ` (${preState.tag})` : "";
+  const finalPrTitle = `${prTitle}${finalPreState}`;
+  const finalCommitMessage = `${commitMessage}${finalPreState}`;
 
   const existingPullRequests = await octokit.rest.pulls.list({
     ...context.repo,
@@ -415,14 +405,15 @@ export async function runVersion({
   });
 
   const changedPackagesInfo = (await changedPackagesInfoPromises)
-    .filter((x) => x)
+    .filter(Boolean)
     .sort(sortTheThings);
 
-  let prBody = await getVersionPrBody({
+  const finalPrBody = await getVersionPrBody({
     hasPublishScript,
     preState,
     branch,
     changedPackagesInfo,
+    prBody,
     prBodyMaxCharacters,
   });
 
@@ -432,7 +423,7 @@ export async function runVersion({
       base: branch,
       head: versionBranch,
       title: finalPrTitle,
-      body: prBody,
+      body: finalPrBody,
       draft: prDraft !== undefined,
       ...context.repo,
     });
@@ -483,7 +474,7 @@ export async function runVersion({
     await octokit.graphql(updatePullRequestMutation, {
       pullRequestId: pullRequest.node_id,
       title: finalPrTitle,
-      body: prBody,
+      body: finalPrBody,
     });
 
     return {
