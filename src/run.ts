@@ -33,7 +33,7 @@ const MAX_CHARACTERS_PER_MESSAGE = 60000;
 
 const createRelease = async (
   octokit: Octokit,
-  { pkg, tagName }: { pkg: Package; tagName: string },
+  { pkg, tagName, draft }: { pkg: Package; tagName: string; draft: boolean },
 ) => {
   let changelog;
   try {
@@ -59,6 +59,7 @@ const createRelease = async (
     tag_name: tagName,
     body: changelogEntry.content,
     prerelease: pkg.packageJson.version.includes("-"),
+    draft,
     ...context.repo,
   });
 };
@@ -67,6 +68,7 @@ type PublishOptions = {
   script?: string;
   fromPackDir?: string;
   createGithubReleases: boolean;
+  githubReleasesDraft: boolean;
   pushGitTags: boolean;
   github: GitHub;
   cwd: string;
@@ -160,6 +162,7 @@ export async function runPublish({
   fromPackDir,
   github,
   createGithubReleases,
+  githubReleasesDraft,
   pushGitTags,
   cwd,
 }: PublishOptions): Promise<PublishResult> {
@@ -239,7 +242,11 @@ export async function runPublish({
           await github.pushTag(tag);
         }
         if (createGithubReleases) {
-          await createRelease(octokit, { pkg, tagName: tag });
+          await createRelease(octokit, {
+            pkg,
+            tagName: tag,
+            draft: githubReleasesDraft,
+          });
         }
       }),
     );
