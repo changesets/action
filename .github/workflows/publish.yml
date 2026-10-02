@@ -33,7 +33,7 @@ jobs:
 
       - name: Select mode
         id: select-mode
-        uses: ./select-mode
+        uses: $/select-mode
 
   version:
     name: Version
@@ -62,7 +62,7 @@ jobs:
 
       - name: Create or update release pull request
         id: changesets
-        uses: ./version
+        uses: $/version
         with:
           github-token: ${{ steps.bot-auth.outputs.token }}
           script: pnpm bump
@@ -92,7 +92,7 @@ jobs:
           permission-contents: write # to bypass branch and tag protection rules (release.ts)
 
       - name: Publish to marketplace
-        uses: ./publish
+        uses: $/publish
         with:
           github-token: ${{ steps.bot-auth.outputs.token }}
           script: pnpm release
