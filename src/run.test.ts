@@ -44,10 +44,10 @@ let mockedGraphql = vi.fn();
 
 const nodeModulesDir = path.join(import.meta.dirname, "..", "node_modules");
 
-function createSimpleProjectFixture() {
+function createSimpleProjectFixture(config = {}) {
   return gitdir({
     node_modules: (api) => api.symlink(nodeModulesDir),
-    ".changeset/config.json": JSON.stringify({}),
+    ".changeset/config.json": JSON.stringify(config),
     "packages/pkg-a/package.json": JSON.stringify({
       name: "changesets-dev-simple-project-pkg-a",
       version: "1.0.0",
@@ -303,6 +303,42 @@ describe("version", () => {
           releases: [
             {
               name: "changesets-dev-ignored-package-pkg-b",
+              type: "minor",
+            },
+          ],
+          summary: "Awesome feature",
+        },
+      ],
+      cwd,
+    );
+
+    await runVersion({
+      github: createGithub(cwd),
+      cwd,
+    });
+
+    expect(mockedGithubMethods.pulls.create.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it("creates PR when changelogs are disabled", async () => {
+    await using fixture = await createSimpleProjectFixture({
+      changelog: false,
+    });
+    const cwd = fixture.path;
+    await updateGithubContext(cwd);
+
+    mockedGithubMethods.pulls.list.mockImplementationOnce(() => ({ data: [] }));
+
+    mockedGithubMethods.pulls.create.mockImplementationOnce(() => ({
+      data: { number: 123 },
+    }));
+
+    await writeChangesets(
+      [
+        {
+          releases: [
+            {
+              name: "changesets-dev-simple-project-pkg-a",
               type: "minor",
             },
           ],
