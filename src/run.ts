@@ -375,10 +375,18 @@ export async function runVersion({
   let changedPackages = await getChangedPackages(cwd, versionsByDirectory);
   let changedPackagesInfoPromises = Promise.all(
     changedPackages.map(async (pkg) => {
-      let changelogContents = await fs.readFile(
-        path.join(pkg.dir, "CHANGELOG.md"),
-        "utf8",
-      );
+      let changelogContents = "";
+      try {
+        changelogContents = await fs.readFile(
+          path.join(pkg.dir, "CHANGELOG.md"),
+          "utf8",
+        );
+      } catch (err) {
+        // if we can't find a changelog, the user has probably disabled changelogs
+        if (!isErrorWithCode(err, "ENOENT")) {
+          throw err;
+        }
+      }
 
       let entry = getChangelogEntry(changelogContents, pkg.packageJson.version);
       return {
