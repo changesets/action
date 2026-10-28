@@ -46,6 +46,17 @@ If using [trusted publishing](https://docs.npmjs.com/trusted-publishers), it's r
 >
 > Setting the `GITHUB_TOKEN` environment variable does not configure the action. This applies whether release changes are pushed using the GitHub API or the Git CLI.
 
+> [!TIP]
+> If a fork of your repository has GitHub Actions enabled, the workflow also runs in the fork when its base branch is updated, and can open version pull requests there. Your repository secrets aren't available in forks either, so publishing from them would fail. To skip runs on forks, check the repository name in the job's `if` condition:
+>
+> ```yaml
+> jobs:
+>   publish:
+>     if: github.repository == 'owner/repo'
+> ```
+>
+> When using the sub-actions, add the condition to the `select-mode` job so the jobs that depend on it are skipped too.
+
 ### API
 
 <!-- api-start -->
